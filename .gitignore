@@ -2,6 +2,7 @@
 *~
 tmp/
 composer.lock
+.vscode/
 /vendor/
 cache/
 *.env
