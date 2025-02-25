@@ -1,0 +1,32 @@
+.*
+*~
+tmp/
+composer.lock
+/vendor/
+cache/
+*.env
+*.map
+# Packages #
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.cert
+*.key
+# Logs and databases #
+logs/
+*.log
+*.sqlite
+# OS generated files #
+.DS_Store*
+Thumbs.db
+!.gitignore
+!.htaccess
+!.gitkeep
+!.editorconfig
+!.gitattributes
+!.vscode
