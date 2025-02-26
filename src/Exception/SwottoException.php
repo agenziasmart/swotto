@@ -9,7 +9,7 @@ namespace Swotto\Exception;
  *
  * Base exception for all Swotto exceptions
  */
-class SwottoException extends \Exception
+class SwottoException extends \Exception implements SwottoExceptionInterface
 {
   /**
    * @var array Error data
