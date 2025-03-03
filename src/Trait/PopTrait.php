@@ -312,9 +312,12 @@ trait PopTrait
    *
    * @return array POP data
    */
-  public function getWhsinboundPop(): array
+  public function getWhsinboundPop(?array $query = []): array
   {
-    $query = ['limit' => 0, 'orderby' => 'created_on'];
+    $query = array_merge($query ?? [], [
+      'limit' => 0,
+      'orderby' => 'created_on'
+    ]);
     return $this->fetchPop('whsinbound/qpop', $query);
   }
 
