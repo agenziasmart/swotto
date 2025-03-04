@@ -2,7 +2,7 @@
   "name": "agenziasmart/swotto",
   "description": "PHP SDK for Swotto API",
   "type": "library",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "keywords": [
     "swotto",
     "sw4",
@@ -16,7 +16,7 @@
     }
   ],
   "require": {
-    "php": ">=8.2",
+    "php": ">=8.1",
     "guzzlehttp/guzzle": "^7.5",
     "psr/log": "^3.0",
     "psr/http-message": "^1.0 || ^2.0",
