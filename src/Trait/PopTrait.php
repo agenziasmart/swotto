@@ -19,8 +19,8 @@ trait PopTrait
    */
   public function getGenderPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], ['public' => true]);
-    return $this->fetchPop('gender', $query);
+    $query = \array_merge($query ?? [], ['public' => true]);
+    return $this->fetchPop('open/gender', $query);
   }
 
   /**
@@ -31,8 +31,8 @@ trait PopTrait
    */
   public function getUserRolePop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], ['public' => true]);
-    return $this->fetchPop('role', $query);
+    $query = \array_merge($query ?? [], ['public' => true]);
+    return $this->fetchPop('open/role', $query);
   }
 
   /**
@@ -54,7 +54,7 @@ trait PopTrait
    */
   public function getCountryPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name',
       'columns' => 'code,name'
@@ -70,7 +70,7 @@ trait PopTrait
    */
   public function getSysLanguagePop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name',
       'columns' => 'name,code'
@@ -86,7 +86,7 @@ trait PopTrait
    */
   public function getCurrencyPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name',
       'columns' => 'code,name'
@@ -102,7 +102,7 @@ trait PopTrait
    */
   public function getCustomerPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name',
       'columns' => 'id,name'
@@ -118,7 +118,7 @@ trait PopTrait
    */
   public function getTemplatePop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name',
       'columns' => 'uuid,name'
@@ -134,7 +134,7 @@ trait PopTrait
    */
   public function getIncotermPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name',
       'columns' => 'uuid,name,code'
@@ -161,7 +161,7 @@ trait PopTrait
    */
   public function getCarrierPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name',
       'columns' => 'id,name'
@@ -177,7 +177,7 @@ trait PopTrait
    */
   public function getCategoryPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name'
     ]);
@@ -192,7 +192,7 @@ trait PopTrait
    */
   public function getSupplierPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name',
       'columns' => 'id,name'
@@ -208,7 +208,7 @@ trait PopTrait
    */
   public function getWarehousePop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name'
     ]);
@@ -224,7 +224,7 @@ trait PopTrait
    */
   public function getWarehouseZonePop(int $id, ?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name'
     ]);
@@ -239,7 +239,7 @@ trait PopTrait
    */
   public function getProjectPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name'
     ]);
@@ -254,7 +254,7 @@ trait PopTrait
    */
   public function getProductPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name',
       'columns' => 'id,name'
@@ -270,7 +270,7 @@ trait PopTrait
    */
   public function getPaymentType(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name'
     ]);
@@ -285,7 +285,7 @@ trait PopTrait
    */
   public function getAgreementPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name'
     ]);
@@ -300,7 +300,7 @@ trait PopTrait
    */
   public function getWhsreasonPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name'
     ]);
@@ -314,7 +314,7 @@ trait PopTrait
    */
   public function getWhsinboundPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'created_on'
     ]);
@@ -329,7 +329,7 @@ trait PopTrait
    */
   public function getWhsorderPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'created_on'
     ]);
@@ -344,7 +344,7 @@ trait PopTrait
    */
   public function getFamilyPop(?array $query = []): array
   {
-    $query = array_merge($query ?? [], [
+    $query = \array_merge($query ?? [], [
       'limit' => 0,
       'orderby' => 'name'
     ]);
