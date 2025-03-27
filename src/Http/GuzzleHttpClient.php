@@ -34,7 +34,7 @@ class GuzzleHttpClient implements HttpClientInterface
   /**
    * @var string SDK version
    */
-  private const VERSION = '1.0.3';
+  private const VERSION = '1.0.7';
 
   /**
    * @var int Default request timeout
@@ -84,10 +84,21 @@ class GuzzleHttpClient implements HttpClientInterface
    */
   public function initialize(array $config): void
   {
+    // SDK User-Agent
+    $sdkUserAgent = 'Swotto-SDK/' . self::VERSION . ' PHP/' . PHP_VERSION;
+
+    // Client original User-Agent
+    $clientUserAgent = $this->config->detectClientUserAgent();
+    $clientIp = $this->config->detectClientIp();
+
     $headers = array_merge(
       [
         'x-author' => self::AUTHOR,
         'x-version' => self::VERSION,
+        'User-Agent' => $sdkUserAgent,
+        'X-Original-User-Agent' => $clientUserAgent,
+        'X-Forwarded-For' => $clientIp,
+        'X-Original-IP' => $clientIp,
       ],
       $this->config->getHeaders()
     );

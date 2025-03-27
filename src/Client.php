@@ -165,4 +165,26 @@ class Client implements ClientInterface
     $this->config = $this->config->update($newConfig);
     $this->httpClient->initialize($this->config->toArray());
   }
+
+  /**
+   * Set client original user agent
+   *
+   * @param string $userAgent Original client user agent
+   * @return void
+   */
+  public function setClientUserAgent(string $userAgent): void
+  {
+    $this->updateConfig(['client_user_agent' => $userAgent]);
+  }
+
+  /**
+   * Set client original IP
+   *
+   * @param string $ip Original client IP
+   * @return void
+   */
+  public function setClientIp(string $ip): void
+  {
+    $this->updateConfig(['client_ip' => $ip]);
+  }
 }

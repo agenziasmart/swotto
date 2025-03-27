@@ -126,6 +126,35 @@ class Configuration
     return rtrim($this->get('url'), '/');
   }
 
+  public function detectClientUserAgent(): ?string
+  {
+    if (PHP_SAPI !== 'cli' && isset($_SERVER['HTTP_USER_AGENT'])) {
+      return $_SERVER['HTTP_USER_AGENT'] ?? null;
+    }
+    return $this->get('client_user_agent', null);
+  }
+
+  public function detectClientIp(): ?string
+  {
+    if (PHP_SAPI !== 'cli') {
+      // Check standard headers that might contain the real IP
+      if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        return $_SERVER['HTTP_CLIENT_IP'];
+      }
+
+      // Check for proxy forwarded IP
+      if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        // HTTP_X_FORWARDED_FOR può contenere una lista di IP, prendiamo il primo
+        $ipList = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        return trim($ipList[0]);
+      }
+
+      // REMOTE_ADDR is the most reliable but might be the proxy's IP
+      return $_SERVER['REMOTE_ADDR'] ?? null;
+    }
+    return $this->get('client_ip', null);
+  }
+
   /**
    * Get HTTP headers from configuration
    *
@@ -139,6 +168,9 @@ class Configuration
       'Authorization' => $this->get('access_token') ? "Bearer {$this->get('access_token')}" : null,
       'x-devapp' => $this->get('key'),
       'x-sid' => $this->get('session_id'),
+      'User-Agent' => $this->detectClientUserAgent(),
+      'X-Forwarded-For' => $this->detectClientIp(),
+
     ]);
   }
 }
