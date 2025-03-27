@@ -162,15 +162,16 @@ class Configuration
    */
   public function getHeaders(): array
   {
+    $clientIp = $this->detectClientIp();
+    $clientUa = $this->detectClientUserAgent();
     return array_filter([
       'Accept' => $this->get('accept', 'application/json'),
       'Accept-Language' => $this->get('language', 'en'),
       'Authorization' => $this->get('access_token') ? "Bearer {$this->get('access_token')}" : null,
       'x-devapp' => $this->get('key'),
       'x-sid' => $this->get('session_id'),
-      'User-Agent' => $this->detectClientUserAgent(),
-      'X-Forwarded-For' => $this->detectClientIp(),
-
+      'User-Agent' => $clientUa,
+      'X-Client-IP' => $clientIp,
     ]);
   }
 }
