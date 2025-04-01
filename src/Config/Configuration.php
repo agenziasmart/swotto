@@ -171,7 +171,7 @@ class Configuration
       'x-devapp' => $this->get('key'),
       'x-sid' => $this->get('session_id'),
       'User-Agent' => $clientUa,
-      'X-Client-IP' => $clientIp,
+      'Client-Ip' => $clientIp,
     ]);
   }
 }
