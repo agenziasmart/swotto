@@ -87,6 +87,14 @@ class Client implements ClientInterface
   /**
    * {@inheritdoc}
    */
+  public function put(string $uri, array $options = []): array
+  {
+    return $this->httpClient->request('PUT', $uri, $options);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function delete(string $uri, array $options = []): array
   {
     return $this->httpClient->request('DELETE', $uri, $options);

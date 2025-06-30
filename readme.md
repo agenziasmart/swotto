@@ -1,12 +1,12 @@
-# Guida all'Implementazione di Swotto Client v2.0
+# Guida all'Implementazione di Swotto Client v1.2.0
 
-Questa guida descrive i passaggi per implementare e utilizzare il client Swotto v2.0 nella tua applicazione PHP.
+Questa guida descrive i passaggi per implementare e utilizzare il client Swotto v1.2.0 nella tua applicazione PHP.
 
 ## Installazione
 
 ### Requisiti
 
-- PHP 8.2 o superiore
+- PHP 8.1 o superiore
 - Composer
 - ext-json
 
@@ -23,7 +23,7 @@ In alternativa, puoi aggiungere manualmente la dipendenza al tuo file `composer.
 ```json
 {
     "require": {
-        "agenziasmart/swotto": "^2.0"
+        "agenziasmart/swotto": "^1.2"
     }
 }
 ```

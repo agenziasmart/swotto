@@ -45,6 +45,17 @@ interface ClientInterface
   public function patch(string $uri, array $options = []): array;
 
   /**
+   * Send a PUT request
+   *
+   * @param string $uri The URI to request
+   * @param array $options Request options to apply
+   * @return array The response data
+   *
+   * @throws \Swotto\Exception\SwottoException On error
+   */
+  public function put(string $uri, array $options = []): array;
+
+  /**
    * Send a DELETE request
    *
    * @param string $uri The URI to request
