@@ -29,7 +29,7 @@ class GuzzleHttpClient implements HttpClientInterface
     /**
      * @var string SDK version
      */
-    private const VERSION = '1.2.0';
+    private const VERSION = '1.3.0';
 
     /**
      * @var int Default request timeout

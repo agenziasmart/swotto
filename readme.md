@@ -1,6 +1,6 @@
-# Guida all'Implementazione di Swotto Client v1.2.0
+# Guida all'Implementazione di Swotto Client v1.3.0
 
-Questa guida descrive i passaggi per implementare e utilizzare il client Swotto v1.2.0 nella tua applicazione PHP.
+Questa guida descrive i passaggi per implementare e utilizzare il client Swotto v1.3.0 nella tua applicazione PHP.
 
 ## Installazione
 
@@ -23,7 +23,7 @@ In alternativa, puoi aggiungere manualmente la dipendenza al tuo file `composer.
 ```json
 {
     "require": {
-        "agenziasmart/swotto": "^1.2"
+        "agenziasmart/swotto": "^1.3"
     }
 }
 ```
@@ -248,3 +248,73 @@ $client->setLanguage('en');
 // Cambia header Accept
 $client->setAccept('application/xml');
 ```
+
+## Sviluppo
+
+### Qualità del Codice
+
+Il progetto utilizza diversi strumenti per garantire la qualità del codice:
+
+#### PHP CS Fixer
+Formatazione automatica del codice secondo lo standard PSR-12:
+
+```bash
+# Esegui la formattazione
+composer cs-fix
+
+# Controlla la formattazione (dry run)
+composer cs-dry
+```
+
+#### PHPStan
+Analisi statica del codice per identificare errori potenziali:
+
+```bash
+# Esegui l'analisi
+composer phpstan
+```
+
+#### Test
+Suite completa di test per garantire la stabilità:
+
+```bash
+# Esegui tutti i test
+composer test
+
+# Test con coverage
+composer test-coverage
+```
+
+### Configurazione VSCode
+
+Per un'esperienza di sviluppo ottimale, il progetto include configurazioni per VSCode:
+
+- Formattazione automatica al salvataggio
+- Integrazione con PHP CS Fixer
+- Configurazione PHPStan
+- Esclusione di file non necessari
+
+### Hooks di Sviluppo
+
+Il progetto è configurato per eseguire automaticamente:
+
+- Formattazione del codice al salvataggio (VSCode)
+- Analisi statica con PHPStan
+- Test unitari prima del commit (se configurati)
+
+## Novità v1.3.0
+
+### Miglioramenti
+
+- **PHP CS Fixer**: Implementato per mantenere uno stile di codice coerente
+- **PHPStan**: Analisi statica livello 8 per maggiore sicurezza del codice
+- **Test Suite**: Copertura completa con 57 test e 148 asserzioni
+- **Configurazione VSCode**: Setup ottimizzato per lo sviluppo
+- **Gestione Eccezioni**: Migliorata la gestione delle eccezioni con costruttori standardizzati
+
+### Correzioni
+
+- Risolti problemi di type hinting
+- Migliorata la gestione dei parametri null
+- Standardizzati i costruttori delle eccezioni
+- Ottimizzata la configurazione di sviluppo
