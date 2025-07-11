@@ -4,190 +4,192 @@ declare(strict_types=1);
 
 namespace Swotto\Tests;
 
-use Swotto\Client;
-use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Swotto\Client;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Exception\ConnectionException;
 use Swotto\Exception\ValidationException;
 
 class ClientTest extends TestCase
 {
-  private $mockHttpClient;
-  private $mockLogger;
-  private $client;
+    private HttpClientInterface $mockHttpClient;
 
-  protected function setUp(): void
-  {
-    $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
-    $this->mockLogger = $this->createMock(LoggerInterface::class);
+    private LoggerInterface $mockLogger;
 
-    $this->client = new Client(
-      ['url' => 'https://api.example.com'],
-      $this->mockLogger,
-      $this->mockHttpClient
-    );
-  }
+    private Client $client;
 
-  public function testGet(): void
-  {
-    $expectedResponse = ['data' => ['key' => 'value']];
+    protected function setUp(): void
+    {
+        $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
+        $this->mockLogger = $this->createMock(LoggerInterface::class);
 
-    $this->mockHttpClient->expects($this->once())
-      ->method('request')
-      ->with('GET', 'test-endpoint', ['query' => ['param' => 'value']])
-      ->willReturn($expectedResponse);
+        $this->client = new Client(
+            ['url' => 'https://api.example.com'],
+            $this->mockLogger,
+            $this->mockHttpClient
+        );
+    }
 
-    $result = $this->client->get('test-endpoint', ['query' => ['param' => 'value']]);
+    public function testGet(): void
+    {
+        $expectedResponse = ['data' => ['key' => 'value']];
 
-    $this->assertEquals($expectedResponse, $result);
-  }
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('GET', 'test-endpoint', ['query' => ['param' => 'value']])
+          ->willReturn($expectedResponse);
 
-  public function testPost(): void
-  {
-    $expectedResponse = ['data' => ['id' => 123]];
+        $result = $this->client->get('test-endpoint', ['query' => ['param' => 'value']]);
 
-    $this->mockHttpClient->expects($this->once())
-      ->method('request')
-      ->with('POST', 'test-endpoint', ['json' => ['name' => 'Test']])
-      ->willReturn($expectedResponse);
+        $this->assertEquals($expectedResponse, $result);
+    }
 
-    $result = $this->client->post('test-endpoint', ['json' => ['name' => 'Test']]);
+    public function testPost(): void
+    {
+        $expectedResponse = ['data' => ['id' => 123]];
 
-    $this->assertEquals($expectedResponse, $result);
-  }
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('POST', 'test-endpoint', ['json' => ['name' => 'Test']])
+          ->willReturn($expectedResponse);
 
-  public function testPut(): void
-  {
-    $expectedResponse = ['data' => ['id' => 123]];
+        $result = $this->client->post('test-endpoint', ['json' => ['name' => 'Test']]);
 
-    $this->mockHttpClient->expects($this->once())
-      ->method('request')
-      ->with('PUT', 'test-endpoint/123', ['json' => ['name' => 'Updated']])
-      ->willReturn($expectedResponse);
+        $this->assertEquals($expectedResponse, $result);
+    }
 
-    $result = $this->client->put('test-endpoint/123', ['json' => ['name' => 'Updated']]);
+    public function testPut(): void
+    {
+        $expectedResponse = ['data' => ['id' => 123]];
 
-    $this->assertEquals($expectedResponse, $result);
-  }
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('PUT', 'test-endpoint/123', ['json' => ['name' => 'Updated']])
+          ->willReturn($expectedResponse);
 
-  public function testDelete(): void
-  {
-    $expectedResponse = [];
+        $result = $this->client->put('test-endpoint/123', ['json' => ['name' => 'Updated']]);
 
-    $this->mockHttpClient->expects($this->once())
-      ->method('request')
-      ->with('DELETE', 'test-endpoint/123', [])
-      ->willReturn($expectedResponse);
+        $this->assertEquals($expectedResponse, $result);
+    }
 
-    $result = $this->client->delete('test-endpoint/123');
+    public function testDelete(): void
+    {
+        $expectedResponse = [];
 
-    $this->assertEquals($expectedResponse, $result);
-  }
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('DELETE', 'test-endpoint/123', [])
+          ->willReturn($expectedResponse);
 
-  public function testCheckConnectionSuccess(): void
-  {
-    $this->mockHttpClient->expects($this->once())
-      ->method('request')
-      ->with('GET', 'ping', [])
-      ->willReturn(['status' => 'ok']);
+        $result = $this->client->delete('test-endpoint/123');
 
-    $result = $this->client->checkConnection();
+        $this->assertEquals($expectedResponse, $result);
+    }
 
-    $this->assertTrue($result);
-  }
+    public function testCheckConnectionSuccess(): void
+    {
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('GET', 'ping', [])
+          ->willReturn(['status' => 'ok']);
 
-  public function testCheckConnectionFailure(): void
-  {
-    $this->mockHttpClient->expects($this->once())
-      ->method('request')
-      ->with('GET', 'ping', [])
-      ->willThrowException(new ConnectionException('Connection failed', 'https://api.example.com'));
+        $result = $this->client->checkConnection();
 
-    $result = $this->client->checkConnection();
+        $this->assertTrue($result);
+    }
 
-    $this->assertFalse($result);
-  }
+    public function testCheckConnectionFailure(): void
+    {
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('GET', 'ping', [])
+          ->willThrowException(new ConnectionException('Connection failed', 'https://api.example.com'));
 
-  public function testFetchPop(): void
-  {
-    $expectedData = [
-      ['id' => 1, 'name' => 'Item 1'],
-      ['id' => 2, 'name' => 'Item 2']
-    ];
+        $result = $this->client->checkConnection();
 
-    $this->mockHttpClient->expects($this->once())
-      ->method('request')
-      ->with('GET', 'test-pop', ['query' => ['param' => 'value']])
-      ->willReturn(['data' => $expectedData]);
+        $this->assertFalse($result);
+    }
 
-    $result = $this->client->fetchPop('test-pop', ['param' => 'value']);
+    public function testFetchPop(): void
+    {
+        $expectedData = [
+          ['id' => 1, 'name' => 'Item 1'],
+          ['id' => 2, 'name' => 'Item 2'],
+        ];
 
-    $this->assertEquals($expectedData, $result);
-  }
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('GET', 'test-pop', ['query' => ['param' => 'value']])
+          ->willReturn(['data' => $expectedData]);
 
-  public function testFetchPopWithEmptyResponse(): void
-  {
-    $this->mockHttpClient->expects($this->once())
-      ->method('request')
-      ->with('GET', 'empty-pop', ['query' => []])
-      ->willReturn([]);
+        $result = $this->client->fetchPop('test-pop', ['param' => 'value']);
 
-    $result = $this->client->fetchPop('empty-pop');
+        $this->assertEquals($expectedData, $result);
+    }
 
-    $this->assertEquals([], $result);
-  }
+    public function testFetchPopWithEmptyResponse(): void
+    {
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('GET', 'empty-pop', ['query' => []])
+          ->willReturn([]);
 
-  public function testExceptionHandling(): void
-  {
-    $this->mockHttpClient->expects($this->once())
-      ->method('request')
-      ->with('GET', 'invalid-endpoint', [])
-      ->willThrowException(new ValidationException('Invalid request', ['field' => 'error'], 400));
+        $result = $this->client->fetchPop('empty-pop');
 
-    $this->expectException(ValidationException::class);
-    $this->expectExceptionMessage('Invalid request');
-    $this->expectExceptionCode(400);
+        $this->assertEquals([], $result);
+    }
 
-    $this->client->get('invalid-endpoint');
-  }
+    public function testExceptionHandling(): void
+    {
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('GET', 'invalid-endpoint', [])
+          ->willThrowException(new ValidationException('Invalid request', ['field' => 'error'], 400));
 
-  public function testSetSessionId(): void
-  {
-    $sessionId = 'test-session-id';
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Invalid request');
+        $this->expectExceptionCode(400);
 
-    $this->mockHttpClient->expects($this->once())
-      ->method('initialize')
-      ->with($this->callback(function ($config) use ($sessionId) {
-        return $config['session_id'] === $sessionId;
-      }));
+        $this->client->get('invalid-endpoint');
+    }
 
-    $this->client->setSessionId($sessionId);
-  }
+    public function testSetSessionId(): void
+    {
+        $sessionId = 'test-session-id';
 
-  public function testSetLanguage(): void
-  {
-    $language = 'it';
+        $this->mockHttpClient->expects($this->once())
+          ->method('initialize')
+          ->with($this->callback(function ($config) use ($sessionId) {
+              return $config['session_id'] === $sessionId;
+          }));
 
-    $this->mockHttpClient->expects($this->once())
-      ->method('initialize')
-      ->with($this->callback(function ($config) use ($language) {
-        return $config['language'] === $language;
-      }));
+        $this->client->setSessionId($sessionId);
+    }
 
-    $this->client->setLanguage($language);
-  }
+    public function testSetLanguage(): void
+    {
+        $language = 'it';
 
-  public function testSetAccept(): void
-  {
-    $accept = 'application/xml';
+        $this->mockHttpClient->expects($this->once())
+          ->method('initialize')
+          ->with($this->callback(function ($config) use ($language) {
+              return $config['language'] === $language;
+          }));
 
-    $this->mockHttpClient->expects($this->once())
-      ->method('initialize')
-      ->with($this->callback(function ($config) use ($accept) {
-        return $config['accept'] === $accept;
-      }));
+        $this->client->setLanguage($language);
+    }
 
-    $this->client->setAccept($accept);
-  }
+    public function testSetAccept(): void
+    {
+        $accept = 'application/xml';
+
+        $this->mockHttpClient->expects($this->once())
+          ->method('initialize')
+          ->with($this->callback(function ($config) use ($accept) {
+              return $config['accept'] === $accept;
+          }));
+
+        $this->client->setAccept($accept);
+    }
 }

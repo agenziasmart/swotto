@@ -1,0 +1,24 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - vendor
+    reportUnmatchedIgnoredErrors: false
+    tmpDir: build/phpstan
+    ignoreErrors:
+        - '#Call to an undefined method.*#'
+        - '#Access to an undefined property.*#'
+        - '#Variable \$[a-zA-Z0-9_]+ might not be defined#'
+        -
+            identifier: missingType.iterableValue
+        -
+            identifier: missingType.generics
+    bootstrapFiles:
+        - vendor/autoload.php
+    scanDirectories:
+        - src
+        - tests
+    scanFiles: []
+    editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'
