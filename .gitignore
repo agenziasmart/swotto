@@ -30,3 +30,24 @@ Thumbs.db
 !.gitkeep
 !.editorconfig
 !.gitattributes
+
+# Claude Code files and directories
+CLAUDE.md
+.claude/
+.claude*
+**/CLAUDE.md
+
+# Security - Prevent sensitive data commits
+# Build and cache files (may contain sensitive data)
+/build/
+phpstan-result-cache.php
+*.cache
+
+# Environment and config files
+*.env*
+config.local.php
+settings.local.json
+
+# Test files with real data
+**/test-data/
+**/*real*.json
