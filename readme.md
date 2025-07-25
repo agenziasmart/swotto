@@ -1,6 +1,40 @@
-# Guida all'Implementazione di Swotto Client v1.3.0
+# Swotto PHP SDK
 
-Questa guida descrive i passaggi per implementare e utilizzare il client Swotto v1.3.0 nella tua applicazione PHP.
+![Version](https://img.shields.io/badge/version-v1.3.0-blue.svg)
+![PHP](https://img.shields.io/badge/PHP-%3E%3D8.1-777BB4.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![PSR-12](https://img.shields.io/badge/code%20style-PSR--12-orange.svg)
+![PHPStan](https://img.shields.io/badge/PHPStan-level%208-brightgreen.svg)
+
+Libreria PHP per l'integrazione con le API SW4, fornisce un'interfaccia type-safe e completa per tutti i servizi SW4.
+
+## Indice
+
+- [Quick Start](#quick-start)
+- [Installazione](#installazione)
+- [Configurazione Base](#configurazione-base)
+- [Metodi HTTP di base](#metodi-http-di-base)
+- [Gestione degli Errori](#gestione-degli-errori)
+- [Utilizzo dei Metodi POP](#utilizzo-dei-metodi-pop)
+- [Test e Verifica](#test-e-verifica)
+- [Architettura](#architettura)
+- [Sviluppo](#sviluppo)
+- [Performance](#performance)
+- [Troubleshooting](#troubleshooting)
+- [Changelog](#changelog)
+
+## Quick Start
+
+```php
+use Swotto\Client;
+
+// Configurazione minimal
+$client = new Client(['url' => 'https://api.swotto.it']);
+
+// Esempio di utilizzo
+$customers = $client->getCustomerPop();
+$result = $client->get('endpoint', ['query' => ['param' => 'value']]);
+```
 
 ## Installazione
 
@@ -10,29 +44,36 @@ Questa guida descrive i passaggi per implementare e utilizzare il client Swotto 
 - Composer
 - ext-json
 
-### Aggiungere la dipendenza
+### Installazione via Composer
 
-Aggiungi il client Swotto al tuo progetto tramite Composer:
+Il progetto utilizza **git tags** per il versioning. Installa una versione specifica:
 
 ```bash
-composer require agenziasmart/swotto
+# Versione corrente stabile
+composer require agenziasmart/swotto:v1.3.0
+
+# Range di versioni compatibili
+composer require agenziasmart/swotto:^v1.3
 ```
 
-In alternativa, puoi aggiungere manualmente la dipendenza al tuo file `composer.json`:
+### Configurazione composer.json
 
 ```json
 {
     "require": {
-        "agenziasmart/swotto": "^1.3"
+        "agenziasmart/swotto": "v1.3.0"
     }
 }
 ```
 
-E quindi eseguire:
+### Versioning e Release
 
-```bash
-composer update
-```
+Il progetto segue [Semantic Versioning](https://semver.org/):
+- **v1.3.0**: Release corrente con test suite completa, PHPStan level 8
+- **v1.2.0**: Aggiunto supporto metodi HTTP PUT
+- **v1.0.x**: Versioni legacy
+
+Tags disponibili: `git tag --list --sort=-version:refname`
 
 ## Configurazione Base
 
@@ -249,6 +290,75 @@ $client->setLanguage('en');
 $client->setAccept('application/xml');
 ```
 
+## Test e Verifica
+
+Il SDK include metodi per verificare connettività e stato:
+
+### Test di Connettività
+```php
+if ($client->checkConnection()) {
+    echo "API raggiungibile";
+}
+```
+
+### Verifica Autenticazione
+```php
+try {
+    $client->checkAuth();
+    echo "Credenziali valide";
+} catch (\Swotto\Exception\AuthenticationException $e) {
+    echo "Autenticazione fallita";
+}
+```
+
+## Architettura
+
+### PSR Standards Implementati
+
+- **PSR-3**: Logging interface per tracciamento richieste/risposte
+- **PSR-4**: Autoloading standard per namespace `Swotto\`
+- **PSR-12**: Code style con PHP CS Fixer per consistenza
+- **PSR-18**: HTTP Client interface per dependency injection
+
+### Dependency Injection
+
+```php
+use Swotto\Client;
+use Swotto\Http\GuzzleHttpClient;
+use Monolog\Logger;
+
+// Custom HTTP client implementation
+$httpClient = new GuzzleHttpClient($config, $logger);
+$client = new Client($config, $logger, $httpClient);
+```
+
+### Pattern Utilizzati
+
+- **Strategy Pattern**: `HttpClientInterface` per swappable HTTP implementations
+- **Trait Composition**: `PopTrait` per metodi SW4-specific
+- **Factory Method**: Configuration validation e object creation
+
+### Configurazione Completa
+
+Tutte le opzioni supportate da `Configuration.php`:
+
+```php
+$client = new Client([
+    'url' => 'https://api.swotto.it',        // Required: API endpoint
+    'key' => 'your-api-key',                 // API authentication key
+    'access_token' => 'bearer-token',        // OAuth/Bearer token
+    'session_id' => 'session-identifier',   // Session tracking
+    'language' => 'it',                      // Response language (it|en)
+    'accept' => 'application/json',          // Accept header
+    'verify_ssl' => true,                    // SSL certificate verification
+    'headers' => [                           // Custom headers
+        'X-Custom-Header' => 'value'
+    ],
+    'client_user_agent' => 'MyApp/1.0',     // Custom User-Agent
+    'client_ip' => '192.168.1.1'            // Client IP forwarding
+]);
+```
+
 ## Sviluppo
 
 ### Qualità del Codice
@@ -274,16 +384,31 @@ Analisi statica del codice per identificare errori potenziali:
 composer phpstan
 ```
 
-#### Test
-Suite completa di test per garantire la stabilità:
+#### Test Suite
+
+Suite completa con **57 test** e **148 asserzioni**:
 
 ```bash
 # Esegui tutti i test
 composer test
 
-# Test con coverage
+# Test specifici per componente
+vendor/bin/phpunit tests/ClientTest.php
+vendor/bin/phpunit tests/ConfigurationTest.php
+vendor/bin/phpunit tests/PopTraitTest.php
+vendor/bin/phpunit tests/GuzzleHttpClientTest.php
+vendor/bin/phpunit tests/ExceptionTest.php
+
+# Test con coverage dettagliata
 composer test-coverage
 ```
+
+**Copertura test per modulo:**
+- `ClientTest`: HTTP methods, authentication, configuration
+- `ConfigurationTest`: Validation, headers, IP/UserAgent detection  
+- `PopTraitTest`: Tutti i metodi POP specifici SW4
+- `GuzzleHttpClientTest`: HTTP client con scenari completi
+- `ExceptionTest`: Tutte le classi exception custom
 
 ### Configurazione VSCode
 
@@ -302,19 +427,87 @@ Il progetto è configurato per eseguire automaticamente:
 - Analisi statica con PHPStan
 - Test unitari prima del commit (se configurati)
 
-## Novità v1.3.0
+## Performance
 
-### Miglioramenti
+### Ottimizzazioni HTTP Client
+
+```php
+// Pool di connessioni per high-throughput
+$client = new Client([
+    'url' => 'https://api.swotto.it',
+    'headers' => [
+        'Connection' => 'keep-alive',
+        'Keep-Alive' => 'timeout=5, max=1000'
+    ]
+]);
+```
+
+### Rate Limiting Management
+
+```php
+try {
+    $result = $client->get('endpoint');
+} catch (\Swotto\Exception\RateLimitException $e) {
+    $retryAfter = $e->getRetryAfter();
+    sleep($retryAfter);
+    // Retry logic implementation
+}
+```
+
+### Connection Pooling Best Practices
+
+- Riutilizza istanze `Client` per múltiple richieste
+- Configura timeout appropriati per environment di produzione
+- Implementa retry logic exponential backoff per resilienza
+
+## Troubleshooting
+
+### Debug Logging
+
+```php
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+
+$logger = new Logger('swotto-debug');
+$logger->pushHandler(new StreamHandler('debug.log', Logger::DEBUG));
+
+$client = new Client($config, $logger);
+```
+
+### Problemi Comuni
+
+**SSL Certificate Verification Error**
+```php
+// Temporary fix per development (NON usare in production)
+$client = new Client(['url' => 'https://api.swotto.it', 'verify_ssl' => false]);
+```
+
+**Connection Timeout**
+```php
+// Aumenta timeout per API lente
+$client = new Client([
+    'url' => 'https://api.swotto.it',
+    'headers' => ['timeout' => 30]
+]);
+```
+
+**Memory Issues con Large Datasets**
+```php
+// Usa pagination per dataset grandi
+$customers = $client->getCustomerPop([
+    'limit' => 100,
+    'offset' => 0
+]);
+```
+
+## Changelog
+
+Vedi [CHANGELOG.md](CHANGELOG.md) per la storia completa delle release.
+
+### v1.3.0 - Highlights
 
 - **PHP CS Fixer**: Implementato per mantenere uno stile di codice coerente
 - **PHPStan**: Analisi statica livello 8 per maggiore sicurezza del codice
 - **Test Suite**: Copertura completa con 57 test e 148 asserzioni
 - **Configurazione VSCode**: Setup ottimizzato per lo sviluppo
 - **Gestione Eccezioni**: Migliorata la gestione delle eccezioni con costruttori standardizzati
-
-### Correzioni
-
-- Risolti problemi di type hinting
-- Migliorata la gestione dei parametri null
-- Standardizzati i costruttori delle eccezioni
-- Ottimizzata la configurazione di sviluppo
