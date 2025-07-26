@@ -13,7 +13,7 @@ class ConfigurationTest extends TestCase
     public function testValidConfiguration(): void
     {
         $config = new Configuration(['url' => 'https://api.example.com']);
-        
+
         $this->assertEquals('https://api.example.com', $config->getBaseUrl());
         $this->assertEquals('https://api.example.com', $config->get('url'));
     }
@@ -22,7 +22,7 @@ class ConfigurationTest extends TestCase
     {
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage("Configuration key 'url' is required");
-        
+
         new Configuration([]);
     }
 
@@ -30,7 +30,7 @@ class ConfigurationTest extends TestCase
     {
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage("Invalid configuration key: 'invalid_key'");
-        
+
         new Configuration([
             'url' => 'https://api.example.com',
             'invalid_key' => 'value',
@@ -41,7 +41,7 @@ class ConfigurationTest extends TestCase
     {
         $this->expectException(ConfigurationException::class);
         $this->expectExceptionMessage('verify_ssl must be boolean');
-        
+
         new Configuration([
             'url' => 'https://api.example.com',
             'verify_ssl' => 'not_boolean',
@@ -51,7 +51,7 @@ class ConfigurationTest extends TestCase
     public function testGetWithDefault(): void
     {
         $config = new Configuration(['url' => 'https://api.example.com']);
-        
+
         $this->assertEquals('default_value', $config->get('non_existent', 'default_value'));
         $this->assertNull($config->get('non_existent'));
     }
@@ -59,7 +59,7 @@ class ConfigurationTest extends TestCase
     public function testBaseUrlWithTrailingSlash(): void
     {
         $config = new Configuration(['url' => 'https://api.example.com/']);
-        
+
         $this->assertEquals('https://api.example.com', $config->getBaseUrl());
     }
 
@@ -67,7 +67,7 @@ class ConfigurationTest extends TestCase
     {
         $config = new Configuration(['url' => 'https://api.example.com']);
         $updatedConfig = $config->update(['key' => 'test_key']);
-        
+
         $this->assertEquals('test_key', $updatedConfig->get('key'));
         $this->assertEquals('https://api.example.com', $updatedConfig->get('url'));
         $this->assertNull($config->get('key')); // Original unchanged
@@ -80,9 +80,9 @@ class ConfigurationTest extends TestCase
             'key' => 'test_key',
             'language' => 'it',
         ];
-        
+
         $config = new Configuration($configData);
-        
+
         $this->assertEquals($configData, $config->toArray());
     }
 
@@ -96,9 +96,9 @@ class ConfigurationTest extends TestCase
             'language' => 'it',
             'accept' => 'application/xml',
         ]);
-        
+
         $headers = $config->getHeaders();
-        
+
         $this->assertEquals('application/xml', $headers['Accept']);
         $this->assertEquals('it', $headers['Accept-Language']);
         $this->assertEquals('Bearer token123', $headers['Authorization']);
@@ -109,9 +109,9 @@ class ConfigurationTest extends TestCase
     public function testGetHeadersWithoutOptionalValues(): void
     {
         $config = new Configuration(['url' => 'https://api.example.com']);
-        
+
         $headers = $config->getHeaders();
-        
+
         $this->assertEquals('application/json', $headers['Accept']);
         $this->assertEquals('en', $headers['Accept-Language']);
         $this->assertArrayNotHasKey('Authorization', $headers);
@@ -125,7 +125,7 @@ class ConfigurationTest extends TestCase
             'url' => 'https://api.example.com',
             'client_user_agent' => 'TestAgent/1.0',
         ]);
-        
+
         $this->assertEquals('TestAgent/1.0', $config->detectClientUserAgent());
     }
 
@@ -135,7 +135,7 @@ class ConfigurationTest extends TestCase
             'url' => 'https://api.example.com',
             'client_ip' => '192.168.1.1',
         ]);
-        
+
         $this->assertEquals('192.168.1.1', $config->detectClientIp());
     }
 }

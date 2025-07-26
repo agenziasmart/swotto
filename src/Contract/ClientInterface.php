@@ -129,4 +129,59 @@ interface ClientInterface
      * @throws \Swotto\Exception\SwottoException On error
      */
     public function fetchPop(string $uri, ?array $query = []): array;
+
+    /**
+     * Send a GET request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getParsed(string $uri, array $options = []): array;
+
+    /**
+     * Send a POST request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function postParsed(string $uri, array $options = []): array;
+
+    /**
+     * Send a PATCH request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function patchParsed(string $uri, array $options = []): array;
+
+    /**
+     * Send a PUT request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function putParsed(string $uri, array $options = []): array;
+
+    /**
+     * Send a DELETE request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function deleteParsed(string $uri, array $options = []): array;
 }

@@ -10,10 +10,8 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Swotto\Config\Configuration;
-use Swotto\Exception\ApiException;
 use Swotto\Exception\AuthenticationException;
 use Swotto\Exception\ConnectionException;
 use Swotto\Exception\ForbiddenException;
@@ -26,7 +24,9 @@ use Swotto\Http\GuzzleHttpClient;
 class GuzzleHttpClientTest extends TestCase
 {
     private Configuration $config;
+
     private LoggerInterface $mockLogger;
+
     private GuzzleHttpClient $httpClient;
 
     protected function setUp(): void
@@ -40,7 +40,7 @@ class GuzzleHttpClientTest extends TestCase
     {
         $responseData = ['success' => true, 'data' => 'test'];
         $response = new Response(200, [], json_encode($responseData));
-        
+
         $mockGuzzle = $this->createMock(GuzzleClient::class);
         $mockGuzzle->expects($this->once())
             ->method('request')
@@ -61,7 +61,7 @@ class GuzzleHttpClientTest extends TestCase
     public function testEmptyResponse(): void
     {
         $response = new Response(200, [], '');
-        
+
         $mockGuzzle = $this->createMock(GuzzleClient::class);
         $mockGuzzle->expects($this->once())
             ->method('request')
@@ -267,7 +267,7 @@ class GuzzleHttpClientTest extends TestCase
         // We'll simulate it by testing that the client can be created with valid URLs
         $config = new Configuration(['url' => 'https://api.example.com']);
         $client = new GuzzleHttpClient($config, $this->mockLogger);
-        
+
         $this->assertInstanceOf(GuzzleHttpClient::class, $client);
     }
 }

@@ -8,12 +8,13 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Swotto\Client;
 use Swotto\Contract\HttpClientInterface;
-use Swotto\Trait\PopTrait;
 
 class PopTraitTest extends TestCase
 {
     private HttpClientInterface $mockHttpClient;
+
     private LoggerInterface $mockLogger;
+
     private Client $client;
 
     protected function setUp(): void

@@ -192,4 +192,166 @@ class ClientTest extends TestCase
 
         $this->client->setAccept($accept);
     }
+
+    public function testGetParsed(): void
+    {
+        $mockResponse = [
+            'success' => true,
+            'data' => [
+                ['id' => 1, 'name' => 'Customer 1'],
+                ['id' => 2, 'name' => 'Customer 2'],
+            ],
+            'meta' => [
+                'pagination' => [
+                    'current_page' => 1,
+                    'per_page' => 10,
+                    'total_pages' => 5,
+                    'total' => 50,
+                ],
+            ],
+        ];
+
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('GET', 'customers', ['query' => ['active' => true]])
+          ->willReturn($mockResponse);
+
+        $result = $this->client->getParsed('customers', ['query' => ['active' => true]]);
+
+        $this->assertTrue($result['success']);
+        $this->assertEquals($mockResponse['data'], $result['data']);
+        $this->assertIsArray($result['paginator']);
+        $this->assertEquals(1, $result['paginator']['current']);
+        $this->assertEquals(5, $result['paginator']['last']);
+        $this->assertEquals(10, $result['paginator']['per_page']);
+        $this->assertEquals(50, $result['paginator']['results']);
+    }
+
+    public function testPostParsed(): void
+    {
+        $mockResponse = [
+            'success' => true,
+            'data' => ['id' => 123, 'name' => 'New Customer'],
+            'meta' => [],
+        ];
+
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('POST', 'customers', ['json' => ['name' => 'New Customer']])
+          ->willReturn($mockResponse);
+
+        $result = $this->client->postParsed('customers', ['json' => ['name' => 'New Customer']]);
+
+        $this->assertTrue($result['success']);
+        $this->assertEquals($mockResponse['data'], $result['data']);
+        $this->assertEquals([], $result['paginator']);
+    }
+
+    public function testPatchParsed(): void
+    {
+        $mockResponse = [
+            'success' => true,
+            'data' => ['id' => 123, 'name' => 'Updated Customer'],
+            'meta' => [],
+        ];
+
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('PATCH', 'customers/123', ['json' => ['name' => 'Updated Customer']])
+          ->willReturn($mockResponse);
+
+        $result = $this->client->patchParsed('customers/123', ['json' => ['name' => 'Updated Customer']]);
+
+        $this->assertTrue($result['success']);
+        $this->assertEquals($mockResponse['data'], $result['data']);
+    }
+
+    public function testPutParsed(): void
+    {
+        $mockResponse = [
+            'success' => true,
+            'data' => ['id' => 123, 'name' => 'Replaced Customer'],
+            'meta' => [],
+        ];
+
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('PUT', 'customers/123', ['json' => ['name' => 'Replaced Customer']])
+          ->willReturn($mockResponse);
+
+        $result = $this->client->putParsed('customers/123', ['json' => ['name' => 'Replaced Customer']]);
+
+        $this->assertTrue($result['success']);
+        $this->assertEquals($mockResponse['data'], $result['data']);
+    }
+
+    public function testDeleteParsed(): void
+    {
+        $mockResponse = [
+            'success' => true,
+            'data' => [],
+            'meta' => [],
+        ];
+
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('DELETE', 'customers/123', [])
+          ->willReturn($mockResponse);
+
+        $result = $this->client->deleteParsed('customers/123');
+
+        $this->assertTrue($result['success']);
+        $this->assertEquals([], $result['data']);
+    }
+
+    public function testParsedWithEmptyResponse(): void
+    {
+        $mockResponse = [
+            'success' => false,
+            'data' => null,
+        ];
+
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('GET', 'empty-endpoint', [])
+          ->willReturn($mockResponse);
+
+        $result = $this->client->getParsed('empty-endpoint');
+
+        $this->assertFalse($result['success']);
+        $this->assertEquals([], $result['data']);
+        $this->assertEquals([], $result['paginator']);
+    }
+
+    public function testParsedWithComplexPagination(): void
+    {
+        $mockResponse = [
+            'success' => true,
+            'data' => [['id' => 1]],
+            'meta' => [
+                'pagination' => [
+                    'current_page' => 3,
+                    'per_page' => 10,
+                    'total_pages' => 10,
+                    'total' => 100,
+                ],
+            ],
+        ];
+
+        $this->mockHttpClient->expects($this->once())
+          ->method('request')
+          ->with('GET', 'paginated-endpoint', [])
+          ->willReturn($mockResponse);
+
+        $result = $this->client->getParsed('paginated-endpoint');
+
+        $this->assertTrue($result['success']);
+        $this->assertEquals(3, $result['paginator']['current']);
+        $this->assertEquals(10, $result['paginator']['last']);
+        $this->assertEquals(100, $result['paginator']['results']);
+        $this->assertIsArray($result['paginator']['range']);
+        // Test range contains page numbers
+        $this->assertContains(1, $result['paginator']['range']);
+        $this->assertContains(10, $result['paginator']['range']);
+    }
 }
