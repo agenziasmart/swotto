@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Swotto;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Psr\SimpleCache\CacheInterface;
 use Swotto\Config\Configuration;
 use Swotto\Contract\ClientInterface;
 use Swotto\Contract\HttpClientInterface;
@@ -38,21 +40,37 @@ class Client implements ClientInterface
     private Configuration $config;
 
     /**
+     * @var CacheInterface|null Cache implementation
+     */
+    private ?CacheInterface $cache;
+
+    /**
+     * @var EventDispatcherInterface|null Event dispatcher
+     */
+    private ?EventDispatcherInterface $eventDispatcher;
+
+    /**
      * Constructor.
      *
      * @param array<string, mixed> $config Configuration options
      * @param LoggerInterface|null $logger Optional logger
      * @param HttpClientInterface|null $httpClient Optional HTTP client implementation
+     * @param CacheInterface|null $cache Optional cache implementation
+     * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher
      *
      * @throws \Swotto\Exception\ConfigurationException On invalid configuration
      */
     public function __construct(
         array $config = [],
         ?LoggerInterface $logger = null,
-        ?HttpClientInterface $httpClient = null
+        ?HttpClientInterface $httpClient = null,
+        ?CacheInterface $cache = null,
+        ?EventDispatcherInterface $eventDispatcher = null
     ) {
         $this->logger = $logger ?? new NullLogger();
         $this->config = new Configuration($config);
+        $this->cache = $cache;
+        $this->eventDispatcher = $eventDispatcher;
 
         $this->httpClient = $httpClient ?? new GuzzleHttpClient(
             $this->config,
@@ -159,9 +177,23 @@ class Client implements ClientInterface
      */
     public function fetchPop(string $uri, ?array $query = []): array
     {
-        $response = $this->get($uri, ['query' => $query ?? []]);
+        // Smart caching for static endpoints
+        $cacheKey = $this->getCacheKey($uri, $query ?? []);
 
-        return $response['data'] ?? [];
+        if ($this->isCacheable($uri) && $this->cache && $this->cache->has($cacheKey)) {
+            return $this->cache->get($cacheKey);
+        }
+
+        $response = $this->get($uri, ['query' => $query ?? []]);
+        $data = $response['data'] ?? [];
+
+        // Auto-cache static data
+        if ($this->isCacheable($uri) && $this->cache) {
+            $cacheTtl = $this->config->get('cache_ttl', 3600); // 1h default
+            $this->cache->set($cacheKey, $data, $cacheTtl);
+        }
+
+        return $data;
     }
 
     /**
@@ -210,6 +242,7 @@ class Client implements ClientInterface
     public function getParsed(string $uri, array $options = []): array
     {
         $response = $this->get($uri, $options);
+
         return $this->parseSwottoResponse($response);
     }
 
@@ -225,6 +258,7 @@ class Client implements ClientInterface
     public function postParsed(string $uri, array $options = []): array
     {
         $response = $this->post($uri, $options);
+
         return $this->parseSwottoResponse($response);
     }
 
@@ -240,6 +274,7 @@ class Client implements ClientInterface
     public function patchParsed(string $uri, array $options = []): array
     {
         $response = $this->patch($uri, $options);
+
         return $this->parseSwottoResponse($response);
     }
 
@@ -255,6 +290,7 @@ class Client implements ClientInterface
     public function putParsed(string $uri, array $options = []): array
     {
         $response = $this->put($uri, $options);
+
         return $this->parseSwottoResponse($response);
     }
 
@@ -270,6 +306,7 @@ class Client implements ClientInterface
     public function deleteParsed(string $uri, array $options = []): array
     {
         $response = $this->delete($uri, $options);
+
         return $this->parseSwottoResponse($response);
     }
 
@@ -284,7 +321,7 @@ class Client implements ClientInterface
         $parsedResponse = [
             'data' => [],
             'paginator' => [],
-            'success' => false
+            'success' => false,
         ];
 
         // Success flag
@@ -345,5 +382,40 @@ class Client implements ClientInterface
             'results' => $results,
             'range' => $range,
         ];
+    }
+
+    /**
+     * Generate cache key for endpoint and query.
+     *
+     * @param string $endpoint The endpoint URI
+     * @param array $query Query parameters
+     * @return string Cache key
+     */
+    private function getCacheKey(string $endpoint, array $query): string
+    {
+        return 'swotto_' . md5($endpoint . serialize($query));
+    }
+
+    /**
+     * Check if endpoint is cacheable (static data).
+     *
+     * @param string $endpoint The endpoint URI
+     * @return bool True if endpoint should be cached
+     */
+    private function isCacheable(string $endpoint): bool
+    {
+        // Static data endpoints that rarely change
+        $cacheableEndpoints = [
+            'open/country',
+            'open/currency',
+            'open/language',
+            'open/gender',
+            'open/role',
+            'open/incoterm',
+            'configuration/payment-type',
+        ];
+
+        return in_array($endpoint, $cacheableEndpoints) ||
+               str_starts_with($endpoint, 'open/timezone');
     }
 }

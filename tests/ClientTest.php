@@ -199,16 +199,16 @@ class ClientTest extends TestCase
             'success' => true,
             'data' => [
                 ['id' => 1, 'name' => 'Customer 1'],
-                ['id' => 2, 'name' => 'Customer 2']
+                ['id' => 2, 'name' => 'Customer 2'],
             ],
             'meta' => [
                 'pagination' => [
                     'current_page' => 1,
                     'per_page' => 10,
                     'total_pages' => 5,
-                    'total' => 50
-                ]
-            ]
+                    'total' => 50,
+                ],
+            ],
         ];
 
         $this->mockHttpClient->expects($this->once())
@@ -232,7 +232,7 @@ class ClientTest extends TestCase
         $mockResponse = [
             'success' => true,
             'data' => ['id' => 123, 'name' => 'New Customer'],
-            'meta' => []
+            'meta' => [],
         ];
 
         $this->mockHttpClient->expects($this->once())
@@ -252,7 +252,7 @@ class ClientTest extends TestCase
         $mockResponse = [
             'success' => true,
             'data' => ['id' => 123, 'name' => 'Updated Customer'],
-            'meta' => []
+            'meta' => [],
         ];
 
         $this->mockHttpClient->expects($this->once())
@@ -271,7 +271,7 @@ class ClientTest extends TestCase
         $mockResponse = [
             'success' => true,
             'data' => ['id' => 123, 'name' => 'Replaced Customer'],
-            'meta' => []
+            'meta' => [],
         ];
 
         $this->mockHttpClient->expects($this->once())
@@ -290,7 +290,7 @@ class ClientTest extends TestCase
         $mockResponse = [
             'success' => true,
             'data' => [],
-            'meta' => []
+            'meta' => [],
         ];
 
         $this->mockHttpClient->expects($this->once())
@@ -308,7 +308,7 @@ class ClientTest extends TestCase
     {
         $mockResponse = [
             'success' => false,
-            'data' => null
+            'data' => null,
         ];
 
         $this->mockHttpClient->expects($this->once())
@@ -333,9 +333,9 @@ class ClientTest extends TestCase
                     'current_page' => 3,
                     'per_page' => 10,
                     'total_pages' => 10,
-                    'total' => 100
-                ]
-            ]
+                    'total' => 100,
+                ],
+            ],
         ];
 
         $this->mockHttpClient->expects($this->once())

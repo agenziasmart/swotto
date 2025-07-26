@@ -1,10 +1,10 @@
 <?php declare(strict_types = 1);
 
 return [
-	'lastFullAnalysisTime' => 1752230669,
+	'lastFullAnalysisTime' => 1753563677,
 	'meta' => array (
   'cacheVersion' => 'v12-linesToIgnore',
-  'phpstanVersion' => '1.12.27',
+  'phpstanVersion' => '1.12.28',
   'phpVersion' => 80323,
   'projectConfig' => '{parameters: {level: 8, paths: [/var/www/agenziasmart/sw4/swotto/src, /var/www/agenziasmart/sw4/swotto/tests], excludePaths: {analyseAndScan: [/var/www/agenziasmart/sw4/swotto/vendor], analyse: []}, tmpDir: /var/www/agenziasmart/sw4/swotto/build/phpstan, bootstrapFiles: [/var/www/agenziasmart/sw4/swotto/vendor/autoload.php], scanDirectories: [/var/www/agenziasmart/sw4/swotto/src, /var/www/agenziasmart/sw4/swotto/tests], scanFiles: []}}',
   'analysedPaths' => 
@@ -17,7 +17,7 @@ return [
   ),
   'composerLocks' => 
   array (
-    '/var/www/agenziasmart/sw4/swotto/composer.lock' => '4281f61a4a32ef18c9be01960165817a696d3caf',
+    '/var/www/agenziasmart/sw4/swotto/composer.lock' => '4747403f0d06fbad33b127c1a6c8b1dce707d3a0',
   ),
   'composerInstalled' => 
   array (
@@ -127,9 +127,9 @@ return [
         ),
         'friendsofphp/php-cs-fixer' => 
         array (
-          'pretty_version' => 'v3.82.2',
-          'version' => '3.82.2.0',
-          'reference' => '684ed3ab41008a2a4848de8bde17eb168c596247',
+          'pretty_version' => 'v3.84.0',
+          'version' => '3.84.0.0',
+          'reference' => '38dad0767bf2a9b516b976852200ae722fe984ca',
           'type' => 'application',
           'install_path' => '/var/www/agenziasmart/sw4/swotto/vendor/composer/../friendsofphp/php-cs-fixer',
           'aliases' => 
@@ -255,9 +255,9 @@ return [
         ),
         'phpstan/phpstan' => 
         array (
-          'pretty_version' => '1.12.27',
-          'version' => '1.12.27.0',
-          'reference' => '3a6e423c076ab39dfedc307e2ac627ef579db162',
+          'pretty_version' => '1.12.28',
+          'version' => '1.12.28.0',
+          'reference' => 'fcf8b71aeab4e1a1131d1783cef97b23a51b87a9',
           'type' => 'library',
           'install_path' => '/var/www/agenziasmart/sw4/swotto/vendor/composer/../phpstan/phpstan',
           'aliases' => 
@@ -359,7 +359,7 @@ return [
           'aliases' => 
           array (
           ),
-          'dev_requirement' => true,
+          'dev_requirement' => false,
         ),
         'psr/event-dispatcher-implementation' => 
         array (
@@ -448,6 +448,18 @@ return [
           array (
             0 => '1.0|2.0|3.0',
           ),
+        ),
+        'psr/simple-cache' => 
+        array (
+          'pretty_version' => '3.0.0',
+          'version' => '3.0.0.0',
+          'reference' => '764e0b3939f5ca87cb904f570ef9be2d78a07865',
+          'type' => 'library',
+          'install_path' => '/var/www/agenziasmart/sw4/swotto/vendor/composer/../psr/simple-cache',
+          'aliases' => 
+          array (
+          ),
+          'dev_requirement' => false,
         ),
         'ralouphie/getallheaders' => 
         array (
@@ -994,51 +1006,53 @@ return [
     5 => 'SPL',
     6 => 'SimpleXML',
     7 => 'Zend OPcache',
-    8 => 'calendar',
-    9 => 'ctype',
-    10 => 'curl',
-    11 => 'date',
-    12 => 'dom',
-    13 => 'exif',
-    14 => 'fileinfo',
-    15 => 'filter',
-    16 => 'ftp',
-    17 => 'gd',
-    18 => 'gettext',
-    19 => 'hash',
-    20 => 'iconv',
-    21 => 'igbinary',
-    22 => 'imagick',
-    23 => 'json',
-    24 => 'ldap',
-    25 => 'libxml',
-    26 => 'mcrypt',
-    27 => 'mongodb',
-    28 => 'mysqli',
-    29 => 'mysqlnd',
-    30 => 'openssl',
-    31 => 'pcntl',
-    32 => 'pcre',
-    33 => 'pdo_mysql',
-    34 => 'posix',
-    35 => 'random',
-    36 => 'readline',
-    37 => 'redis',
-    38 => 'session',
-    39 => 'shmop',
-    40 => 'sockets',
-    41 => 'sodium',
-    42 => 'standard',
-    43 => 'sysvmsg',
-    44 => 'sysvsem',
-    45 => 'sysvshm',
-    46 => 'tokenizer',
-    47 => 'xml',
-    48 => 'xmlreader',
-    49 => 'xmlwriter',
-    50 => 'xsl',
-    51 => 'zip',
-    52 => 'zlib',
+    8 => 'bcmath',
+    9 => 'calendar',
+    10 => 'ctype',
+    11 => 'curl',
+    12 => 'date',
+    13 => 'dom',
+    14 => 'exif',
+    15 => 'fileinfo',
+    16 => 'filter',
+    17 => 'ftp',
+    18 => 'gd',
+    19 => 'gettext',
+    20 => 'hash',
+    21 => 'iconv',
+    22 => 'igbinary',
+    23 => 'imagick',
+    24 => 'json',
+    25 => 'ldap',
+    26 => 'libxml',
+    27 => 'mbstring',
+    28 => 'mcrypt',
+    29 => 'mongodb',
+    30 => 'mysqli',
+    31 => 'mysqlnd',
+    32 => 'openssl',
+    33 => 'pcntl',
+    34 => 'pcre',
+    35 => 'pdo_mysql',
+    36 => 'posix',
+    37 => 'random',
+    38 => 'readline',
+    39 => 'redis',
+    40 => 'session',
+    41 => 'shmop',
+    42 => 'sockets',
+    43 => 'sodium',
+    44 => 'standard',
+    45 => 'sysvmsg',
+    46 => 'sysvsem',
+    47 => 'sysvshm',
+    48 => 'tokenizer',
+    49 => 'xml',
+    50 => 'xmlreader',
+    51 => 'xmlwriter',
+    52 => 'xsl',
+    53 => 'zip',
+    54 => 'zlib',
   ),
   'stubFiles' => 
   array (
@@ -1052,30 +1066,30 @@ return [
   array (
     0 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::get() has parameter $options with no value type specified in iterable type array.',
+       'message' => 'Property Swotto\\Client::$eventDispatcher is never read, only written.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 66,
+       'line' => 50,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 66,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
+       'tip' => 'See: https://phpstan.org/developing-extensions/always-read-written-properties',
+       'nodeLine' => 23,
+       'nodeType' => 'PHPStan\\Node\\ClassPropertiesNode',
+       'identifier' => 'property.onlyWritten',
        'metadata' => 
       array (
       ),
     )),
     1 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::get() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::get() has parameter $options with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 66,
+       'line' => 84,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 66,
+       'nodeLine' => 84,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1084,14 +1098,14 @@ return [
     )),
     2 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::post() has parameter $options with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::get() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 74,
+       'line' => 84,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 74,
+       'nodeLine' => 84,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1100,14 +1114,14 @@ return [
     )),
     3 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::post() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::post() has parameter $options with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 74,
+       'line' => 92,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 74,
+       'nodeLine' => 92,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1116,14 +1130,14 @@ return [
     )),
     4 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::patch() has parameter $options with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::post() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 82,
+       'line' => 92,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 82,
+       'nodeLine' => 92,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1132,14 +1146,14 @@ return [
     )),
     5 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::patch() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::patch() has parameter $options with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 82,
+       'line' => 100,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 82,
+       'nodeLine' => 100,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1148,14 +1162,14 @@ return [
     )),
     6 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::put() has parameter $options with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::patch() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 90,
+       'line' => 100,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 90,
+       'nodeLine' => 100,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1164,14 +1178,14 @@ return [
     )),
     7 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::put() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::put() has parameter $options with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 90,
+       'line' => 108,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 90,
+       'nodeLine' => 108,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1180,14 +1194,14 @@ return [
     )),
     8 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::delete() has parameter $options with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::put() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 98,
+       'line' => 108,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 98,
+       'nodeLine' => 108,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1196,14 +1210,14 @@ return [
     )),
     9 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::delete() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::delete() has parameter $options with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 98,
+       'line' => 116,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 98,
+       'nodeLine' => 116,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1212,14 +1226,14 @@ return [
     )),
     10 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::checkAuth() has parameter $options with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::delete() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 119,
+       'line' => 116,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 119,
+       'nodeLine' => 116,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1228,14 +1242,14 @@ return [
     )),
     11 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::checkAuth() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::checkAuth() has parameter $options with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 119,
+       'line' => 138,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 119,
+       'nodeLine' => 138,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1244,14 +1258,14 @@ return [
     )),
     12 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::checkSession() has parameter $options with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::checkAuth() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 127,
+       'line' => 138,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 127,
+       'nodeLine' => 138,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1260,14 +1274,14 @@ return [
     )),
     13 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::checkSession() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::checkSession() has parameter $options with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 127,
+       'line' => 146,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 127,
+       'nodeLine' => 146,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1276,14 +1290,14 @@ return [
     )),
     14 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::fetchPop() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::checkSession() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 159,
+       'line' => 146,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 159,
+       'nodeLine' => 146,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1292,14 +1306,14 @@ return [
     )),
     15 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::fetchPop() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::fetchPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'line' => 159,
+       'line' => 178,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 159,
+       'nodeLine' => 178,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1307,6 +1321,262 @@ return [
       ),
     )),
     16 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::fetchPop() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 178,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 178,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    17 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 242,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 242,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    18 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 242,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 242,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    19 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::postParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 258,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 258,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    20 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::postParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 258,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 258,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    21 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::patchParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 274,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 274,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    22 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::patchParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 274,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 274,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    23 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::putParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 290,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 290,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    24 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::putParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 290,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 290,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    25 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::deleteParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 306,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 306,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    26 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::deleteParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 306,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 306,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    27 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::parseSwottoResponse() has parameter $response with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 319,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 319,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    28 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::parseSwottoResponse() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 319,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 319,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    29 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::buildPaginator() has parameter $pagination with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 351,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 351,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    30 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::buildPaginator() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 351,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 351,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    31 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getCacheKey() has parameter $query with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'line' => 394,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 394,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    32 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getGenderPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
@@ -1322,7 +1592,7 @@ return [
       array (
       ),
     )),
-    17 => 
+    33 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getGenderPop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
@@ -1338,272 +1608,16 @@ return [
       array (
       ),
     )),
-    18 => 
+    34 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getUserRolePop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 32,
+       'line' => 33,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 32,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    19 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getUserRolePop() return type has no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 32,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 32,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    20 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getMeOrganization() has parameter $query with no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 44,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 44,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    21 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getMeOrganization() return type has no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 44,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 44,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    22 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCountryPop() has parameter $query with no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 55,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 55,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    23 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCountryPop() return type has no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 55,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 55,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    24 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getSysLanguagePop() has parameter $query with no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 71,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 71,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    25 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getSysLanguagePop() return type has no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 71,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 71,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    26 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCurrencyPop() has parameter $query with no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 87,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 87,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    27 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCurrencyPop() return type has no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 87,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 87,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    28 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCustomerPop() has parameter $query with no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 103,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 103,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    29 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCustomerPop() return type has no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 103,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 103,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    30 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getTemplatePop() has parameter $query with no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 119,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 119,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    31 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getTemplatePop() return type has no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 119,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 119,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    32 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getIncotermPop() has parameter $query with no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 135,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 135,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    33 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getIncotermPop() return type has no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 135,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 135,
-       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
-       'identifier' => 'missingType.iterableValue',
-       'metadata' => 
-      array (
-      ),
-    )),
-    34 => 
-    \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getIncotermByCode() return type has no value type specified in iterable type array.',
-       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 151,
-       'canBeIgnored' => true,
-       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
-       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
-       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 151,
+       'nodeLine' => 33,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1612,14 +1626,14 @@ return [
     )),
     35 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCarrierPop() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getUserRolePop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 162,
+       'line' => 33,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 162,
+       'nodeLine' => 33,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1628,14 +1642,14 @@ return [
     )),
     36 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCarrierPop() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getMeOrganization() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 162,
+       'line' => 46,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 162,
+       'nodeLine' => 46,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1644,14 +1658,14 @@ return [
     )),
     37 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCategoryPop() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getMeOrganization() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 178,
+       'line' => 46,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 178,
+       'nodeLine' => 46,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1660,14 +1674,14 @@ return [
     )),
     38 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getCategoryPop() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getCountryPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 178,
+       'line' => 57,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 178,
+       'nodeLine' => 57,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1676,14 +1690,14 @@ return [
     )),
     39 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getSupplierPop() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getCountryPop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 193,
+       'line' => 57,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 193,
+       'nodeLine' => 57,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1692,14 +1706,14 @@ return [
     )),
     40 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getSupplierPop() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getSysLanguagePop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 193,
+       'line' => 74,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 193,
+       'nodeLine' => 74,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1708,14 +1722,14 @@ return [
     )),
     41 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getWarehousePop() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getSysLanguagePop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 209,
+       'line' => 74,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 209,
+       'nodeLine' => 74,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1724,14 +1738,14 @@ return [
     )),
     42 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getWarehousePop() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getCurrencyPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 209,
+       'line' => 91,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 209,
+       'nodeLine' => 91,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1740,14 +1754,14 @@ return [
     )),
     43 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getWarehouseZonePop() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getCurrencyPop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 225,
+       'line' => 91,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 225,
+       'nodeLine' => 91,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1756,14 +1770,14 @@ return [
     )),
     44 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getWarehouseZonePop() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getCustomerPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 225,
+       'line' => 108,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 225,
+       'nodeLine' => 108,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1772,14 +1786,14 @@ return [
     )),
     45 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getProjectPop() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getCustomerPop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 240,
+       'line' => 108,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 240,
+       'nodeLine' => 108,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1788,14 +1802,14 @@ return [
     )),
     46 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getProjectPop() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getTemplatePop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 240,
+       'line' => 125,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 240,
+       'nodeLine' => 125,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1804,14 +1818,14 @@ return [
     )),
     47 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getProductPop() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getTemplatePop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 255,
+       'line' => 125,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 255,
+       'nodeLine' => 125,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1820,14 +1834,14 @@ return [
     )),
     48 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getProductPop() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getIncotermPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 255,
+       'line' => 142,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 255,
+       'nodeLine' => 142,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1836,14 +1850,14 @@ return [
     )),
     49 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getPaymentType() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getIncotermPop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 271,
+       'line' => 142,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 271,
+       'nodeLine' => 142,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1852,14 +1866,14 @@ return [
     )),
     50 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getPaymentType() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getIncotermByCode() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 271,
+       'line' => 159,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 271,
+       'nodeLine' => 159,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1868,14 +1882,14 @@ return [
     )),
     51 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getAgreementPop() has parameter $query with no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getCarrierPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 286,
+       'line' => 170,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 286,
+       'nodeLine' => 170,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -1884,7 +1898,215 @@ return [
     )),
     52 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Client::getAgreementPop() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Client::getCarrierPop() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 170,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 170,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    53 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getCategoryPop() has parameter $query with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 187,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 187,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    54 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getCategoryPop() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 187,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 187,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    55 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getSupplierPop() has parameter $query with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 203,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 203,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    56 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getSupplierPop() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 203,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 203,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    57 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getWarehousePop() has parameter $query with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 220,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 220,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    58 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getWarehousePop() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 220,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 220,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    59 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getWarehouseZonePop() has parameter $query with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 237,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 237,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    60 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getWarehouseZonePop() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 237,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 237,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    61 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getProjectPop() has parameter $query with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 253,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 253,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    62 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getProjectPop() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 253,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 253,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    63 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getProductPop() has parameter $query with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 269,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 269,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    64 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getProductPop() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 269,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 269,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    65 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getPaymentType() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
        'line' => 286,
        'canBeIgnored' => true,
@@ -1898,144 +2120,192 @@ return [
       array (
       ),
     )),
-    53 => 
+    66 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getPaymentType() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 286,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 286,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    67 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getAgreementPop() has parameter $query with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 302,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 302,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    68 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Client::getAgreementPop() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
+       'line' => 302,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+       'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 302,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    69 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getWhsreasonPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 301,
+       'line' => 318,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 301,
+       'nodeLine' => 318,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
       array (
       ),
     )),
-    54 => 
+    70 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getWhsreasonPop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 301,
+       'line' => 318,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 301,
+       'nodeLine' => 318,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
       array (
       ),
     )),
-    55 => 
+    71 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getWhsinboundPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 315,
+       'line' => 333,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 315,
+       'nodeLine' => 333,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
       array (
       ),
     )),
-    56 => 
+    72 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getWhsinboundPop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 315,
+       'line' => 333,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 315,
+       'nodeLine' => 333,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
       array (
       ),
     )),
-    57 => 
+    73 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getWhsorderPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 330,
+       'line' => 349,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 330,
+       'nodeLine' => 349,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
       array (
       ),
     )),
-    58 => 
+    74 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getWhsorderPop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 330,
+       'line' => 349,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 330,
+       'nodeLine' => 349,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
       array (
       ),
     )),
-    59 => 
+    75 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getFamilyPop() has parameter $query with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 345,
+       'line' => 365,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 345,
+       'nodeLine' => 365,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
       array (
       ),
     )),
-    60 => 
+    76 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getFamilyPop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 345,
+       'line' => 365,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 345,
+       'nodeLine' => 365,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
       array (
       ),
     )),
-    61 => 
+    77 => 
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Client::getShiptypePop() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php (in context of class Swotto\\Client)',
-       'line' => 359,
+       'line' => 380,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
        'traitFilePath' => '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php',
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 359,
+       'nodeLine' => 380,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2301,6 +2571,166 @@ return [
       array (
       ),
     )),
+    16 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::getParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 142,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 142,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    17 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::getParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 142,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 142,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    18 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::postParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 153,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 153,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    19 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::postParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 153,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 153,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    20 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::patchParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 164,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 164,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    21 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::patchParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 164,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 164,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    22 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::putParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 175,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 175,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    23 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::putParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 175,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 175,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    24 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::deleteParsed() has parameter $options with no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 186,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 186,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    25 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Contract\\ClientInterface::deleteParsed() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'line' => 186,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 186,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Contract/HttpClientInterface.php' => 
   array (
@@ -2410,12 +2840,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Exception\\AuthenticationException::__construct() has parameter $errorData with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Exception/AuthenticationException.php',
-       'line' => 14,
+       'line' => 17,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Exception/AuthenticationException.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 14,
+       'nodeLine' => 17,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2429,12 +2859,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Exception\\ConfigurationException::getErrorData() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Exception/ConfigurationException.php',
-       'line' => 10,
+       'line' => 13,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Exception/ConfigurationException.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 10,
+       'nodeLine' => 13,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2515,12 +2945,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Exception\\ForbiddenException::__construct() has parameter $errorData with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Exception/ForbiddenException.php',
-       'line' => 14,
+       'line' => 17,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Exception/ForbiddenException.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 14,
+       'nodeLine' => 17,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2553,12 +2983,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Exception\\NotFoundException::__construct() has parameter $errorData with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Exception/NotFoundException.php',
-       'line' => 14,
+       'line' => 17,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Exception/NotFoundException.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 14,
+       'nodeLine' => 17,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2572,12 +3002,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Exception\\RateLimitException::__construct() has parameter $errorData with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Exception/RateLimitException.php',
-       'line' => 19,
+       'line' => 22,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Exception/RateLimitException.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 19,
+       'nodeLine' => 22,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2588,12 +3018,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Exception\\RateLimitException::getErrorData() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Exception/RateLimitException.php',
-       'line' => 38,
+       'line' => 41,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Exception/RateLimitException.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 38,
+       'nodeLine' => 41,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2621,14 +3051,30 @@ return [
     )),
     1 => 
     \PHPStan\Analyser\Error::__set_state(array(
-       'message' => 'Method Swotto\\Exception\\SwottoException::getErrorData() return type has no value type specified in iterable type array.',
+       'message' => 'Method Swotto\\Exception\\SwottoException::__construct() has parameter $errorData with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Exception/SwottoException.php',
-       'line' => 24,
+       'line' => 27,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Exception/SwottoException.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 24,
+       'nodeLine' => 27,
+       'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
+       'identifier' => 'missingType.iterableValue',
+       'metadata' => 
+      array (
+      ),
+    )),
+    2 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Method Swotto\\Exception\\SwottoException::getErrorData() return type has no value type specified in iterable type array.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/src/Exception/SwottoException.php',
+       'line' => 38,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Exception/SwottoException.php',
+       'traitFilePath' => NULL,
+       'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
+       'nodeLine' => 38,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2661,12 +3107,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Exception\\ValidationException::__construct() has parameter $errorData with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Exception/ValidationException.php',
-       'line' => 14,
+       'line' => 17,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Exception/ValidationException.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 14,
+       'nodeLine' => 17,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2680,12 +3126,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Http\\GuzzleHttpClient::initialize() has parameter $config with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
-       'line' => 81,
+       'line' => 80,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 81,
+       'nodeLine' => 80,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2696,12 +3142,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Http\\GuzzleHttpClient::request() has parameter $options with no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
-       'line' => 113,
+       'line' => 112,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 113,
+       'nodeLine' => 112,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2712,12 +3158,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Http\\GuzzleHttpClient::request() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
-       'line' => 113,
+       'line' => 112,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 113,
+       'nodeLine' => 112,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2728,12 +3174,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Method Swotto\\Http\\GuzzleHttpClient::handleException() return type has no value type specified in iterable type array.',
        'file' => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
-       'line' => 140,
+       'line' => 139,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
        'traitFilePath' => NULL,
        'tip' => 'See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type',
-       'nodeLine' => 140,
+       'nodeLine' => 139,
        'nodeType' => 'PHPStan\\Node\\InClassMethodNode',
        'identifier' => 'missingType.iterableValue',
        'metadata' => 
@@ -2747,12 +3193,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 36,
+       'line' => 38,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 36,
+       'nodeLine' => 38,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2763,12 +3209,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 50,
+       'line' => 52,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 50,
+       'nodeLine' => 52,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2779,12 +3225,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 64,
+       'line' => 66,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 64,
+       'nodeLine' => 66,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2795,12 +3241,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 78,
+       'line' => 80,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 78,
+       'nodeLine' => 80,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2811,12 +3257,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 90,
+       'line' => 92,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 90,
+       'nodeLine' => 92,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2827,12 +3273,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 102,
+       'line' => 104,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 102,
+       'nodeLine' => 104,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2843,12 +3289,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 119,
+       'line' => 121,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 119,
+       'nodeLine' => 121,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2859,12 +3305,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 131,
+       'line' => 133,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 131,
+       'nodeLine' => 133,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2875,12 +3321,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 143,
+       'line' => 145,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 143,
+       'nodeLine' => 145,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2891,12 +3337,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 159,
+       'line' => 161,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 159,
+       'nodeLine' => 161,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2907,12 +3353,12 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 172,
+       'line' => 174,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 172,
+       'nodeLine' => 174,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2923,12 +3369,370 @@ return [
     \PHPStan\Analyser\Error::__set_state(array(
        'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
        'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
-       'line' => 185,
+       'line' => 187,
        'canBeIgnored' => true,
        'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
        'traitFilePath' => NULL,
        'tip' => NULL,
-       'nodeLine' => 185,
+       'nodeLine' => 187,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    12 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'line' => 214,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 214,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    13 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'line' => 238,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 238,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    14 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'line' => 258,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 258,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    15 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'line' => 277,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 277,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    16 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'line' => 296,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 296,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    17 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'line' => 314,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 314,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    18 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'line' => 341,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 341,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php' => 
+  array (
+    0 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Parameter #3 $body of class GuzzleHttp\\Psr7\\Response constructor expects Psr\\Http\\Message\\StreamInterface|resource|string|null, string|false given.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'line' => 42,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 42,
+       'nodeType' => 'PhpParser\\Node\\Expr\\New_',
+       'identifier' => 'argument.type',
+       'metadata' => 
+      array (
+      ),
+    )),
+    1 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Parameter #3 $body of class GuzzleHttp\\Psr7\\Response constructor expects Psr\\Http\\Message\\StreamInterface|resource|string|null, string|false given.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'line' => 84,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 84,
+       'nodeType' => 'PhpParser\\Node\\Expr\\New_',
+       'identifier' => 'argument.type',
+       'metadata' => 
+      array (
+      ),
+    )),
+    2 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Parameter #3 $body of class GuzzleHttp\\Psr7\\Response constructor expects Psr\\Http\\Message\\StreamInterface|resource|string|null, string|false given.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'line' => 108,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 108,
+       'nodeType' => 'PhpParser\\Node\\Expr\\New_',
+       'identifier' => 'argument.type',
+       'metadata' => 
+      array (
+      ),
+    )),
+    3 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Parameter #3 $body of class GuzzleHttp\\Psr7\\Response constructor expects Psr\\Http\\Message\\StreamInterface|resource|string|null, string|false given.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'line' => 132,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 132,
+       'nodeType' => 'PhpParser\\Node\\Expr\\New_',
+       'identifier' => 'argument.type',
+       'metadata' => 
+      array (
+      ),
+    )),
+    4 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Parameter #3 $body of class GuzzleHttp\\Psr7\\Response constructor expects Psr\\Http\\Message\\StreamInterface|resource|string|null, string|false given.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'line' => 156,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 156,
+       'nodeType' => 'PhpParser\\Node\\Expr\\New_',
+       'identifier' => 'argument.type',
+       'metadata' => 
+      array (
+      ),
+    )),
+    5 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Parameter #3 $body of class GuzzleHttp\\Psr7\\Response constructor expects Psr\\Http\\Message\\StreamInterface|resource|string|null, string|false given.',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'line' => 180,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 180,
+       'nodeType' => 'PhpParser\\Node\\Expr\\New_',
+       'identifier' => 'argument.type',
+       'metadata' => 
+      array (
+      ),
+    )),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php' => 
+  array (
+    0 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'line' => 39,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 39,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    1 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'line' => 58,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 58,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    2 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'line' => 77,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 77,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    3 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'line' => 100,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 100,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    4 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'line' => 122,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 122,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    5 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'line' => 142,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 142,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    6 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'line' => 178,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 178,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    7 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'line' => 200,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 200,
+       'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
+       'identifier' => 'method.notFound',
+       'metadata' => 
+      array (
+      ),
+    )),
+    8 => 
+    \PHPStan\Analyser\Error::__set_state(array(
+       'message' => 'Call to an undefined method Swotto\\Contract\\HttpClientInterface::expects().',
+       'file' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'line' => 221,
+       'canBeIgnored' => true,
+       'filePath' => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
+       'traitFilePath' => NULL,
+       'tip' => NULL,
+       'nodeLine' => 221,
        'nodeType' => 'PhpParser\\Node\\Expr\\MethodCall',
        'identifier' => 'method.notFound',
        'metadata' => 
@@ -2948,43 +3752,49 @@ return [
 	'dependencies' => array (
   '/var/www/agenziasmart/sw4/swotto/src/Client.php' => 
   array (
-    'fileHash' => 'bbff4452dc4d33d1f44aed908e4e89d61729382c',
+    'fileHash' => 'c3f6247ce706ac57e1e45320d0fe8428f12366a2',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      1 => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Config/Configuration.php' => 
   array (
-    'fileHash' => '589eaf2c6d2b9a1b90bfe7a797e14d8279f99c14',
+    'fileHash' => '78f24cbe83c64ecf4e59b00dcac39c0ec3dee564',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
       1 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
+      2 => '/var/www/agenziasmart/sw4/swotto/tests/ConfigurationTest.php',
+      3 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Contract/ClientInterface.php' => 
   array (
-    'fileHash' => 'f1e2bde39f0920cc7b9bdd2205fdb249604e8f28',
+    'fileHash' => '79ba1ab36b28b1cd770282860d9a9b6f9301fb66',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
       1 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      2 => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Contract/HttpClientInterface.php' => 
   array (
-    'fileHash' => 'c0cbb4dc6889d8f59dde5f3bf114378fd604fad9',
+    'fileHash' => '9863293124038ec6a256060ecfbfad3cb3888cc7',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
       1 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
       2 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      3 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
+      4 => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/ApiException.php' => 
   array (
-    'fileHash' => '96e583a8c2f944c5cb2b9f44cd6fa61c505c0a0a',
+    'fileHash' => 'e7f5e26450cb9d09129b42cad1adfa758fbc5129',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Exception/AuthenticationException.php',
@@ -2994,75 +3804,91 @@ return [
       4 => '/var/www/agenziasmart/sw4/swotto/src/Exception/ValidationException.php',
       5 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
       6 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      7 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      8 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/AuthenticationException.php' => 
   array (
-    'fileHash' => 'a33b985d7d2863a24e7b56e1ba79f586837fa9e6',
+    'fileHash' => '9d243e06499f3a122190200133860f362de3c669',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
+      1 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      2 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/ConfigurationException.php' => 
   array (
-    'fileHash' => '415f54810a4552f4b93b96bee92c13abdfb5cca4',
+    'fileHash' => 'fcf452d1b82d3d4139aea627787177f1e91bc245',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
       1 => '/var/www/agenziasmart/sw4/swotto/src/Config/Configuration.php',
       2 => '/var/www/agenziasmart/sw4/swotto/src/Contract/HttpClientInterface.php',
       3 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
+      4 => '/var/www/agenziasmart/sw4/swotto/tests/ConfigurationTest.php',
+      5 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/ConnectionException.php' => 
   array (
-    'fileHash' => '6c6e611a0a7912d042ff53be9ffbd30c74615599',
+    'fileHash' => '21835fec062b95db99027931de95352668c27e9e',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
       1 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
       2 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      3 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      4 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/ForbiddenException.php' => 
   array (
-    'fileHash' => '8158df7bbf155af93b1c69881c0f6b039a194d3e',
+    'fileHash' => '1b909bd6e5a09fe34bc14006b7ee40c2003b5486',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
+      1 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      2 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/NetworkException.php' => 
   array (
-    'fileHash' => 'e126ba63e84ce75368658767f6ed8c6fe7de0d79',
+    'fileHash' => '272aad462edda36e5c68dc9a7744c38526c50ed0',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
       1 => '/var/www/agenziasmart/sw4/swotto/src/Exception/ConnectionException.php',
       2 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
       3 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      4 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      5 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/NotFoundException.php' => 
   array (
-    'fileHash' => 'e6a450dd410c3384f0b87323a878f9304f05c215',
+    'fileHash' => '00f5f49e122b56e98a27858b544e66c1ebf3c54a',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
+      1 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      2 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/RateLimitException.php' => 
   array (
-    'fileHash' => '9f77bdaaeea1b56a02cdb0d9c2fa2a86b189276e',
+    'fileHash' => '085dd367b1e9e0d04ae88aa0c938b1af8c16af26',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
+      1 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      2 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/SwottoException.php' => 
   array (
-    'fileHash' => '0eda03bfb51082c6befba4f381b7d7ffc2e5f0bf',
+    'fileHash' => '7fafbbc67e5a64f4a74f91364f56f9eb24113dd3',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
@@ -3080,11 +3906,14 @@ return [
       12 => '/var/www/agenziasmart/sw4/swotto/src/Exception/ValidationException.php',
       13 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
       14 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      15 => '/var/www/agenziasmart/sw4/swotto/tests/ConfigurationTest.php',
+      16 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      17 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/SwottoExceptionInterface.php' => 
   array (
-    'fileHash' => '02a7c0597b87903c2f70e1cf17aaf3ea7e58b392',
+    'fileHash' => '81f0d031cfd598f89e686beb5a097a700a13f696',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
@@ -3103,32 +3932,39 @@ return [
       13 => '/var/www/agenziasmart/sw4/swotto/src/Exception/ValidationException.php',
       14 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
       15 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      16 => '/var/www/agenziasmart/sw4/swotto/tests/ConfigurationTest.php',
+      17 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      18 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Exception/ValidationException.php' => 
   array (
-    'fileHash' => 'bfb8931e68f8e4ff1d314c04a0f4dde4310018be',
+    'fileHash' => '5837e89d73f6ce739c9987ac5323ea6eca9c354f',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php',
       1 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      2 => '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php',
+      3 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Http/GuzzleHttpClient.php' => 
   array (
-    'fileHash' => '81f19943c2bedb1fdbb85e03145ef5948e9ed5da',
+    'fileHash' => 'ac46c3edf8aada9a46439edac3ad14db3edee602',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
+      1 => '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php',
     ),
   ),
   '/var/www/agenziasmart/sw4/swotto/src/Trait/PopTrait.php' => 
   array (
-    'fileHash' => '465cc6573d36f80c88926b69ec2195826ccbe0ff',
+    'fileHash' => '767ae73f30a0fddc19d984aa414b782836920556',
     'dependentFiles' => 
     array (
       0 => '/var/www/agenziasmart/sw4/swotto/src/Client.php',
       1 => '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php',
+      2 => '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php',
     ),
     'usedTraitDependentFiles' => 
     array (
@@ -3137,7 +3973,35 @@ return [
   ),
   '/var/www/agenziasmart/sw4/swotto/tests/ClientTest.php' => 
   array (
-    'fileHash' => '3cd92e49527a8de194a89f9ed6322e8771d822e6',
+    'fileHash' => 'bde19e9f2cc43f19e2c77053793a12dbb945c4e1',
+    'dependentFiles' => 
+    array (
+    ),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/ConfigurationTest.php' => 
+  array (
+    'fileHash' => '361c11c2ffd541ce1594c46c67c6fbcdbf314f4d',
+    'dependentFiles' => 
+    array (
+    ),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php' => 
+  array (
+    'fileHash' => 'badaa121926bf2f0e7d26f59b2ae9d113e62b08b',
+    'dependentFiles' => 
+    array (
+    ),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php' => 
+  array (
+    'fileHash' => '55e500a4803ad15c3294ee54c5df38af4a4f295d',
+    'dependentFiles' => 
+    array (
+    ),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php' => 
+  array (
+    'fileHash' => '9c0d8456bf7f15821c67ccdfc1f63951a72184cd',
     'dependentFiles' => 
     array (
     ),
@@ -3152,21 +4016,23 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * Client
+ * Client.
  *
  * Main Swotto API Client implementation
  */',
          'namespace' => 'Swotto',
          'uses' => 
         array (
-          'nulllogger' => 'Psr\\Log\\NullLogger',
-          'poptrait' => 'Swotto\\Trait\\PopTrait',
+          'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
           'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+          'nulllogger' => 'Psr\\Log\\NullLogger',
+          'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
           'configuration' => 'Swotto\\Config\\Configuration',
-          'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
           'clientinterface' => 'Swotto\\Contract\\ClientInterface',
           'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
           'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+          'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+          'poptrait' => 'Swotto\\Trait\\PopTrait',
         ),
          'constUses' => 
         array (
@@ -3194,25 +4060,29 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param array<string, mixed> $config Configuration options
-   * @param LoggerInterface|null $logger Optional logger
-   * @param HttpClientInterface|null $httpClient Optional HTTP client implementation
-   *
-   * @throws \\Swotto\\Exception\\ConfigurationException On invalid configuration
-   */',
+     * Constructor.
+     *
+     * @param array<string, mixed> $config Configuration options
+     * @param LoggerInterface|null $logger Optional logger
+     * @param HttpClientInterface|null $httpClient Optional HTTP client implementation
+     * @param CacheInterface|null $cache Optional cache implementation
+     * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher
+     *
+     * @throws \\Swotto\\Exception\\ConfigurationException On invalid configuration
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3260,6 +4130,28 @@ return [
               array (
               ),
             )),
+            3 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'cache',
+               'type' => '?Psr\\SimpleCache\\CacheInterface',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+            4 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'eventDispatcher',
+               'type' => '?Psr\\EventDispatcher\\EventDispatcherInterface',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
           ),
            'attributes' => 
           array (
@@ -3271,19 +4163,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3331,19 +4225,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3391,19 +4287,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3451,19 +4349,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3511,19 +4411,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3571,19 +4473,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3609,19 +4513,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3658,19 +4564,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3707,19 +4615,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3756,19 +4666,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3805,19 +4717,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3854,19 +4768,21 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3914,22 +4830,24 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Set client original user agent
-   *
-   * @param string $userAgent Original client user agent
-   * @return void
-   */',
+     * Set client original user agent.
+     *
+     * @param string $userAgent Original client user agent
+     * @return void
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -3966,22 +4884,24 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Set client original IP
-   *
-   * @param string $ip Original client IP
-   * @return void
-   */',
+     * Set client original IP.
+     *
+     * @param string $ip Original client IP
+     * @return void
+     */',
              'namespace' => 'Swotto',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'poptrait' => 'Swotto\\Trait\\PopTrait',
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
               'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
               'configuration' => 'Swotto\\Config\\Configuration',
-              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
               'clientinterface' => 'Swotto\\Contract\\ClientInterface',
               'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
               'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
             ),
              'constUses' => 
             array (
@@ -4012,6 +4932,346 @@ return [
           array (
           ),
         )),
+        15 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'getParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a GET request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto',
+             'uses' => 
+            array (
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
+              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
+              'configuration' => 'Swotto\\Config\\Configuration',
+              'clientinterface' => 'Swotto\\Contract\\ClientInterface',
+              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
+              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        16 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'postParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a POST request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto',
+             'uses' => 
+            array (
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
+              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
+              'configuration' => 'Swotto\\Config\\Configuration',
+              'clientinterface' => 'Swotto\\Contract\\ClientInterface',
+              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
+              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        17 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'patchParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a PATCH request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto',
+             'uses' => 
+            array (
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
+              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
+              'configuration' => 'Swotto\\Config\\Configuration',
+              'clientinterface' => 'Swotto\\Contract\\ClientInterface',
+              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
+              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        18 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'putParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a PUT request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto',
+             'uses' => 
+            array (
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
+              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
+              'configuration' => 'Swotto\\Config\\Configuration',
+              'clientinterface' => 'Swotto\\Contract\\ClientInterface',
+              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
+              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        19 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'deleteParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a DELETE request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto',
+             'uses' => 
+            array (
+              'eventdispatcherinterface' => 'Psr\\EventDispatcher\\EventDispatcherInterface',
+              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'cacheinterface' => 'Psr\\SimpleCache\\CacheInterface',
+              'configuration' => 'Swotto\\Config\\Configuration',
+              'clientinterface' => 'Swotto\\Contract\\ClientInterface',
+              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
+              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'guzzlehttpclient' => 'Swotto\\Http\\GuzzleHttpClient',
+              'poptrait' => 'Swotto\\Trait\\PopTrait',
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
       ),
        'attributes' => 
       array (
@@ -4026,7 +5286,7 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * Configuration
+ * Configuration.
  *
  * Manages and validates Swotto Client configuration
  */',
@@ -4059,12 +5319,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param array<string, mixed> $config Configuration options
-   *
-   * @throws ConfigurationException On invalid configuration
-   */',
+     * Constructor.
+     *
+     * @param array<string, mixed> $config Configuration options
+     *
+     * @throws ConfigurationException On invalid configuration
+     */',
              'namespace' => 'Swotto\\Config',
              'uses' => 
             array (
@@ -4105,10 +5365,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get all configuration values as array
-   *
-   * @return array<string, mixed> Configuration values
-   */',
+     * Get all configuration values as array.
+     *
+     * @return array<string, mixed> Configuration values
+     */',
              'namespace' => 'Swotto\\Config',
              'uses' => 
             array (
@@ -4138,12 +5398,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get a specific configuration value
-   *
-   * @param string $key Configuration key
-   * @param mixed $default Default value if key is not set
-   * @return mixed Configuration value or default
-   */',
+     * Get a specific configuration value.
+     *
+     * @param string $key Configuration key
+     * @param mixed $default Default value if key is not set
+     * @return mixed Configuration value or default
+     */',
              'namespace' => 'Swotto\\Config',
              'uses' => 
             array (
@@ -4195,13 +5455,13 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Update configuration with new values
-   *
-   * @param array<string, mixed> $newConfig New configuration options
-   * @return self New configuration instance
-   *
-   * @throws ConfigurationException On invalid configuration
-   */',
+     * Update configuration with new values.
+     *
+     * @param array<string, mixed> $newConfig New configuration options
+     * @return self New configuration instance
+     *
+     * @throws ConfigurationException On invalid configuration
+     */',
              'namespace' => 'Swotto\\Config',
              'uses' => 
             array (
@@ -4242,10 +5502,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get the base URL without trailing slash
-   *
-   * @return string Base URL
-   */',
+     * Get the base URL without trailing slash.
+     *
+     * @return string Base URL
+     */',
              'namespace' => 'Swotto\\Config',
              'uses' => 
             array (
@@ -4311,10 +5571,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get HTTP headers from configuration
-   *
-   * @return array<string, string> Headers
-   */',
+     * Get HTTP headers from configuration.
+     *
+     * @return array<string, string> Headers
+     */',
              'namespace' => 'Swotto\\Config',
              'uses' => 
             array (
@@ -4352,7 +5612,7 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * Interface ClientInterface
+ * Interface ClientInterface.
  *
  * Defines the contract for Swotto API Client
  */',
@@ -4375,14 +5635,14 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Send a GET request
-   *
-   * @param string $uri The URI to request
-   * @param array $options Request options to apply
-   * @return array The response data
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error
-   */',
+     * Send a GET request.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4433,14 +5693,14 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Send a POST request
-   *
-   * @param string $uri The URI to request
-   * @param array $options Request options to apply
-   * @return array The response data
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error
-   */',
+     * Send a POST request.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4491,14 +5751,14 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Send a PATCH request
-   *
-   * @param string $uri The URI to request
-   * @param array $options Request options to apply
-   * @return array The response data
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error
-   */',
+     * Send a PATCH request.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4549,14 +5809,14 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Send a PUT request
-   *
-   * @param string $uri The URI to request
-   * @param array $options Request options to apply
-   * @return array The response data
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error
-   */',
+     * Send a PUT request.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4607,14 +5867,14 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Send a DELETE request
-   *
-   * @param string $uri The URI to request
-   * @param array $options Request options to apply
-   * @return array The response data
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error
-   */',
+     * Send a DELETE request.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4665,12 +5925,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Check if the connection to API is working
-   *
-   * @return bool True if connection is working
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error other than connection issues
-   */',
+     * Check if the connection to API is working.
+     *
+     * @return bool True if connection is working
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error other than connection issues
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4699,13 +5959,13 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Check if authentication is working
-   *
-   * @param array|null $options Request options to apply
-   * @return array Authentication status data
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error
-   */',
+     * Check if authentication is working.
+     *
+     * @param array|null $options Request options to apply
+     * @return array Authentication status data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4745,13 +6005,13 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Check session status
-   *
-   * @param array|null $options Request options to apply
-   * @return array Session data
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error
-   */',
+     * Check session status.
+     *
+     * @param array|null $options Request options to apply
+     * @return array Session data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4791,11 +6051,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Set session ID for future requests
-   *
-   * @param string $sessionId The session ID
-   * @return void
-   */',
+     * Set session ID for future requests.
+     *
+     * @param string $sessionId The session ID
+     * @return void
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4835,11 +6095,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Set language for future requests
-   *
-   * @param string $language The language code
-   * @return void
-   */',
+     * Set language for future requests.
+     *
+     * @param string $language The language code
+     * @return void
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4879,11 +6139,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Set accept header for future requests
-   *
-   * @param string $accept The accept header value
-   * @return void
-   */',
+     * Set accept header for future requests.
+     *
+     * @param string $accept The accept header value
+     * @return void
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4923,14 +6183,14 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Fetch data from a POP endpoint
-   *
-   * @param string $uri The POP URI
-   * @param array|null $query Query parameters
-   * @return array The retrieved data
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error
-   */',
+     * Fetch data from a POP endpoint.
+     *
+     * @param string $uri The POP URI
+     * @param array|null $query Query parameters
+     * @return array The retrieved data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -4975,6 +6235,296 @@ return [
           array (
           ),
         )),
+        12 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'getParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a GET request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto\\Contract',
+             'uses' => 
+            array (
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        13 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'postParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a POST request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto\\Contract',
+             'uses' => 
+            array (
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        14 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'patchParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a PATCH request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto\\Contract',
+             'uses' => 
+            array (
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        15 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'putParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a PUT request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto\\Contract',
+             'uses' => 
+            array (
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        16 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'deleteParsed',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Send a DELETE request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
+             'namespace' => 'Swotto\\Contract',
+             'uses' => 
+            array (
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'array',
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'uri',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => false,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'options',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
       ),
     )),
   ),
@@ -4986,7 +6536,7 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * Interface HttpClientInterface
+ * Interface HttpClientInterface.
  *
  * Defines the contract for the underlying HTTP client implementation.
  * This allows for potential future HTTP client changes without changing
@@ -5011,15 +6561,15 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Perform an HTTP request
-   *
-   * @param string $method HTTP method (GET, POST, PUT, DELETE)
-   * @param string $uri Request URI
-   * @param array $options Request options
-   * @return array Response data as array
-   *
-   * @throws \\Swotto\\Exception\\SwottoException On error
-   */',
+     * Perform an HTTP request.
+     *
+     * @param string $method HTTP method (GET, POST, PUT, DELETE)
+     * @param string $uri Request URI
+     * @param array $options Request options
+     * @return array Response data as array
+     *
+     * @throws \\Swotto\\Exception\\SwottoException On error
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -5081,13 +6631,13 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Initialize the HTTP client with configuration
-   *
-   * @param array $config Configuration options
-   * @return void
-   *
-   * @throws \\Swotto\\Exception\\ConfigurationException On invalid configuration
-   */',
+     * Initialize the HTTP client with configuration.
+     *
+     * @param array $config Configuration options
+     * @return void
+     *
+     * @throws \\Swotto\\Exception\\ConfigurationException On invalid configuration
+     */',
              'namespace' => 'Swotto\\Contract',
              'uses' => 
             array (
@@ -5132,7 +6682,7 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * ApiException
+ * ApiException.
  *
  * Exception for API errors
  */',
@@ -5168,8 +6718,8 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * @var array Error data from the API response
-   */',
+     * @var array Error data from the API response
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5193,12 +6743,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param string $message Error message
-   * @param array $errorData Error data from the API response
-   * @param int $code HTTP status code
-   */',
+     * Constructor.
+     *
+     * @param string $message Error message
+     * @param array $errorData Error data from the API response
+     * @param int $code HTTP status code
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5260,8 +6810,8 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5316,12 +6866,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param string $message Error message
-   * @param array $errorData Error data from the API response
-   * @param int $code HTTP status code
-   */',
+     * Constructor.
+     *
+     * @param string $message Error message
+     * @param array $errorData Error data from the API response
+     * @param int $code HTTP status code
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5409,8 +6959,8 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5447,7 +6997,7 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * ConnectionException
+ * ConnectionException.
  *
  * Exception for connection errors
  */',
@@ -5479,13 +7029,13 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param string $message Error message
-   * @param string $url URL that failed to connect
-   * @param array $traceDetails Trace details
-   * @param int $code Error code
-   */',
+     * Constructor.
+     *
+     * @param string $message Error message
+     * @param string $url URL that failed to connect
+     * @param array $traceDetails Trace details
+     * @param int $code Error code
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5558,10 +7108,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get the URL that failed to connect
-   *
-   * @return string URL
-   */',
+     * Get the URL that failed to connect.
+     *
+     * @return string URL
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5590,10 +7140,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get trace details
-   *
-   * @return array Trace details
-   */',
+     * Get trace details.
+     *
+     * @return array Trace details
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5622,8 +7172,8 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5678,12 +7228,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param string $message Error message
-   * @param array $errorData Error data from the API response
-   * @param int $code HTTP status code
-   */',
+     * Constructor.
+     *
+     * @param string $message Error message
+     * @param array $errorData Error data from the API response
+     * @param int $code HTTP status code
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5753,7 +7303,7 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * NetworkException
+ * NetworkException.
  *
  * Exception for network errors
  */',
@@ -5786,8 +7336,8 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5842,12 +7392,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param string $message Error message
-   * @param array $errorData Error data from the API response
-   * @param int $code HTTP status code
-   */',
+     * Constructor.
+     *
+     * @param string $message Error message
+     * @param array $errorData Error data from the API response
+     * @param int $code HTTP status code
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -5935,12 +7485,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param string $message Error message
-   * @param array $errorData Error data from the API response
-   * @param int $retryAfter Seconds to wait before retrying
-   */',
+     * Constructor.
+     *
+     * @param string $message Error message
+     * @param array $errorData Error data from the API response
+     * @param int $retryAfter Seconds to wait before retrying
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6002,10 +7552,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get seconds to wait before retrying
-   *
-   * @return int Seconds to wait
-   */',
+     * Get seconds to wait before retrying.
+     *
+     * @return int Seconds to wait
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6034,8 +7584,8 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6072,7 +7622,7 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * SwottoException
+ * SwottoException.
  *
  * Base exception for all Swotto exceptions
  */',
@@ -6108,8 +7658,8 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * @var array Error data
-   */',
+     * @var array Error data
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6129,14 +7679,93 @@ return [
         )),
         1 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => '__construct',
+           'phpDoc' => 
+          \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
+             'phpDocString' => '/**
+     * Constructor.
+     *
+     * @param string $message Error message
+     * @param array $errorData Error data
+     * @param int $code Error code
+     * @param \\Throwable|null $previous Previous exception
+     */',
+             'namespace' => 'Swotto\\Exception',
+             'uses' => 
+            array (
+            ),
+             'constUses' => 
+            array (
+            ),
+          )),
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => NULL,
+           'parameters' => 
+          array (
+            0 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'message',
+               'type' => 'string',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+            1 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'errorData',
+               'type' => 'array',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+            2 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'code',
+               'type' => 'int',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+            3 => 
+            \PHPStan\Dependency\ExportedNode\ExportedParameterNode::__set_state(array(
+               'name' => 'previous',
+               'type' => '?Throwable',
+               'byRef' => false,
+               'variadic' => false,
+               'hasDefault' => true,
+               'attributes' => 
+              array (
+              ),
+            )),
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'getErrorData',
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get error data
-   *
-   * @return array Error data
-   */',
+     * Get error data.
+     *
+     * @return array Error data
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6159,16 +7788,16 @@ return [
           array (
           ),
         )),
-        2 => 
+        3 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'getStatusCode',
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get HTTP status code
-   *
-   * @return int HTTP status code
-   */',
+     * Get HTTP status code.
+     *
+     * @return int HTTP status code
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6205,7 +7834,7 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * SwottoExceptionInterface
+ * SwottoExceptionInterface.
  *
  * Base interface for all Swotto exceptions
  */',
@@ -6228,10 +7857,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get error data
-   *
-   * @return array Error data
-   */',
+     * Get error data.
+     *
+     * @return array Error data
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6260,10 +7889,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get HTTP status code
-   *
-   * @return int HTTP status code
-   */',
+     * Get HTTP status code.
+     *
+     * @return int HTTP status code
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6292,10 +7921,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get error message
-   *
-   * @return string Error message
-   */',
+     * Get error message.
+     *
+     * @return string Error message
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6347,12 +7976,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param string $message Error message
-   * @param array $errorData Error data from the API response
-   * @param int $code HTTP status code
-   */',
+     * Constructor.
+     *
+     * @param string $message Error message
+     * @param array $errorData Error data from the API response
+     * @param int $code HTTP status code
+     */',
              'namespace' => 'Swotto\\Exception',
              'uses' => 
             array (
@@ -6422,27 +8051,27 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * GuzzleHttpClient
+ * GuzzleHttpClient.
  *
  * HTTP Client implementation using Guzzle
  */',
          'namespace' => 'Swotto\\Http',
          'uses' => 
         array (
-          'nulllogger' => 'Psr\\Log\\NullLogger',
-          'loggerinterface' => 'Psr\\Log\\LoggerInterface',
-          'configuration' => 'Swotto\\Config\\Configuration',
-          'apiexception' => 'Swotto\\Exception\\ApiException',
           'guzzleclient' => 'GuzzleHttp\\Client',
+          'requestexception' => 'GuzzleHttp\\Exception\\RequestException',
+          'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+          'nulllogger' => 'Psr\\Log\\NullLogger',
+          'configuration' => 'Swotto\\Config\\Configuration',
+          'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
+          'apiexception' => 'Swotto\\Exception\\ApiException',
+          'authenticationexception' => 'Swotto\\Exception\\AuthenticationException',
+          'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+          'forbiddenexception' => 'Swotto\\Exception\\ForbiddenException',
           'networkexception' => 'Swotto\\Exception\\NetworkException',
           'notfoundexception' => 'Swotto\\Exception\\NotFoundException',
-          'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
-          'forbiddenexception' => 'Swotto\\Exception\\ForbiddenException',
           'ratelimitexception' => 'Swotto\\Exception\\RateLimitException',
-          'connectionexception' => 'Swotto\\Exception\\ConnectionException',
           'validationexception' => 'Swotto\\Exception\\ValidationException',
-          'requestexception' => 'GuzzleHttp\\Exception\\RequestException',
-          'authenticationexception' => 'Swotto\\Exception\\AuthenticationException',
         ),
          'constUses' => 
         array (
@@ -6469,28 +8098,28 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Constructor
-   *
-   * @param Configuration $config Configuration instance
-   * @param LoggerInterface|null $logger Optional logger
-   */',
+     * Constructor.
+     *
+     * @param Configuration $config Configuration instance
+     * @param LoggerInterface|null $logger Optional logger
+     */',
              'namespace' => 'Swotto\\Http',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
-              'configuration' => 'Swotto\\Config\\Configuration',
-              'apiexception' => 'Swotto\\Exception\\ApiException',
               'guzzleclient' => 'GuzzleHttp\\Client',
+              'requestexception' => 'GuzzleHttp\\Exception\\RequestException',
+              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'configuration' => 'Swotto\\Config\\Configuration',
+              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
+              'apiexception' => 'Swotto\\Exception\\ApiException',
+              'authenticationexception' => 'Swotto\\Exception\\AuthenticationException',
+              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'forbiddenexception' => 'Swotto\\Exception\\ForbiddenException',
               'networkexception' => 'Swotto\\Exception\\NetworkException',
               'notfoundexception' => 'Swotto\\Exception\\NotFoundException',
-              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
-              'forbiddenexception' => 'Swotto\\Exception\\ForbiddenException',
               'ratelimitexception' => 'Swotto\\Exception\\RateLimitException',
-              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
               'validationexception' => 'Swotto\\Exception\\ValidationException',
-              'requestexception' => 'GuzzleHttp\\Exception\\RequestException',
-              'authenticationexception' => 'Swotto\\Exception\\AuthenticationException',
             ),
              'constUses' => 
             array (
@@ -6538,25 +8167,25 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto\\Http',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
-              'configuration' => 'Swotto\\Config\\Configuration',
-              'apiexception' => 'Swotto\\Exception\\ApiException',
               'guzzleclient' => 'GuzzleHttp\\Client',
+              'requestexception' => 'GuzzleHttp\\Exception\\RequestException',
+              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'configuration' => 'Swotto\\Config\\Configuration',
+              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
+              'apiexception' => 'Swotto\\Exception\\ApiException',
+              'authenticationexception' => 'Swotto\\Exception\\AuthenticationException',
+              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'forbiddenexception' => 'Swotto\\Exception\\ForbiddenException',
               'networkexception' => 'Swotto\\Exception\\NetworkException',
               'notfoundexception' => 'Swotto\\Exception\\NotFoundException',
-              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
-              'forbiddenexception' => 'Swotto\\Exception\\ForbiddenException',
               'ratelimitexception' => 'Swotto\\Exception\\RateLimitException',
-              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
               'validationexception' => 'Swotto\\Exception\\ValidationException',
-              'requestexception' => 'GuzzleHttp\\Exception\\RequestException',
-              'authenticationexception' => 'Swotto\\Exception\\AuthenticationException',
             ),
              'constUses' => 
             array (
@@ -6593,25 +8222,25 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * {@inheritdoc}
-   */',
+     * {@inheritdoc}
+     */',
              'namespace' => 'Swotto\\Http',
              'uses' => 
             array (
-              'nulllogger' => 'Psr\\Log\\NullLogger',
-              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
-              'configuration' => 'Swotto\\Config\\Configuration',
-              'apiexception' => 'Swotto\\Exception\\ApiException',
               'guzzleclient' => 'GuzzleHttp\\Client',
+              'requestexception' => 'GuzzleHttp\\Exception\\RequestException',
+              'loggerinterface' => 'Psr\\Log\\LoggerInterface',
+              'nulllogger' => 'Psr\\Log\\NullLogger',
+              'configuration' => 'Swotto\\Config\\Configuration',
+              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
+              'apiexception' => 'Swotto\\Exception\\ApiException',
+              'authenticationexception' => 'Swotto\\Exception\\AuthenticationException',
+              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
+              'forbiddenexception' => 'Swotto\\Exception\\ForbiddenException',
               'networkexception' => 'Swotto\\Exception\\NetworkException',
               'notfoundexception' => 'Swotto\\Exception\\NotFoundException',
-              'httpclientinterface' => 'Swotto\\Contract\\HttpClientInterface',
-              'forbiddenexception' => 'Swotto\\Exception\\ForbiddenException',
               'ratelimitexception' => 'Swotto\\Exception\\RateLimitException',
-              'connectionexception' => 'Swotto\\Exception\\ConnectionException',
               'validationexception' => 'Swotto\\Exception\\ValidationException',
-              'requestexception' => 'GuzzleHttp\\Exception\\RequestException',
-              'authenticationexception' => 'Swotto\\Exception\\AuthenticationException',
             ),
              'constUses' => 
             array (
@@ -6678,7 +8307,7 @@ return [
        'phpDoc' => 
       \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
          'phpDocString' => '/**
- * PopTrait
+ * PopTrait.
  *
  * Provides convenient methods for retrieving data from POP endpoints
  */',
@@ -6704,11 +8333,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get gender POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get gender POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -6748,11 +8377,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get user role POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get user role POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -6792,11 +8421,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get me organization data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get me organization data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -6836,11 +8465,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get country POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get country POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -6880,11 +8509,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get system language POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get system language POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -6924,11 +8553,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get currency POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get currency POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -6968,11 +8597,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get customer POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get customer POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7012,11 +8641,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get template POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get template POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7056,11 +8685,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get incoterm POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get incoterm POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7100,11 +8729,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get incoterm by code
-   *
-   * @param string $code Incoterm code
-   * @return array Incoterm data
-   */',
+     * Get incoterm by code.
+     *
+     * @param string $code Incoterm code
+     * @return array Incoterm data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7144,11 +8773,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get carrier POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get carrier POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7188,11 +8817,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get category POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get category POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7232,11 +8861,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get supplier POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get supplier POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7276,11 +8905,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get warehouse POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get warehouse POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7320,12 +8949,12 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get warehouse zone POP data by warehouse ID
-   *
-   * @param int $id Warehouse ID
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get warehouse zone POP data by warehouse ID.
+     *
+     * @param int $id Warehouse ID
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7376,11 +9005,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get project POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get project POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7420,11 +9049,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get product POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get product POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7464,11 +9093,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get payment type POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get payment type POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7508,11 +9137,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get agreement POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get agreement POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7552,11 +9181,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get warehouse reason POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get warehouse reason POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7596,10 +9225,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get warehouse inbound POP data
-   *
-   * @return array POP data
-   */',
+     * Get warehouse inbound POP data.
+     *
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7639,11 +9268,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get warehouse order POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get warehouse order POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7683,11 +9312,11 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get family POP data
-   *
-   * @param array|null $query Additional query parameters
-   * @return array POP data
-   */',
+     * Get family POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7727,10 +9356,10 @@ return [
            'phpDoc' => 
           \PHPStan\Dependency\ExportedNode\ExportedPhpDocNode::__set_state(array(
              'phpDocString' => '/**
-   * Get ship type POP data
-   *
-   * @return array POP data
-   */',
+     * Get ship type POP data.
+     *
+     * @return array POP data
+     */',
              'namespace' => 'Swotto\\Trait',
              'uses' => 
             array (
@@ -7998,6 +9627,1082 @@ return [
         12 => 
         \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
            'name' => 'testSetAccept',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        13 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetParsed',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        14 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testPostParsed',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        15 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testPatchParsed',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        16 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testPutParsed',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        17 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testDeleteParsed',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        18 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testParsedWithEmptyResponse',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        19 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testParsedWithComplexPagination',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/ConfigurationTest.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'Swotto\\Tests\\ConfigurationTest',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => 'PHPUnit\\Framework\\TestCase',
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testValidConfiguration',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testMissingRequiredKey',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testInvalidConfigurationKey',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testInvalidVerifySsl',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        4 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetWithDefault',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        5 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testBaseUrlWithTrailingSlash',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        6 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testUpdateConfiguration',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        7 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testToArray',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        8 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetHeaders',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        9 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetHeadersWithoutOptionalValues',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        10 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testDetectClientUserAgent',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        11 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testDetectClientIp',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/ExceptionTest.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'Swotto\\Tests\\ExceptionTest',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => 'PHPUnit\\Framework\\TestCase',
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testSwottoException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testApiException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testAuthenticationException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testConfigurationException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        4 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testConnectionException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        5 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testConnectionExceptionWithTrace',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        6 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testForbiddenException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        7 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testNetworkException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        8 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testNotFoundException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        9 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testRateLimitException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        10 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testValidationException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        11 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testExceptionDefaults',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/GuzzleHttpClientTest.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'Swotto\\Tests\\GuzzleHttpClientTest',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => 'PHPUnit\\Framework\\TestCase',
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'setUp',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => false,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testSuccessfulRequest',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testEmptyResponse',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testValidationException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        4 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testAuthenticationException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        5 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testForbiddenException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        6 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testNotFoundException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        7 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testRateLimitException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        8 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testConnectException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        9 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testNetworkException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        10 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testInitialize',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        11 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testInitializeWithConnectionException',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+      ),
+       'attributes' => 
+      array (
+      ),
+    )),
+  ),
+  '/var/www/agenziasmart/sw4/swotto/tests/PopTraitTest.php' => 
+  array (
+    0 => 
+    \PHPStan\Dependency\ExportedNode\ExportedClassNode::__set_state(array(
+       'name' => 'Swotto\\Tests\\PopTraitTest',
+       'phpDoc' => NULL,
+       'abstract' => false,
+       'final' => false,
+       'extends' => 'PHPUnit\\Framework\\TestCase',
+       'implements' => 
+      array (
+      ),
+       'usedTraits' => 
+      array (
+      ),
+       'traitUseAdaptations' => 
+      array (
+      ),
+       'statements' => 
+      array (
+        0 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'setUp',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => false,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        1 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetGenderPop',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        2 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetUserRolePop',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        3 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetCountryPop',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        4 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetCustomerPop',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        5 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetIncotermByCode',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        6 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetWarehouseZonePop',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        7 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetShiptypePop',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        8 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetProjectPop',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        9 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetPaymentType',
+           'phpDoc' => NULL,
+           'byRef' => false,
+           'public' => true,
+           'private' => false,
+           'abstract' => false,
+           'final' => false,
+           'static' => false,
+           'returnType' => 'void',
+           'parameters' => 
+          array (
+          ),
+           'attributes' => 
+          array (
+          ),
+        )),
+        10 => 
+        \PHPStan\Dependency\ExportedNode\ExportedMethodNode::__set_state(array(
+           'name' => 'testGetMeOrganization',
            'phpDoc' => NULL,
            'byRef' => false,
            'public' => true,
