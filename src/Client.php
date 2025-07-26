@@ -197,4 +197,153 @@ class Client implements ClientInterface
     {
         $this->updateConfig(['client_ip' => $ip]);
     }
+
+    /**
+     * Send a GET request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getParsed(string $uri, array $options = []): array
+    {
+        $response = $this->get($uri, $options);
+        return $this->parseSwottoResponse($response);
+    }
+
+    /**
+     * Send a POST request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function postParsed(string $uri, array $options = []): array
+    {
+        $response = $this->post($uri, $options);
+        return $this->parseSwottoResponse($response);
+    }
+
+    /**
+     * Send a PATCH request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function patchParsed(string $uri, array $options = []): array
+    {
+        $response = $this->patch($uri, $options);
+        return $this->parseSwottoResponse($response);
+    }
+
+    /**
+     * Send a PUT request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function putParsed(string $uri, array $options = []): array
+    {
+        $response = $this->put($uri, $options);
+        return $this->parseSwottoResponse($response);
+    }
+
+    /**
+     * Send a DELETE request and parse the response.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return array The parsed response data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function deleteParsed(string $uri, array $options = []): array
+    {
+        $response = $this->delete($uri, $options);
+        return $this->parseSwottoResponse($response);
+    }
+
+    /**
+     * Parse Swotto API response (mirrors DataHandlerTrait::parseDataResponse).
+     *
+     * @param array $response Raw API response
+     * @return array Parsed response with data, paginator, and success
+     */
+    private function parseSwottoResponse(array $response): array
+    {
+        $parsedResponse = [
+            'data' => [],
+            'paginator' => [],
+            'success' => false
+        ];
+
+        // Success flag
+        $parsedResponse['success'] = isset($response['success']) && $response['success'] === true;
+
+        // Extract data
+        if (isset($response['data']) && !empty($response['data'])) {
+            $parsedResponse['data'] = $response['data'];
+        }
+
+        // Build paginator from meta.pagination
+        if (isset($response['meta']) && !empty($response['meta'])) {
+            if (isset($response['meta']['pagination']) && !empty($response['meta']['pagination'])) {
+                $parsedResponse['paginator'] = $this->buildPaginator($response['meta']['pagination']);
+            }
+        }
+
+        return $parsedResponse;
+    }
+
+    /**
+     * Build paginator array (compatible with SW4 APP paginator helper).
+     *
+     * @param array $pagination Pagination metadata from API response
+     * @return array Formatted paginator data
+     */
+    private function buildPaginator(array $pagination): array
+    {
+        if (empty($pagination)) {
+            return [];
+        }
+
+        $delta = 1;
+        $current = $pagination['current_page'] ?? null;
+        $perPage = $pagination['per_page'] ?? null;
+        $last = $pagination['total_pages'] ?? null;
+        $results = $pagination['total'] ?? null;
+        $range = [];
+
+        if ($last > 1) {
+            for ($i = max(2, ($current - $delta)); $i <= min(($last - 1), ($current + $delta)); $i += 1) {
+                $range[] = $i;
+            }
+            if (($current - $delta) > 2) {
+                array_unshift($range, count($range) == ($last - 3) ? 2 : '...');
+            }
+            if (($current + $delta) < ($last - 1)) {
+                $range[] = count($range) == ($last - 3) ? ($last - 1) : '...';
+            }
+            array_unshift($range, 1);
+            $range[] = $last;
+        }
+
+        return [
+            'current' => $current,
+            'last' => $last,
+            'per_page' => $perPage,
+            'results' => $results,
+            'range' => $range,
+        ];
+    }
 }
