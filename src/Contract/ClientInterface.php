@@ -184,4 +184,26 @@ interface ClientInterface
      * @throws \Swotto\Exception\SwottoException On error
      */
     public function deleteParsed(string $uri, array $options = []): array;
+
+    /**
+     * Set access token for future requests.
+     *
+     * @param string $token The access token (Bearer token)
+     * @return void
+     */
+    public function setAccessToken(string $token): void;
+
+    /**
+     * Clear access token.
+     *
+     * @return void
+     */
+    public function clearAccessToken(): void;
+
+    /**
+     * Get current access token.
+     *
+     * @return string|null The current access token or null if not set
+     */
+    public function getAccessToken(): ?string;
 }
