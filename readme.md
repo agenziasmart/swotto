@@ -15,6 +15,7 @@
 - [Quick Start](#quick-start)
 - [Installazione](#installazione)
 - [🚀 Enhanced Methods - getParsed()](#-enhanced-methods---getparsed)
+- [🔐 Dynamic Bearer Token Management](#-dynamic-bearer-token-management)
 - [🎯 Smart Caching](#-smart-caching)
 - [Configurazione Base](#configurazione-base)
 - [Metodi HTTP di base](#metodi-http-di-base)
@@ -201,6 +202,74 @@ echo $updated['success'];  // true|false
 // DELETE with auto-parsing
 $deleted = $client->deleteParsed('customers/123');
 echo $deleted['success'];  // Deletion confirmed
+```
+
+## 🔐 Dynamic Bearer Token Management
+
+La versione 2.0.0 introduce metodi avanzati per la gestione dinamica dei Bearer token, essenziali per applicazioni enterprise che richiedono token refresh automatici e session management robusto:
+
+### Metodi di Gestione Token
+```php
+// Imposta un nuovo Bearer token runtime
+$client->setAccessToken('new-bearer-token-here');
+
+// Verifica token corrente
+$currentToken = $client->getAccessToken();
+echo $currentToken; // "new-bearer-token-here"
+
+// Cancella token (torna all'autenticazione base)
+$client->clearAccessToken();
+```
+
+### Pattern di Token Refresh Automatico
+```php
+try {
+    $result = $client->getParsed('protected-endpoint');
+} catch (\Swotto\Exception\AuthenticationException $e) {
+    // Token scaduto - refresh automatico
+    $newToken = $this->refreshTokenFromAuthServer();
+    $client->setAccessToken($newToken);
+    
+    // Retry con nuovo token
+    $result = $client->getParsed('protected-endpoint');
+}
+```
+
+### Session Management Avanzato
+```php
+// Pattern per applicazioni multi-user
+class UserSessionManager {
+    public function switchUser(string $userId, string $bearerToken): void {
+        $this->client->setAccessToken($bearerToken);
+        $this->client->setSessionId("session-{$userId}");
+        
+        // Verifica validità della nuova sessione
+        $sessionCheck = $this->client->checkSession();
+        if (!$sessionCheck) {
+            throw new InvalidSessionException("Token non valido per user {$userId}");
+        }
+    }
+    
+    public function logout(): void {
+        $this->client->clearAccessToken();
+        $this->client->setSessionId(null);
+    }
+}
+```
+
+### Token Validation Pattern 
+```php
+// Verifica proattiva validità token
+public function ensureValidToken(): bool {
+    try {
+        $this->client->checkAuth();
+        return true;
+    } catch (\Swotto\Exception\AuthenticationException $e) {
+        // Token invalido - richiedi refresh
+        $this->requestTokenRefresh();
+        return false;
+    }
+}
 ```
 
 ## 🎯 Smart Caching
