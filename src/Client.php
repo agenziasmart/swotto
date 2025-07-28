@@ -418,4 +418,28 @@ class Client implements ClientInterface
         return in_array($endpoint, $cacheableEndpoints) ||
                str_starts_with($endpoint, 'open/timezone');
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setAccessToken(string $token): void
+    {
+        $this->updateConfig(['access_token' => $token]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clearAccessToken(): void
+    {
+        $this->updateConfig(['access_token' => null]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAccessToken(): ?string
+    {
+        return $this->config->get('access_token');
+    }
 }

@@ -2,7 +2,7 @@
   "name": "agenziasmart/swotto",
   "description": "PHP SDK for Swotto API",
   "type": "library",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "keywords": [
     "swotto",
     "sw4",
