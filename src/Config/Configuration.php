@@ -32,6 +32,9 @@ class Configuration
       'headers',
       'client_user_agent',
       'client_ip',
+      'circuit_breaker_enabled',
+      'circuit_breaker_failure_threshold',
+      'circuit_breaker_recovery_timeout',
     ];
 
     /**
@@ -79,6 +82,19 @@ class Configuration
         // Validate specific options
         if (isset($config['verify_ssl']) && !is_bool($config['verify_ssl'])) {
             throw new ConfigurationException('verify_ssl must be boolean');
+        }
+
+        // Validate circuit breaker options
+        if (isset($config['circuit_breaker_enabled']) && !is_bool($config['circuit_breaker_enabled'])) {
+            throw new ConfigurationException('circuit_breaker_enabled must be boolean');
+        }
+
+        if (isset($config['circuit_breaker_failure_threshold']) && (!is_int($config['circuit_breaker_failure_threshold']) || $config['circuit_breaker_failure_threshold'] < 1)) {
+            throw new ConfigurationException('circuit_breaker_failure_threshold must be a positive integer');
+        }
+
+        if (isset($config['circuit_breaker_recovery_timeout']) && (!is_int($config['circuit_breaker_recovery_timeout']) || $config['circuit_breaker_recovery_timeout'] < 1)) {
+            throw new ConfigurationException('circuit_breaker_recovery_timeout must be a positive integer');
         }
     }
 

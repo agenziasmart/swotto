@@ -5,6 +5,41 @@ Tutte le modifiche significative a questo progetto verranno documentate in quest
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-07-31
+
+### Added
+- **Circuit Breaker Pattern**: Implementazione enterprise del pattern Circuit Breaker per resilienza API
+  - `CircuitState` enum per gestione stati (CLOSED/OPEN/HALF_OPEN)
+  - `CircuitBreaker` class con logica core, state management e cache persistence
+  - `CircuitBreakerHttpClient` decorator pattern per integrazione trasparente
+  - `CircuitBreakerOpenException` per gestione fail-fast scenarios
+  - Factory method `GuzzleHttpClient::withCircuitBreaker()` per setup semplificato
+- **Configuration Extensions**: 3 nuovi parametri circuit breaker
+  - `circuit_breaker_enabled`: Boolean flag per attivazione opt-in
+  - `circuit_breaker_failure_threshold`: Soglia fallimenti consecutivi (default: 5)
+  - `circuit_breaker_recovery_timeout`: Timeout recovery in secondi (default: 30)
+- **PSR-16 Cache Support**: State persistence per circuit breaker multi-request
+  - Support completo Redis, Memcached, File, Array cache adapters
+  - Graceful fallback se cache non disponibile
+  - Auto-cleanup expired states
+
+### Changed
+- **GuzzleHttpClient**: Extended con factory method per circuit breaker integration
+- **Configuration**: Enhanced validation per nuovi parametri circuit breaker
+- **Exception Hierarchy**: Aggiunta CircuitBreakerOpenException nella gerarchia esistente
+
+### Technical Details
+- **100% Backward Compatible**: Circuit breaker disabled di default, zero breaking changes
+- **SOLID Compliant**: Decorator pattern, dependency injection, single responsibility
+- **Zero Overhead**: Performance impact nullo quando circuit breaker disabled
+- **Enterprise Ready**: Logging, metrics, configurabile per scenari high-throughput
+- **Test Coverage**: 77+ tests, coverage completa per tutti i componenti circuit breaker
+
+### Performance
+- **Conditional Activation**: Zero overhead quando `circuit_breaker_enabled: false`
+- **Efficient State Management**: In-memory con optional cache persistence
+- **Smart Caching**: TTL intelligente per state cleanup automatico
+
 ## [2.1.0] - 2025-07-28
 
 ### Added

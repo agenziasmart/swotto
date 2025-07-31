@@ -1,6 +1,6 @@
 # Swotto PHP SDK
 
-![Version](https://img.shields.io/badge/version-v2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-v2.2.0-blue.svg)
 ![PHP](https://img.shields.io/badge/PHP-%3E%3D8.1-777BB4.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![PSR-12](https://img.shields.io/badge/code%20style-PSR--12-orange.svg)
@@ -11,12 +11,13 @@
 
 ## Indice
 
-- [✨ Novità v2.0.0](#-novità-v200)
+- [✨ Novità v2.2.0](#-novità-v220)
 - [Quick Start](#quick-start)
 - [Installazione](#installazione)
 - [🚀 Enhanced Methods - getParsed()](#-enhanced-methods---getparsed)
 - [🔐 Dynamic Bearer Token Management](#-dynamic-bearer-token-management)
 - [🎯 Smart Caching](#-smart-caching)
+- [🔧 Circuit Breaker Pattern](#-circuit-breaker-pattern)
 - [Configurazione Base](#configurazione-base)
 - [Metodi HTTP di base](#metodi-http-di-base)
 - [Gestione degli Errori](#gestione-degli-errori)
@@ -29,7 +30,48 @@
 - [Migration Guide](#migration-guide)
 - [Changelog](#changelog)
 
-## ✨ Novità v2.0.0
+## ✨ Novità v2.2.0
+
+### 🔧 Circuit Breaker Pattern - Resilienza Enterprise
+**NUOVO v2.2.0**: Pattern Circuit Breaker per applicazioni mission-critical con API instabili.
+
+```php
+// Configurazione con Circuit Breaker abilitato
+$config = [
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_KEY',
+    'circuit_breaker_enabled' => true,
+    'circuit_breaker_failure_threshold' => 5,    // Fallimenti per aprire circuito
+    'circuit_breaker_recovery_timeout' => 30     // Secondi prima del recovery
+];
+
+// Client con resilienza automatica
+$client = new Client(
+    $config,
+    $logger, 
+    GuzzleHttpClient::withCircuitBreaker(
+        new Configuration($config), 
+        $logger, 
+        $cache  // Redis/File cache per state persistence
+    )
+);
+
+// Le chiamate falliscono velocemente se API è instabile
+try {
+    $result = $client->get('customers');
+} catch (CircuitBreakerOpenException $e) {
+    // Circuito aperto - API temporaneamente non disponibile
+    echo "Service unavailable, retry after: {$e->getRetryAfter()} seconds";
+}
+```
+
+**Benefici**:
+- ✅ **Fail-fast**: Zero timeout lunghi durante problemi API
+- ✅ **Auto-recovery**: Test automatico ripristino servizio  
+- ✅ **Cache persistence**: State condiviso tra requests via Redis
+- ✅ **Zero overhead**: Disabilitato di default, attivazione opt-in
+
+## ✨ Novità v2.0.0 (Previous Release)
 
 ### 🚀 getParsed() Methods - 87.5% Less Boilerplate
 ```php
@@ -59,6 +101,7 @@ $orders = $client->get('orders');          // Always fresh (no cache)
 ### 🏗️ Modern PHP 8.1+ Architecture
 - ✅ **PSR-16 Simple Cache** support per Redis, Memcached, Array cache
 - ✅ **PSR-14 Event Dispatcher** per monitoring e telemetry  
+- ✅ **Circuit Breaker Pattern** per resilienza enterprise
 - ✅ **100% Backward Compatible** - zero breaking changes
 - ✅ **Progressive Enhancement** - features solo se abilitate
 
@@ -256,6 +299,160 @@ class UserSessionManager {
     }
 }
 ```
+
+## 🔧 Circuit Breaker Pattern
+
+**NUOVO v2.2.0**: Implementazione robusta del Circuit Breaker pattern per applicazioni enterprise che necessitano di resilienza durante instabilità dell'API SW4.
+
+### Configurazione Base
+
+```php
+use Swotto\Client;
+use Swotto\Config\Configuration;
+use Swotto\Http\GuzzleHttpClient;
+
+// Configurazione con Circuit Breaker
+$config = [
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_KEY',
+    
+    // Circuit Breaker Configuration (opzionale)
+    'circuit_breaker_enabled' => true,
+    'circuit_breaker_failure_threshold' => 5,    // Fallimenti consecutivi per aprire circuito
+    'circuit_breaker_recovery_timeout' => 30,    // Secondi di attesa prima del test recovery
+];
+
+// Client con Circuit Breaker automatico
+$client = new Client(
+    $config,
+    $logger,
+    GuzzleHttpClient::withCircuitBreaker(
+        new Configuration($config),
+        $logger,
+        $cache // PSR-16 cache per state persistence
+    )
+);
+```
+
+### Stati del Circuit Breaker
+
+Il Circuit Breaker opera in tre stati principali:
+
+```php
+use Swotto\CircuitBreaker\CircuitState;
+
+// CLOSED: Operazione normale - tutte le richieste passano
+$state = CircuitState::CLOSED;
+
+// OPEN: Stato di fallimento - richieste falliscono immediatamente
+$state = CircuitState::OPEN;
+
+// HALF_OPEN: Test recovery - richieste limitate per testare ripristino
+$state = CircuitState::HALF_OPEN;
+```
+
+### Gestione delle Eccezioni
+
+```php
+use Swotto\Exception\CircuitBreakerOpenException;
+
+try {
+    $customers = $client->getParsed('customers');
+    echo "API disponibile: " . count($customers['data']) . " customers";
+    
+} catch (CircuitBreakerOpenException $e) {
+    // Circuit breaker aperto - API temporaneamente non disponibile
+    $retryAfter = $e->getRetryAfter();
+    
+    echo "API temporaneamente non disponibile";
+    echo "Riprova tra {$retryAfter} secondi";
+    
+    // Implementa fallback strategy
+    $customers = $this->getCachedCustomers();
+    
+} catch (\Swotto\Exception\SwottoException $e) {
+    // Altri errori API normali
+    echo "Errore API: " . $e->getMessage();
+}
+```
+
+### Cache Persistence per Multi-Request
+
+Il Circuit Breaker mantiene lo stato tra diverse richieste utilizzando cache PSR-16:
+
+```php
+// Redis Cache (raccomandato per produzione)
+$redis = new \Redis();
+$redis->connect('127.0.0.1', 6379);
+$cache = new \Symfony\Component\Cache\Adapter\RedisAdapter($redis);
+
+// Array Cache (per sviluppo/testing)
+$cache = new \Symfony\Component\Cache\Adapter\ArrayAdapter();
+
+// File Cache (alternativa senza Redis)
+$cache = new \Symfony\Component\Cache\Adapter\FilesystemAdapter('swotto_cb', 3600, '/tmp/cache');
+
+$client = new Client(
+    $config,
+    $logger,
+    GuzzleHttpClient::withCircuitBreaker($config, $logger, $cache)
+);
+```
+
+### Configurazione Avanzata per Scenari Specifici
+
+```php
+// High-throughput applications (soglie più alte)
+$configHighTraffic = [
+    'circuit_breaker_enabled' => true,
+    'circuit_breaker_failure_threshold' => 10,   // More failures before opening
+    'circuit_breaker_recovery_timeout' => 60,    // Longer recovery time
+];
+
+// Critical applications (fail-fast aggressivo) 
+$configCritical = [
+    'circuit_breaker_enabled' => true,
+    'circuit_breaker_failure_threshold' => 3,    // Quick to open
+    'circuit_breaker_recovery_timeout' => 15,    // Quick recovery test
+];
+
+// Development/Testing (circuit breaker disabilitato)
+$configDev = [
+    'circuit_breaker_enabled' => false,  // Default - zero overhead
+];
+```
+
+### Monitoring e Metrics
+
+```php
+// Accesso diretto al Circuit Breaker per monitoring
+$httpClient = GuzzleHttpClient::withCircuitBreaker($config, $logger, $cache);
+
+// In una implementazione custom, potresti accedere allo stato
+// tramite reflection o interfaccia dedicata per monitoring
+$circuitState = $httpClient->getCircuitState(); // Implementazione futura
+$failureCount = $httpClient->getFailureCount(); // Implementazione futura
+
+// Logging automatico degli eventi circuit breaker
+// Il logger riceve automaticamente:
+// - Transizioni di stato (CLOSED -> OPEN -> HALF_OPEN -> CLOSED)
+// - Conteggio fallimenti
+// - Eventi di recovery
+```
+
+### Best Practices
+
+**✅ DO:**
+- Usa cache Redis/persistent per applicazioni multi-server
+- Configura threshold basato su pattern di traffico reali
+- Implementa fallback strategies per CircuitBreakerOpenException
+- Monitor logs per ottimizzare configurazione
+
+**❌ DON'T:**
+- Non abilitare in development senza necessità
+- Non usare threshold troppo bassi per API con latenza variabile
+- Non ignorare CircuitBreakerOpenException senza fallback
+- Non condividere cache keys tra applicazioni diverse
 
 ### Token Validation Pattern 
 ```php
