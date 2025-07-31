@@ -14,9 +14,8 @@ echo "=====================================\n\n";
 
 // Configurazione con credenziali VOLUTAMENTE SBAGLIATE per testare gli errori
 $config = new Configuration([
-    'base_url' => 'https://api.sw4.test/api/v1/',  // URL placeholder
-    'devapp_token' => 'devapp_token_invalid_test',
-    'account_token' => 'bearer_token_invalid_test'
+    'url' => 'https://api.sw4.test/api/v1/',  // URL placeholder
+    'key' => 'devapp_token_invalid_test',
 ]);
 
 $client = new Client($config);
