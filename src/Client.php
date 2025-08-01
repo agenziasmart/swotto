@@ -72,10 +72,7 @@ class Client implements ClientInterface
         $this->cache = $cache;
         $this->eventDispatcher = $eventDispatcher;
 
-        $this->httpClient = $httpClient ?? new GuzzleHttpClient(
-            $this->config,
-            $this->logger
-        );
+        $this->httpClient = $httpClient ?? $this->createHttpClient();
     }
 
     /**
@@ -441,5 +438,32 @@ class Client implements ClientInterface
     public function getAccessToken(): ?string
     {
         return $this->config->get('access_token');
+    }
+
+    /**
+     * Create HTTP client with optional Circuit Breaker.
+     *
+     * @return HttpClientInterface HTTP client instance
+     */
+    private function createHttpClient(): HttpClientInterface
+    {
+        $baseClient = new GuzzleHttpClient($this->config, $this->logger);
+
+        // Return base client if circuit breaker is disabled
+        if (!$this->config->get('circuit_breaker_enabled', false)) {
+            return $baseClient;
+        }
+
+        // Create circuit breaker with configuration
+        $circuitBreaker = new \Swotto\CircuitBreaker\CircuitBreaker(
+            name: $this->config->getBaseUrl(), // Use base URL as unique identifier
+            failureThreshold: $this->config->get('circuit_breaker_failure_threshold', 5),
+            recoveryTimeout: $this->config->get('circuit_breaker_recovery_timeout', 30),
+            successThreshold: 2, // Fixed for now
+            cache: $this->cache,
+            logger: $this->logger
+        );
+
+        return new \Swotto\CircuitBreaker\CircuitBreakerHttpClient($baseClient, $circuitBreaker);
     }
 }

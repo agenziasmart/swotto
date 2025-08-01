@@ -18,6 +18,9 @@ use Swotto\Exception\NetworkException;
 use Swotto\Exception\NotFoundException;
 use Swotto\Exception\RateLimitException;
 use Swotto\Exception\ValidationException;
+use Swotto\CircuitBreaker\CircuitBreaker;
+use Swotto\CircuitBreaker\CircuitBreakerHttpClient;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * GuzzleHttpClient.
@@ -214,5 +217,38 @@ class GuzzleHttpClient implements HttpClientInterface
 
         // Rethrow any other exceptions
         throw $exception;
+    }
+
+    /**
+     * Create a new GuzzleHttpClient instance with circuit breaker support.
+     *
+     * @param Configuration $config Configuration instance
+     * @param LoggerInterface|null $logger Optional logger
+     * @param CacheInterface|null $cache Optional cache for circuit breaker state
+     * @return HttpClientInterface HTTP client with optional circuit breaker
+     */
+    public static function withCircuitBreaker(
+        Configuration $config,
+        ?LoggerInterface $logger = null,
+        ?CacheInterface $cache = null
+    ): HttpClientInterface {
+        $baseClient = new self($config, $logger);
+
+        // Return base client if circuit breaker is disabled
+        if (!$config->get('circuit_breaker_enabled', false)) {
+            return $baseClient;
+        }
+
+        // Create circuit breaker with configuration
+        $circuitBreaker = new CircuitBreaker(
+            name: $config->getBaseUrl(), // Use base URL as unique identifier
+            failureThreshold: $config->get('circuit_breaker_failure_threshold', 5),
+            recoveryTimeout: $config->get('circuit_breaker_recovery_timeout', 30),
+            successThreshold: 2, // Fixed for now
+            cache: $cache,
+            logger: $logger
+        );
+
+        return new CircuitBreakerHttpClient($baseClient, $circuitBreaker);
     }
 }
