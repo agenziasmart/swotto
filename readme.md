@@ -378,7 +378,7 @@ try {
 
 ### Cache Persistence per Multi-Request
 
-Il Circuit Breaker mantiene lo stato tra diverse richieste utilizzando cache PSR-16:
+Il Circuit Breaker mantiene lo stato tra diverse richieste utilizzando cache PSR-16 (opzionale):
 
 ```php
 // Redis Cache (raccomandato per produzione)
@@ -389,13 +389,15 @@ $cache = new \Symfony\Component\Cache\Adapter\RedisAdapter($redis);
 // Array Cache (per sviluppo/testing)
 $cache = new \Symfony\Component\Cache\Adapter\ArrayAdapter();
 
-// File Cache (alternativa senza Redis)
+// File Cache (alternativa senza Redis) 
 $cache = new \Symfony\Component\Cache\Adapter\FilesystemAdapter('swotto_cb', 3600, '/tmp/cache');
 
+// Cache utilizzata SOLO per Circuit Breaker state persistence
 $client = new Client(
     $config,
-    $logger,
-    GuzzleHttpClient::withCircuitBreaker($config, $logger, $cache)
+    $logger, 
+    null,
+    $cache  // Cache per Circuit Breaker (opzionale)
 );
 ```
 
@@ -454,6 +456,47 @@ $failureCount = $httpClient->getFailureCount(); // Implementazione futura
 - Non ignorare CircuitBreakerOpenException senza fallback
 - Non condividere cache keys tra applicazioni diverse
 
+## 🚀 Application-Level Caching
+
+**Importante**: Swotto SDK non implementa caching dei dati API. La responsabilità del caching dei dati business è dell'applicazione host.
+
+### Strategia Raccomandata
+
+```php
+// L'applicazione gestisce il proprio caching
+class MyAppService 
+{
+    private CacheInterface $appCache;
+    private Client $swotto;
+    
+    public function __construct(Client $swotto, CacheInterface $appCache) 
+    {
+        $this->swotto = $swotto;
+        $this->appCache = $appCache;
+    }
+    
+    public function getCountries(): array 
+    {
+        $cacheKey = 'app:countries:' . $this->getOrgId();
+        
+        if ($this->appCache->has($cacheKey)) {
+            return $this->appCache->get($cacheKey);
+        }
+        
+        $countries = $this->swotto->fetchPop('open/country');
+        $this->appCache->set($cacheKey, $countries, 3600); // 1h TTL
+        
+        return $countries;
+    }
+}
+```
+
+### Vantaggi Application-Level Caching
+- **Controllo completo**: TTL, invalidazione, chiavi personalizzate
+- **Multitenant safe**: Isolamento per organization_id  
+- **Business logic aware**: Cache basata su logica applicativa
+- **Performance ottimizzata**: Cache solo dati necessari all'app
+
 ### Token Validation Pattern 
 ```php
 // Verifica proattiva validità token
@@ -469,74 +512,6 @@ public function ensureValidToken(): bool {
 }
 ```
 
-## 🎯 Smart Caching
-
-Il smart caching automatico ottimizza le performance memorizzando automaticamente le risposte di endpoint statici:
-
-### Configurazione Cache
-```php
-// Nessuna cache (default - comportamento v1.x)
-$client = new Client(['url' => 'https://api.swotto.it']);
-
-// Array cache (in-memory per request)
-$cache = new \Symfony\Component\Cache\Adapter\ArrayAdapter();
-$client = new Client(['url' => 'https://api.swotto.it'], null, null, $cache);
-
-// Redis cache (persistente tra requests)
-$redis = new \Redis();
-$redis->connect('127.0.0.1', 6379);
-$cache = new \Symfony\Component\Cache\Adapter\RedisAdapter($redis);
-$client = new Client(['url' => 'https://api.swotto.it'], null, null, $cache);
-
-// File cache (filesystem)
-$cache = new \Symfony\Component\Cache\Adapter\FilesystemAdapter();
-$client = new Client(['url' => 'https://api.swotto.it'], null, null, $cache);
-```
-
-### Endpoint Auto-Cached
-Gli endpoint statici vengono automaticamente memorizzati in cache:
-
-```php
-// Questi endpoint sono auto-cached (dati che cambiano raramente)
-$countries = $client->getCountryPop();        // ✅ Cached 1h
-$currencies = $client->getCurrencyPop();      // ✅ Cached 1h  
-$languages = $client->getSysLanguagePop();   // ✅ Cached 1h
-$genders = $client->getGenderPop();          // ✅ Cached 1h
-
-// Questi endpoint sono sempre fresh (dati che cambiano spesso)
-$customers = $client->getCustomerPop();      // ❌ No cache (dynamic data)
-$orders = $client->get('orders');            // ❌ No cache (dynamic data)
-$inventory = $client->get('inventory');      // ❌ No cache (dynamic data)
-```
-
-### Cache TTL Configurabile
-```php
-// Default TTL: 1 ora (3600 secondi)
-$client = new Client(['url' => 'https://api.swotto.it'], null, null, $cache);
-
-// Custom TTL: 30 minuti
-$client = new Client([
-    'url' => 'https://api.swotto.it',
-    'cache_ttl' => 1800  // 30 minutes
-], null, null, $cache);
-
-// Cache disabilitata per endpoint specifici
-$countries = $client->fetchPop('open/country', ['cache' => false]);  // Force fresh
-```
-
-### Performance Benefits
-```php
-// First call: HTTP request + cache store
-$countries = $client->getCountryPop();  // ~200ms (HTTP call)
-
-// Subsequent calls: cache hit
-$countries = $client->getCountryPop();  // ~1ms (cache hit)
-$countries = $client->getCountryPop();  // ~1ms (cache hit)
-
-// Automatic cache invalidation after TTL
-// After 1 hour: HTTP request + cache refresh
-$countries = $client->getCountryPop();  // ~200ms (cache expired, fresh call)
-```
 
 ## Configurazione Base
 

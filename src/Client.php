@@ -40,7 +40,7 @@ class Client implements ClientInterface
     private Configuration $config;
 
     /**
-     * @var CacheInterface|null Cache implementation
+     * @var CacheInterface|null Cache implementation for Circuit Breaker persistence
      */
     private ?CacheInterface $cache;
 
@@ -55,7 +55,7 @@ class Client implements ClientInterface
      * @param array<string, mixed> $config Configuration options
      * @param LoggerInterface|null $logger Optional logger
      * @param HttpClientInterface|null $httpClient Optional HTTP client implementation
-     * @param CacheInterface|null $cache Optional cache implementation
+     * @param CacheInterface|null $cache Optional cache implementation for Circuit Breaker persistence
      * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher
      *
      * @throws \Swotto\Exception\ConfigurationException On invalid configuration
@@ -174,23 +174,8 @@ class Client implements ClientInterface
      */
     public function fetchPop(string $uri, ?array $query = []): array
     {
-        // Smart caching for static endpoints
-        $cacheKey = $this->getCacheKey($uri, $query ?? []);
-
-        if ($this->isCacheable($uri) && $this->cache && $this->cache->has($cacheKey)) {
-            return $this->cache->get($cacheKey);
-        }
-
         $response = $this->get($uri, ['query' => $query ?? []]);
-        $data = $response['data'] ?? [];
-
-        // Auto-cache static data
-        if ($this->isCacheable($uri) && $this->cache) {
-            $cacheTtl = $this->config->get('cache_ttl', 3600); // 1h default
-            $this->cache->set($cacheKey, $data, $cacheTtl);
-        }
-
-        return $data;
+        return $response['data'] ?? [];
     }
 
     /**
@@ -381,40 +366,6 @@ class Client implements ClientInterface
         ];
     }
 
-    /**
-     * Generate cache key for endpoint and query.
-     *
-     * @param string $endpoint The endpoint URI
-     * @param array $query Query parameters
-     * @return string Cache key
-     */
-    private function getCacheKey(string $endpoint, array $query): string
-    {
-        return 'swotto_' . md5($endpoint . serialize($query));
-    }
-
-    /**
-     * Check if endpoint is cacheable (static data).
-     *
-     * @param string $endpoint The endpoint URI
-     * @return bool True if endpoint should be cached
-     */
-    private function isCacheable(string $endpoint): bool
-    {
-        // Static data endpoints that rarely change
-        $cacheableEndpoints = [
-            'open/country',
-            'open/currency',
-            'open/language',
-            'open/gender',
-            'open/role',
-            'open/incoterm',
-            'configuration/payment-type',
-        ];
-
-        return in_array($endpoint, $cacheableEndpoints) ||
-               str_starts_with($endpoint, 'open/timezone');
-    }
 
     /**
      * {@inheritdoc}

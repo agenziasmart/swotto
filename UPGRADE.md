@@ -99,15 +99,14 @@ composer require symfony/cache
 $cache = new \Symfony\Component\Cache\Adapter\ArrayAdapter();
 $client = new \Swotto\Client(['url' => $url, 'key' => $key], null, null, $cache);
 
-// Or Redis cache (persistent)
+// Cache per Circuit Breaker (opzionale)
 $redis = new \Redis();
 $redis->connect('127.0.0.1', 6379);
 $cache = new \Symfony\Component\Cache\Adapter\RedisAdapter($redis);
 $client = new \Swotto\Client(['url' => $url, 'key' => $key], null, null, $cache);
 
-// Now POP functions are auto-cached
-$countries = $client->getCountryPop();  // HTTP call + cache store
-$countries = $client->getCountryPop();  // Cache hit! (~200x faster)
+// Cache utilizzata SOLO per Circuit Breaker state persistence
+// I dati API NON sono più auto-cached (responsabilità dell'app host)
 ```
 
 ---
@@ -243,13 +242,50 @@ $cache = new \Symfony\Component\Cache\Adapter\RedisAdapter($redis);
 // Production: File cache (filesystem)
 $cache = new \Symfony\Component\Cache\Adapter\FilesystemAdapter('swotto_cache', 0, '/tmp');
 
-// Custom TTL
+// Cache per Circuit Breaker solamente
 $client = new \Swotto\Client([
     'url' => $url,
-    'key' => $key,
-    'cache_ttl' => 1800  // 30 minutes instead of default 1 hour
+    'key' => $key
 ], null, null, $cache);
 ```
+
+---
+
+## ⚠️ Breaking Change: Application-Level Caching Required
+
+**Importante**: Swotto 2.2.0+ non implementa più auto-caching dei dati API. Se la tua applicazione dipendeva da questa funzionalità, devi implementare il caching a livello applicativo.
+
+### Migrazione da Auto-Caching a Application-Level
+
+```php
+// ❌ Vecchio modo (v2.1.x) - Auto-cache nel SDK
+$countries = $client->getCountryPop();  // Auto-cached internamente
+
+// ✅ Nuovo modo (v2.2.0+) - Cache nell'applicazione
+class MyService {
+    private Client $swotto;
+    private CacheInterface $cache;
+    
+    public function getCountries(): array {
+        $cacheKey = 'countries:' . $this->getOrgId();
+        
+        if ($this->cache->has($cacheKey)) {
+            return $this->cache->get($cacheKey);
+        }
+        
+        $countries = $this->swotto->fetchPop('open/country');
+        $this->cache->set($cacheKey, $countries, 3600);
+        
+        return $countries;
+    }
+}
+```
+
+### Vantaggi della Migrazione
+- **Controllo totale**: TTL, chiavi, invalidazione personalizzati
+- **Multitenant safe**: Isolamento per organization_id
+- **Performance**: Cache solo dati necessari all'applicazione  
+- **Responsabilità chiara**: SDK = comunicazione, App = business logic + caching
 
 ---
 

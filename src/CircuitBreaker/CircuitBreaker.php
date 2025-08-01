@@ -18,7 +18,7 @@ class CircuitBreaker
     /**
      * @var string Cache key prefix for state persistence
      */
-    private const CACHE_KEY_PREFIX = 'swotto_circuit_breaker_';
+    private const CACHE_KEY_PREFIX = 'swotto:cb:';
 
     /**
      * @var CircuitState Current circuit state
@@ -93,7 +93,7 @@ class CircuitBreaker
         $this->successThreshold = $successThreshold;
         $this->cache = $cache;
         $this->logger = $logger ?? new NullLogger();
-        $this->cacheKey = self::CACHE_KEY_PREFIX . $name;
+        $this->cacheKey = self::CACHE_KEY_PREFIX . $name . ':state';
 
         // Load state from cache if available
         $this->loadState();
