@@ -31,7 +31,6 @@ Thumbs.db
 !.gitkeep
 !.editorconfig
 !.gitattributes
-!.github
 
 # Claude Code files and directories
 CLAUDE.md
