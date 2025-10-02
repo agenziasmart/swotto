@@ -1,0 +1,54 @@
+.*
+*~
+tmp/
+composer.lock
+.vscode/
+/vendor/
+docs
+cache/
+*.env
+*.map
+# Packages #
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.cert
+*.key
+# Logs and databases #
+logs/
+*.log
+*.sqlite
+# OS generated files #
+.DS_Store*
+Thumbs.db
+!.gitignore
+!.htaccess
+!.gitkeep
+!.editorconfig
+!.gitattributes
+
+# Claude Code files and directories
+CLAUDE.md
+.claude/
+.claude*
+**/CLAUDE.md
+
+# Security - Prevent sensitive data commits
+# Build and cache files (may contain sensitive data)
+/build/
+phpstan-result-cache.php
+*.cache
+
+# Environment and config files
+*.env*
+config.local.php
+settings.local.json
+
+# Test files with real data
+**/test-data/
+**/*real*.json
