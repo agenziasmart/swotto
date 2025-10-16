@@ -6,7 +6,9 @@ namespace Swotto\CircuitBreaker;
 
 use Psr\Http\Message\ResponseInterface;
 use Swotto\Contract\HttpClientInterface;
+use Swotto\Exception\ApiException;
 use Swotto\Exception\CircuitBreakerOpenException;
+use Swotto\Exception\NetworkException;
 use Swotto\Exception\SwottoException;
 
 /**
@@ -71,8 +73,12 @@ final class CircuitBreakerHttpClient implements HttpClientInterface
 
             return $result;
         } catch (SwottoException $e) {
-            // Record failure for Swotto-specific exceptions
-            $this->circuitBreaker->recordFailure();
+            // Record failure ONLY for server errors (5xx) or network issues
+            // Client errors (4xx) should NOT increment the circuit breaker
+            if ($e instanceof NetworkException ||
+                ($e instanceof ApiException && $e->getStatusCode() >= 500)) {
+                $this->circuitBreaker->recordFailure();
+            }
             throw $e;
         }
     }
@@ -100,8 +106,12 @@ final class CircuitBreakerHttpClient implements HttpClientInterface
 
             return $result;
         } catch (SwottoException $e) {
-            // Record failure for Swotto-specific exceptions
-            $this->circuitBreaker->recordFailure();
+            // Record failure ONLY for server errors (5xx) or network issues
+            // Client errors (4xx) should NOT increment the circuit breaker
+            if ($e instanceof NetworkException ||
+                ($e instanceof ApiException && $e->getStatusCode() >= 500)) {
+                $this->circuitBreaker->recordFailure();
+            }
             throw $e;
         }
     }
