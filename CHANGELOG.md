@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-10-16
+
+### Fixed
+
+- **Circuit Breaker False Positives**: Fixed critical bug where circuit breaker was incorrectly incrementing failure count for 4xx client errors (401 Unauthorized, 403 Forbidden, 404 Not Found, 422 Validation, 429 Rate Limit)
+- Circuit breaker now correctly increments ONLY for 5xx server errors (500, 502, 503, 504) and network failures (NetworkException, ConnectionException)
+- Prevents authentication and validation errors from incorrectly triggering circuit breaker state transitions
+- Added comprehensive test coverage (11 new tests, 23 new assertions) to validate correct behavior
+
+### Technical Details
+
+- Test Coverage: 89 tests (was 78), 234 assertions (was 211)
+- All quality checks passing: PSR-12, PHPStan Level 8
+
+---
+
 ## [1.0.0] - 2025-10-02
 
 ### Added
