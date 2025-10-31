@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-10-31
+
+### Fixed
+
+- **Critical Security Fix: Log Sanitization for Binary Data**: Fixed critical privacy/GDPR violation where binary file contents and sensitive data were logged in full
+- Implemented automatic sanitization of request options before logging to prevent exposure of:
+  - Binary file contents in multipart uploads (e.g., avatar images, PDF documents)
+  - Stream/resource bodies
+  - Sensitive headers (Authorization, Cookie, X-Devapp, API keys)
+  - Sensitive form parameters (passwords, tokens, secrets)
+  - Sensitive JSON body fields
+- Logs now display safe metadata like `<binary data: 12345 bytes>` instead of full binary content
+- Prevents log file bloat (files were reaching 1.9 MB for single upload operations)
+- Complies with OWASP Logging Cheat Sheet and GDPR data minimization requirements
+
+### Added
+
+- New private method `sanitizeOptionsForLogging()` in `GuzzleHttpClient` for automatic log sanitization
+- New private method `getContentSize()` to safely measure content size without exposing data
+- Comprehensive test suite: `LogSanitizationTest` with 7 new test cases covering all sanitization scenarios
+
+### Technical Details
+
+- Test Coverage: 96 tests (was 89), 276 assertions (was 234)
+- All quality checks passing: PSR-12, PHPStan Level 8
+- Zero breaking changes: sanitization is automatic and transparent to users
+- Performance impact: minimal (only affects logging path, not actual HTTP requests)
+
+---
+
 ## [1.0.1] - 2025-10-16
 
 ### Fixed

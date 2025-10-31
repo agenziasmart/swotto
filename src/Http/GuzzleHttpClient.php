@@ -115,7 +115,7 @@ class GuzzleHttpClient implements HttpClientInterface
      */
     public function request(string $method, string $uri, array $options = []): array
     {
-        $this->logger->info("Requesting {$method} {$uri}", $options);
+        $this->logger->info("Requesting {$method} {$uri}", $this->sanitizeOptionsForLogging($options));
 
         try {
             $response = $this->client->request($method, $uri, $options);
@@ -136,7 +136,7 @@ class GuzzleHttpClient implements HttpClientInterface
      */
     public function requestRaw(string $method, string $uri, array $options = []): ResponseInterface
     {
-        $this->logger->info("Raw request {$method} {$uri}", $options);
+        $this->logger->info("Raw request {$method} {$uri}", $this->sanitizeOptionsForLogging($options));
 
         try {
             return $this->client->request($method, $uri, $options);
@@ -327,6 +327,104 @@ class GuzzleHttpClient implements HttpClientInterface
 
         // Rethrow any other exceptions
         throw $exception;
+    }
+
+    /**
+     * Sanitize request options for safe logging.
+     *
+     * Removes or masks sensitive data to prevent exposure in logs:
+     * - Binary file contents in multipart uploads
+     * - Stream/resource bodies
+     * - Sensitive headers (Authorization, Cookie, API keys)
+     * - Sensitive form parameters (passwords, tokens)
+     *
+     * Following OWASP Logging Cheat Sheet and GDPR compliance requirements.
+     *
+     * @param array $options Original Guzzle request options
+     * @return array Sanitized options safe for logging
+     */
+    private function sanitizeOptionsForLogging(array $options): array
+    {
+        $sanitized = $options;
+
+        // 1. Sanitize multipart file contents (e.g., file uploads)
+        if (isset($sanitized['multipart'])) {
+            foreach ($sanitized['multipart'] as &$part) {
+                if (isset($part['contents']) && !is_string($part['contents'])) {
+                    // Only sanitize non-string contents (resources, streams)
+                    $size = $this->getContentSize($part['contents']);
+                    $part['contents'] = sprintf('<binary data: %d bytes>', $size);
+                }
+            }
+        }
+
+        // 2. Sanitize body streams/resources
+        if (isset($sanitized['body'])) {
+            if (is_resource($sanitized['body']) || $sanitized['body'] instanceof \Psr\Http\Message\StreamInterface) {
+                $size = $this->getContentSize($sanitized['body']);
+                $sanitized['body'] = sprintf('<stream: %d bytes>', $size);
+            }
+        }
+
+        // 3. Sanitize sensitive headers
+        if (isset($sanitized['headers'])) {
+            $sensitiveHeaders = ['Authorization', 'Cookie', 'Set-Cookie', 'X-Api-Key', 'X-Auth-Token', 'X-Devapp'];
+            foreach ($sensitiveHeaders as $header) {
+                // Case-insensitive header check
+                foreach (array_keys($sanitized['headers']) as $key) {
+                    if (is_string($key) && strcasecmp($key, $header) === 0) {
+                        $sanitized['headers'][$key] = '****';
+                    }
+                }
+            }
+        }
+
+        // 4. Sanitize sensitive form parameters
+        if (isset($sanitized['form_params'])) {
+            $sensitiveFields = ['password', 'token', 'secret', 'api_key', 'access_token'];
+            foreach ($sensitiveFields as $field) {
+                if (isset($sanitized['form_params'][$field])) {
+                    $sanitized['form_params'][$field] = '****';
+                }
+            }
+        }
+
+        // 5. Sanitize JSON body sensitive fields
+        if (isset($sanitized['json']) && is_array($sanitized['json'])) {
+            $sensitiveFields = ['password', 'token', 'secret', 'api_key', 'access_token'];
+            foreach ($sensitiveFields as $field) {
+                if (isset($sanitized['json'][$field])) {
+                    $sanitized['json'][$field] = '****';
+                }
+            }
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Get size of content (string, resource, or stream).
+     *
+     * @param mixed $content Content to measure
+     * @return int Size in bytes
+     */
+    private function getContentSize($content): int
+    {
+        if (is_string($content)) {
+            return strlen($content);
+        }
+
+        if (is_resource($content)) {
+            $stat = fstat($content);
+
+            return $stat['size'] ?? 0;
+        }
+
+        if ($content instanceof \Psr\Http\Message\StreamInterface) {
+            return $content->getSize() ?? 0;
+        }
+
+        return 0;
     }
 
     /**
