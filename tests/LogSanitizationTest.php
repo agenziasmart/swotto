@@ -353,4 +353,131 @@ class LogSanitizationTest extends TestCase
 
         $this->httpClient->requestRaw('GET', '/raw', $optionsWithSensitiveData);
     }
+
+    /**
+     * Test that binary strings from file_get_contents() are sanitized in logs.
+     *
+     * This test covers the CRITICAL BUG where binary data passed as strings
+     * (not resources) were logged in full, causing GDPR violations and log bloat.
+     *
+     * Scenario: User uploads image via file_get_contents() - the original bug
+     * Expected: Binary content replaced with '<binary data: X bytes>'
+     * Security: Prevents privacy violations and operational issues
+     *
+     * @return void
+     */
+    public function testSanitizeBinaryStringInMultipart(): void
+    {
+        $response = new Response(200, [], json_encode(['success' => true]));
+
+        // Simulate binary data from file_get_contents()
+        // Use realistic binary pattern (PNG header + random data)
+        $binaryString = "\x89PNG\r\n\x1a\n" . str_repeat("\x00\x01\xFF\xFE", 250); // 1KB binary
+
+        $multipartOptions = [
+            'multipart' => [
+                [
+                    'name' => 'avatar',
+                    'contents' => $binaryString,  // Binary STRING (not resource!) - THE BUG
+                ],
+                [
+                    'name' => 'description',
+                    'contents' => 'User profile picture',  // Text metadata (should be preserved)
+                ],
+            ],
+        ];
+
+        // Expect logger to receive sanitized binary string
+        $this->mockLogger->expects($this->once())
+            ->method('info')
+            ->with(
+                'Requesting POST /upload',
+                $this->callback(function ($loggedOptions) {
+                    // Verify multipart array exists
+                    $this->assertArrayHasKey('multipart', $loggedOptions);
+
+                    // Verify binary STRING is sanitized (THE FIX)
+                    $this->assertIsString($loggedOptions['multipart'][0]['contents']);
+                    $this->assertMatchesRegularExpression(
+                        '/^<binary data: \d+ bytes>$/',
+                        $loggedOptions['multipart'][0]['contents'],
+                        'Binary string should be sanitized to "<binary data: X bytes>" format'
+                    );
+                    $this->assertStringContainsString('1008 bytes', $loggedOptions['multipart'][0]['contents']);
+
+                    // Verify NO binary content leaked
+                    $this->assertStringNotContainsString("\x00", $loggedOptions['multipart'][0]['contents']);
+                    $this->assertStringNotContainsString("\xFF", $loggedOptions['multipart'][0]['contents']);
+                    $this->assertStringNotContainsString('PNG', $loggedOptions['multipart'][0]['contents']);
+
+                    // Verify text metadata is preserved (not sanitized)
+                    $this->assertEquals('User profile picture', $loggedOptions['multipart'][1]['contents']);
+
+                    return true;
+                })
+            );
+
+        // Mock Guzzle client
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $this->httpClient->request('POST', '/upload', $multipartOptions);
+    }
+
+    /**
+     * Test that UTF-8 text with emojis is NOT sanitized (false positive prevention).
+     *
+     * Ensures the binary detection algorithm doesn't incorrectly flag
+     * valid UTF-8 text containing unicode/emojis as binary data.
+     *
+     * @return void
+     */
+    public function testPreserveUtf8StringWithEmojisInMultipart(): void
+    {
+        $response = new Response(200, [], json_encode(['success' => true]));
+
+        $utf8Text = 'User uploaded photo 📸 Successfully! 🎉 你好世界';
+
+        $multipartOptions = [
+            'multipart' => [
+                [
+                    'name' => 'description',
+                    'contents' => $utf8Text,  // UTF-8 with emoji - should NOT be sanitized
+                ],
+            ],
+        ];
+
+        // Expect UTF-8 text to be preserved completely
+        $this->mockLogger->expects($this->once())
+            ->method('info')
+            ->with(
+                'Requesting POST /upload',
+                $this->callback(function ($loggedOptions) use ($utf8Text) {
+                    // Verify UTF-8 text is preserved exactly
+                    $this->assertEquals($utf8Text, $loggedOptions['multipart'][0]['contents']);
+                    $this->assertStringNotContainsString('<binary data:', $loggedOptions['multipart'][0]['contents']);
+
+                    return true;
+                })
+            );
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $this->httpClient->request('POST', '/upload', $multipartOptions);
+    }
 }
