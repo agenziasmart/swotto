@@ -38,7 +38,7 @@ class CircuitBreakerHttpClientTest extends TestCase
 
     protected function setUp(): void
     {
-        /** @phpstan-ignore-next-line */
+        /* @phpstan-ignore-next-line */
         $this->mockClient = Mockery::mock(HttpClientInterface::class);
         $this->circuitBreaker = new CircuitBreaker(
             name: 'test',
