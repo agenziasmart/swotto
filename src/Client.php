@@ -21,7 +21,7 @@ use Swotto\Trait\PopTrait;
  *
  * Main Swotto API Client implementation
  */
-class Client implements ClientInterface
+final class Client implements ClientInterface
 {
     use PopTrait;
 
