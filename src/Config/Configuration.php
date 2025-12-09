@@ -11,7 +11,7 @@ use Swotto\Exception\ConfigurationException;
  *
  * Manages and validates Swotto Client configuration
  */
-class Configuration
+final class Configuration
 {
     /**
      * @var array<int, string> Required configuration keys
@@ -40,7 +40,7 @@ class Configuration
     /**
      * @var array<string, mixed> Configuration values
      */
-    private array $config;
+    private readonly array $config;
 
     /**
      * Constructor.

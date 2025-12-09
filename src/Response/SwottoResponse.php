@@ -18,7 +18,7 @@ use Swotto\Exception\StreamingException;
  * and content-type detection. Provides safe handling of various response formats
  * including JSON, CSV, PDF, and other binary content.
  */
-class SwottoResponse
+final class SwottoResponse
 {
     /**
      * Maximum size (in bytes) for in-memory processing.
@@ -114,7 +114,12 @@ class SwottoResponse
         if ($contentLength !== null && $contentLength > self::STREAMING_THRESHOLD) {
             $this->cachedString = $this->streamToString();
         } else {
-            $this->cachedString = $this->response->getBody()->getContents();
+            $stream = $this->response->getBody();
+            // Rewind stream if possible to ensure we read from the beginning
+            if ($stream->isSeekable()) {
+                $stream->rewind();
+            }
+            $this->cachedString = $stream->getContents();
         }
 
         return $this->cachedString;
