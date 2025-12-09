@@ -39,7 +39,7 @@ class GuzzleHttpClientTest extends TestCase
     public function testSuccessfulRequest(): void
     {
         $responseData = ['success' => true, 'data' => 'test'];
-        $response = new Response(200, [], json_encode($responseData));
+        $response = new Response(200, [], (string) json_encode($responseData));
 
         $mockGuzzle = $this->createMock(GuzzleClient::class);
         $mockGuzzle->expects($this->once())
@@ -81,7 +81,7 @@ class GuzzleHttpClientTest extends TestCase
     public function testValidationException(): void
     {
         $errorData = ['field' => 'required'];
-        $response = new Response(400, [], json_encode(['message' => 'Validation failed'] + $errorData));
+        $response = new Response(400, [], (string) json_encode(['message' => 'Validation failed'] + $errorData));
         $request = new Request('POST', 'test');
         $exception = new RequestException('Bad Request', $request, $response);
 
@@ -105,7 +105,7 @@ class GuzzleHttpClientTest extends TestCase
 
     public function testAuthenticationException(): void
     {
-        $response = new Response(401, [], json_encode(['message' => 'Unauthorized']));
+        $response = new Response(401, [], (string) json_encode(['message' => 'Unauthorized']));
         $request = new Request('GET', 'test');
         $exception = new RequestException('Unauthorized', $request, $response);
 
@@ -129,7 +129,7 @@ class GuzzleHttpClientTest extends TestCase
 
     public function testForbiddenException(): void
     {
-        $response = new Response(403, [], json_encode(['message' => 'Access denied']));
+        $response = new Response(403, [], (string) json_encode(['message' => 'Access denied']));
         $request = new Request('GET', 'test');
         $exception = new RequestException('Forbidden', $request, $response);
 
@@ -153,7 +153,7 @@ class GuzzleHttpClientTest extends TestCase
 
     public function testNotFoundException(): void
     {
-        $response = new Response(404, [], json_encode(['message' => 'Not found']));
+        $response = new Response(404, [], (string) json_encode(['message' => 'Not found']));
         $request = new Request('GET', 'test');
         $exception = new RequestException('Not Found', $request, $response);
 
@@ -177,7 +177,7 @@ class GuzzleHttpClientTest extends TestCase
 
     public function testRateLimitException(): void
     {
-        $response = new Response(429, ['Retry-After' => ['60']], json_encode(['message' => 'Too many requests']));
+        $response = new Response(429, ['Retry-After' => ['60']], (string) json_encode(['message' => 'Too many requests']));
         $request = new Request('GET', 'test');
         $exception = new RequestException('Too Many Requests', $request, $response);
 

@@ -34,7 +34,7 @@ class LogSanitizationTest extends TestCase
 
     public function testSanitizeMultipartBinaryData(): void
     {
-        $response = new Response(200, [], json_encode(['success' => true]));
+        $response = new Response(200, [], (string) json_encode(['success' => true]));
 
         // Create a file resource for testing
         $fileContent = str_repeat('BINARY_DATA_', 1000); // Simulate binary file
@@ -94,7 +94,7 @@ class LogSanitizationTest extends TestCase
 
     public function testSanitizeSensitiveHeaders(): void
     {
-        $response = new Response(200, [], json_encode(['success' => true]));
+        $response = new Response(200, [], (string) json_encode(['success' => true]));
 
         $optionsWithSensitiveHeaders = [
             'headers' => [
@@ -140,7 +140,7 @@ class LogSanitizationTest extends TestCase
 
     public function testSanitizeSensitiveFormParams(): void
     {
-        $response = new Response(200, [], json_encode(['success' => true]));
+        $response = new Response(200, [], (string) json_encode(['success' => true]));
 
         $optionsWithPassword = [
             'form_params' => [
@@ -186,7 +186,7 @@ class LogSanitizationTest extends TestCase
 
     public function testSanitizeSensitiveJsonBody(): void
     {
-        $response = new Response(200, [], json_encode(['success' => true]));
+        $response = new Response(200, [], (string) json_encode(['success' => true]));
 
         $optionsWithSensitiveJson = [
             'json' => [
@@ -232,7 +232,7 @@ class LogSanitizationTest extends TestCase
 
     public function testSanitizeStreamBody(): void
     {
-        $response = new Response(200, [], json_encode(['success' => true]));
+        $response = new Response(200, [], (string) json_encode(['success' => true]));
 
         // Create a stream with content
         $tempFile = tmpfile();
@@ -279,7 +279,7 @@ class LogSanitizationTest extends TestCase
 
     public function testSanitizeDevappHeader(): void
     {
-        $response = new Response(200, [], json_encode(['success' => true]));
+        $response = new Response(200, [], (string) json_encode(['success' => true]));
 
         $optionsWithDevapp = [
             'headers' => [
@@ -368,7 +368,7 @@ class LogSanitizationTest extends TestCase
      */
     public function testSanitizeBinaryStringInMultipart(): void
     {
-        $response = new Response(200, [], json_encode(['success' => true]));
+        $response = new Response(200, [], (string) json_encode(['success' => true]));
 
         // Simulate binary data from file_get_contents()
         // Use realistic binary pattern (PNG header + random data)
@@ -441,7 +441,7 @@ class LogSanitizationTest extends TestCase
      */
     public function testPreserveUtf8StringWithEmojisInMultipart(): void
     {
-        $response = new Response(200, [], json_encode(['success' => true]));
+        $response = new Response(200, [], (string) json_encode(['success' => true]));
 
         $utf8Text = 'User uploaded photo 📸 Successfully! 🎉 你好世界';
 

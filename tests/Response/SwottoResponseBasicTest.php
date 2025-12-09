@@ -87,7 +87,7 @@ class SwottoResponseBasicTest extends TestCase
     public function testBasicAsArrayParsing(): void
     {
         $jsonData = ['name' => 'Test', 'value' => 123];
-        $mockResponse = $this->createMockResponse('application/json', json_encode($jsonData));
+        $mockResponse = $this->createMockResponse('application/json', (string) json_encode($jsonData));
         $swottoResponse = new SwottoResponse($mockResponse);
 
         $result = $swottoResponse->asArray();
