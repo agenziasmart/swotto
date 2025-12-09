@@ -403,7 +403,10 @@ class SwottoResponse
         }
 
         $headers = str_getcsv($firstLine);
-        if ($headers === false || count($headers) === 0) {
+        // str_getcsv always returns non-empty array in PHP 8.0+
+        // Check if result contains only empty strings (invalid CSV header)
+        $nonEmptyHeaders = array_filter($headers, fn ($h) => $h !== null && $h !== '');
+        if ($nonEmptyHeaders === []) {
             return [];
         }
 

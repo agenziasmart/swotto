@@ -125,7 +125,14 @@ class GuzzleHttpClient implements HttpClientInterface
                 return [];
             }
 
-            return json_decode($response->getBody()->getContents(), true);
+            $decoded = json_decode($response->getBody()->getContents(), true);
+
+            // json_decode returns null on invalid JSON, but method must return array
+            if (!is_array($decoded)) {
+                return [];
+            }
+
+            return $decoded;
         } catch (\Exception $exception) {
             return $this->handleException($exception, $uri);
         }
