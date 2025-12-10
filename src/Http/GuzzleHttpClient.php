@@ -28,7 +28,7 @@ use Swotto\Exception\ValidationException;
  *
  * HTTP Client implementation using Guzzle
  */
-class GuzzleHttpClient implements HttpClientInterface
+final class GuzzleHttpClient implements HttpClientInterface
 {
     /**
      * @var string SDK version
@@ -92,12 +92,21 @@ class GuzzleHttpClient implements HttpClientInterface
             $this->config->getHeaders()
         );
 
+        $verifySsl = $this->config->get('verify_ssl', self::VERIFY_SSL);
+
+        // Security warning when SSL verification is disabled
+        if ($verifySsl === false) {
+            $this->logger->warning(
+                'SSL verification is disabled - this is insecure and should only be used in development!'
+            );
+        }
+
         $httpConfig = [
           'base_uri' => $this->config->getBaseUrl(),
           'headers' => $headers,
           'timeout' => self::DEFAULT_TIMEOUT,
           'allow_redirects' => self::ALLOW_REDIRECTS,
-          'verify' => $this->config->get('verify_ssl', self::VERIFY_SSL),
+          'verify' => $verifySsl,
         ];
 
         try {
@@ -125,7 +134,14 @@ class GuzzleHttpClient implements HttpClientInterface
                 return [];
             }
 
-            return json_decode($response->getBody()->getContents(), true);
+            $decoded = json_decode($response->getBody()->getContents(), true);
+
+            // json_decode returns null on invalid JSON, but method must return array
+            if (!is_array($decoded)) {
+                return [];
+            }
+
+            return $decoded;
         } catch (\Exception $exception) {
             return $this->handleException($exception, $uri);
         }

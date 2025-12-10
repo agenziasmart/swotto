@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2025-12-09
+
+### Security
+
+- **SEC-001: HTTP Header Injection Fix (CWE-113)**: Added `sanitizeHeaderValue()` method to prevent CRLF injection attacks in User-Agent and Client-IP headers
+- **SEC-003: SSL Verification Warning**: Added warning log when SSL verification is disabled to alert developers of insecure configuration
+
+### Fixed
+
+- **BUG-001: JSON Decode Type Safety**: Fixed `json_decode()` potentially returning `null` on invalid JSON, now correctly returns empty array to satisfy `array` return type
+- **BUG-003: Stream Rewind**: Added `stream->rewind()` before reading response body to prevent empty reads on already-consumed streams
+- **PHP-001: PHPStan str_getcsv Fix**: Fixed incorrect `false` comparison for `str_getcsv()` which always returns array in PHP 8.0+
+
+### Changed
+
+- **PHP-004: Final Classes**: Added `final` keyword to core classes (`Client`, `Configuration`, `GuzzleHttpClient`, `SwottoResponse`) to prevent unintended inheritance
+- **PHP-003: Readonly Property**: Made `Configuration::$config` property `readonly` to enforce immutability
+
+### Added
+
+- Comprehensive `AUDIT_REPORT.md` with code review findings and remediation plan
+
+### Technical Details
+
+- PHPStan: 0 errors (previously 15 in test files)
+- Test Coverage: 98 tests, 290 assertions
+- All quality checks passing: PSR-12, PHPStan Level 8
+- Zero breaking changes for public API
+
+---
+
 ## [1.0.3] - 2025-10-31
 
 ### Fixed

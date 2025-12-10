@@ -11,7 +11,7 @@ use Swotto\Exception\ConfigurationException;
  *
  * Manages and validates Swotto Client configuration
  */
-class Configuration
+final class Configuration
 {
     /**
      * @var array<int, string> Required configuration keys
@@ -40,7 +40,7 @@ class Configuration
     /**
      * @var array<string, mixed> Configuration values
      */
-    private array $config;
+    private readonly array $config;
 
     /**
      * Constructor.
@@ -145,13 +145,31 @@ class Configuration
         return rtrim($this->get('url'), '/');
     }
 
+    /**
+     * Sanitize a value to be used as HTTP header.
+     *
+     * Removes CRLF sequences and null bytes to prevent HTTP header injection attacks (CWE-113).
+     *
+     * @param string $value The value to sanitize
+     * @return string Sanitized value safe for use in HTTP headers
+     */
+    private function sanitizeHeaderValue(string $value): string
+    {
+        // Remove carriage return, line feed, and null bytes
+        return preg_replace('/[\r\n\0]/', '', $value) ?? '';
+    }
+
     public function detectClientUserAgent(): ?string
     {
         if (PHP_SAPI !== 'cli' && isset($_SERVER['HTTP_USER_AGENT'])) {
-            return $_SERVER['HTTP_USER_AGENT'] ?? null;
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+
+            return $userAgent !== null ? $this->sanitizeHeaderValue($userAgent) : null;
         }
 
-        return $this->get('client_user_agent', null);
+        $configValue = $this->get('client_user_agent', null);
+
+        return $configValue !== null ? $this->sanitizeHeaderValue((string) $configValue) : null;
     }
 
     public function detectClientIp(): ?string
@@ -159,7 +177,7 @@ class Configuration
         if (PHP_SAPI !== 'cli') {
             // Check standard headers that might contain the real IP
             if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-                return $_SERVER['HTTP_CLIENT_IP'];
+                return $this->sanitizeHeaderValue($_SERVER['HTTP_CLIENT_IP']);
             }
 
             // Check for proxy forwarded IP
@@ -167,14 +185,18 @@ class Configuration
                 // HTTP_X_FORWARDED_FOR may contain a list of IPs, we take the first one
                 $ipList = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
 
-                return trim($ipList[0]);
+                return $this->sanitizeHeaderValue(trim($ipList[0]));
             }
 
             // REMOTE_ADDR is the most reliable but might be the proxy's IP
-            return $_SERVER['REMOTE_ADDR'] ?? null;
+            $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? null;
+
+            return $remoteAddr !== null ? $this->sanitizeHeaderValue($remoteAddr) : null;
         }
 
-        return $this->get('client_ip', null);
+        $configValue = $this->get('client_ip', null);
+
+        return $configValue !== null ? $this->sanitizeHeaderValue((string) $configValue) : null;
     }
 
     /**
