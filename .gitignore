@@ -52,3 +52,9 @@ settings.local.json
 # Test files with real data
 **/test-data/
 **/*real*.json
+
+# Internal reports and audit documents
+AUDIT_REPORT.md
+*_REPORT.md
+**/audit/
+**/internal/
