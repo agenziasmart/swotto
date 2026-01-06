@@ -328,4 +328,246 @@ interface ClientInterface
      * @throws \Swotto\Exception\SwottoException On other errors
      */
     public function downloadToFile(string $uri, string $filePath, array $options = []): bool;
+
+    // =========================================================================
+    // POP (Lookup Data) Methods
+    // =========================================================================
+
+    /**
+     * Get gender POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getGenderPop(?array $query = []): array;
+
+    /**
+     * Get user role POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getUserRolePop(?array $query = []): array;
+
+    /**
+     * Get current user's organization data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array Organization data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getMeOrganization(?array $query = []): array;
+
+    /**
+     * Get country POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getCountryPop(?array $query = []): array;
+
+    /**
+     * Get system language POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getSysLanguagePop(?array $query = []): array;
+
+    /**
+     * Get currency POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getCurrencyPop(?array $query = []): array;
+
+    /**
+     * Get customer POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getCustomerPop(?array $query = []): array;
+
+    /**
+     * Get template POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getTemplatePop(?array $query = []): array;
+
+    /**
+     * Get incoterm POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getIncotermPop(?array $query = []): array;
+
+    /**
+     * Get incoterm by code.
+     *
+     * @param string $code Incoterm code
+     * @return array Incoterm data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getIncotermByCode(string $code): array;
+
+    /**
+     * Get carrier POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getCarrierPop(?array $query = []): array;
+
+    /**
+     * Get category POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getCategoryPop(?array $query = []): array;
+
+    /**
+     * Get supplier POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getSupplierPop(?array $query = []): array;
+
+    /**
+     * Get warehouse POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getWarehousePop(?array $query = []): array;
+
+    /**
+     * Get warehouse zone POP data by warehouse ID.
+     *
+     * @param int $id Warehouse ID
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getWarehouseZonePop(int $id, ?array $query = []): array;
+
+    /**
+     * Get project POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getProjectPop(?array $query = []): array;
+
+    /**
+     * Get product POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getProductPop(?array $query = []): array;
+
+    /**
+     * Get payment type POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getPaymentType(?array $query = []): array;
+
+    /**
+     * Get agreement POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getAgreementPop(?array $query = []): array;
+
+    /**
+     * Get warehouse reason POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getWhsreasonPop(?array $query = []): array;
+
+    /**
+     * Get warehouse inbound POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getWhsinboundPop(?array $query = []): array;
+
+    /**
+     * Get warehouse order POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getWhsorderPop(?array $query = []): array;
+
+    /**
+     * Get family POP data.
+     *
+     * @param array|null $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getFamilyPop(?array $query = []): array;
+
+    /**
+     * Get ship type POP data.
+     *
+     * @return array POP data (static list: Vettore, Mittente, Destinatario)
+     */
+    public function getShiptypePop(): array;
 }
