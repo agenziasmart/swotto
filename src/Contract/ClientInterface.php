@@ -287,4 +287,45 @@ interface ClientInterface
         array $metadata = [],
         array $options = []
     ): array;
+
+    /**
+     * Set client original user agent for X-Client-User-Agent header.
+     *
+     * @param string $userAgent Original client user agent
+     * @return void
+     */
+    public function setClientUserAgent(string $userAgent): void;
+
+    /**
+     * Set client original IP for X-Client-Ip header.
+     *
+     * @param string $ip Original client IP
+     * @return void
+     */
+    public function setClientIp(string $ip): void;
+
+    /**
+     * Get response as SwottoResponse object for advanced content handling.
+     *
+     * @param string $uri The URI to request
+     * @param array $options Request options to apply
+     * @return \Swotto\Response\SwottoResponse Smart response wrapper
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getResponse(string $uri, array $options = []): \Swotto\Response\SwottoResponse;
+
+    /**
+     * Download content directly to file with security validation.
+     *
+     * @param string $uri The URI to request
+     * @param string $filePath Destination file path
+     * @param array $options Request options to apply
+     * @return bool True on successful download
+     *
+     * @throws \Swotto\Exception\SecurityException If path validation fails
+     * @throws \Swotto\Exception\FileOperationException If file operations fail
+     * @throws \Swotto\Exception\SwottoException On other errors
+     */
+    public function downloadToFile(string $uri, string $filePath, array $options = []): bool;
 }
