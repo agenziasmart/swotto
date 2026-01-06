@@ -5,14 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2025-01-06
+## [1.2.0] - 2026-01-06
 
 ### Added
 
-- Add `getResponse()` method to `ClientInterface` for advanced response handling (CSV, PDF, binary)
-- Add `downloadToFile()` method to `ClientInterface` for direct file downloads with security validation
-- Add `setClientUserAgent()` method to `ClientInterface` for forwarding client metadata
-- Add `setClientIp()` method to `ClientInterface` for forwarding client metadata
 - Add 24 POP (lookup data) methods to `ClientInterface`:
   - **Enum-based lookups**: `getGenderPop()`, `getUserRolePop()`, `getShiptypePop()`
   - **System lookups**: `getCountryPop()`, `getSysLanguagePop()`, `getCurrencyPop()`
@@ -22,8 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Notes
 
-- `ClientInterface` now exposes all public methods from `Client` and `PopTrait`, enabling proper mocking in tests
-- Applications can now type-hint `ClientInterface` instead of concrete `Client` class for dependency injection
+- `ClientInterface` now exposes all POP methods from `PopTrait`, enabling proper mocking in tests
+- Applications can now type-hint `ClientInterface` for all lookup data operations
+- No breaking changes - existing code continues to work without modifications
+
+---
+
+## [1.1.0] - 2026-01-06
+
+### Added
+
+- Add `getResponse()` method to `ClientInterface` for advanced response handling (CSV, PDF, binary)
+- Add `downloadToFile()` method to `ClientInterface` for direct file downloads with security validation
+- Add `setClientUserAgent()` method to `ClientInterface` for forwarding client metadata
+- Add `setClientIp()` method to `ClientInterface` for forwarding client metadata
+
+### Notes
+
+- `ClientInterface` now exposes response handling and client metadata methods
 - No breaking changes - existing code continues to work without modifications
 
 ---
