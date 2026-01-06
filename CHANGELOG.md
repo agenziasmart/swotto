@@ -13,10 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `downloadToFile()` method to `ClientInterface` for direct file downloads with security validation
 - Add `setClientUserAgent()` method to `ClientInterface` for forwarding client metadata
 - Add `setClientIp()` method to `ClientInterface` for forwarding client metadata
+- Add 24 POP (lookup data) methods to `ClientInterface`:
+  - **Enum-based lookups**: `getGenderPop()`, `getUserRolePop()`, `getShiptypePop()`
+  - **System lookups**: `getCountryPop()`, `getSysLanguagePop()`, `getCurrencyPop()`
+  - **Entity lookups**: `getCustomerPop()`, `getSupplierPop()`, `getProductPop()`, `getCarrierPop()`, `getCategoryPop()`, `getWarehousePop()`, `getWarehouseZonePop()`, `getProjectPop()`, `getTemplatePop()`, `getFamilyPop()`, `getAgreementPop()`
+  - **Specialized lookups**: `getIncotermPop()`, `getIncotermByCode()`, `getPaymentType()`, `getWhsreasonPop()`, `getWhsinboundPop()`, `getWhsorderPop()`
+  - **Organization**: `getMeOrganization()`
 
 ### Notes
 
-- `ClientInterface` now exposes all public methods from `Client`, enabling proper mocking in tests
+- `ClientInterface` now exposes all public methods from `Client` and `PopTrait`, enabling proper mocking in tests
+- Applications can now type-hint `ClientInterface` instead of concrete `Client` class for dependency injection
 - No breaking changes - existing code continues to work without modifications
 
 ---
