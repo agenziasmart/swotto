@@ -82,11 +82,11 @@ interface ClientInterface
      * Check if authentication is working.
      *
      * @param array|null $options Request options to apply
-     * @return array Authentication status data
+     * @return array|null Authentication data or null if not authenticated
      *
-     * @throws \Swotto\Exception\SwottoException On error
+     * @throws \Swotto\Exception\SwottoException On error other than 401
      */
-    public function checkAuth(?array $options = null): array;
+    public function checkAuth(?array $options = null): ?array;
 
     /**
      * Check session status.
@@ -126,12 +126,12 @@ interface ClientInterface
      * Fetch data from a POP endpoint.
      *
      * @param string $uri The POP URI
-     * @param array|null $query Query parameters
+     * @param array $query Query parameters
      * @return array The retrieved data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function fetchPop(string $uri, ?array $query = []): array;
+    public function fetchPop(string $uri, array $query = []): array;
 
     /**
      * Send a GET request and parse the response.
@@ -148,34 +148,37 @@ interface ClientInterface
      * Send a POST request and parse the response.
      *
      * @param string $uri The URI to request
+     * @param mixed $data Data to send (array for JSON auto-detection)
      * @param array $options Request options to apply
-     * @return array The parsed response data
+     * @return array The parsed response data with 'data', 'paginator', 'success' keys
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function postParsed(string $uri, array $options = []): array;
+    public function postParsed(string $uri, mixed $data = [], array $options = []): array;
 
     /**
      * Send a PATCH request and parse the response.
      *
      * @param string $uri The URI to request
+     * @param mixed $data Data to send (array for JSON auto-detection)
      * @param array $options Request options to apply
-     * @return array The parsed response data
+     * @return array The parsed response data with 'data', 'paginator', 'success' keys
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function patchParsed(string $uri, array $options = []): array;
+    public function patchParsed(string $uri, mixed $data = [], array $options = []): array;
 
     /**
      * Send a PUT request and parse the response.
      *
      * @param string $uri The URI to request
+     * @param mixed $data Data to send (array for JSON auto-detection)
      * @param array $options Request options to apply
-     * @return array The parsed response data
+     * @return array The parsed response data with 'data', 'paginator', 'success' keys
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function putParsed(string $uri, array $options = []): array;
+    public function putParsed(string $uri, mixed $data = [], array $options = []): array;
 
     /**
      * Send a DELETE request and parse the response.
@@ -209,6 +212,13 @@ interface ClientInterface
      * @return string|null The current access token or null if not set
      */
     public function getAccessToken(): ?string;
+
+    /**
+     * Check if client has access token configured.
+     *
+     * @return bool True if access token is set and not empty
+     */
+    public function hasAccessToken(): bool;
 
     /**
      * Upload a single file with optional metadata.
@@ -336,92 +346,92 @@ interface ClientInterface
     /**
      * Get gender POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getGenderPop(?array $query = []): array;
+    public function getGenderPop(array $query = []): array;
 
     /**
      * Get user role POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getUserRolePop(?array $query = []): array;
+    public function getUserRolePop(array $query = []): array;
 
     /**
      * Get current user's organization data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array Organization data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getMeOrganization(?array $query = []): array;
+    public function getMeOrganization(array $query = []): array;
 
     /**
      * Get country POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getCountryPop(?array $query = []): array;
+    public function getCountryPop(array $query = []): array;
 
     /**
      * Get system language POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getSysLanguagePop(?array $query = []): array;
+    public function getSysLanguagePop(array $query = []): array;
 
     /**
      * Get currency POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getCurrencyPop(?array $query = []): array;
+    public function getCurrencyPop(array $query = []): array;
 
     /**
      * Get customer POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getCustomerPop(?array $query = []): array;
+    public function getCustomerPop(array $query = []): array;
 
     /**
      * Get template POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getTemplatePop(?array $query = []): array;
+    public function getTemplatePop(array $query = []): array;
 
     /**
      * Get incoterm POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getIncotermPop(?array $query = []): array;
+    public function getIncotermPop(array $query = []): array;
 
     /**
      * Get incoterm by code.
@@ -436,133 +446,144 @@ interface ClientInterface
     /**
      * Get carrier POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getCarrierPop(?array $query = []): array;
+    public function getCarrierPop(array $query = []): array;
 
     /**
      * Get category POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getCategoryPop(?array $query = []): array;
+    public function getCategoryPop(array $query = []): array;
 
     /**
      * Get supplier POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getSupplierPop(?array $query = []): array;
+    public function getSupplierPop(array $query = []): array;
 
     /**
      * Get warehouse POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getWarehousePop(?array $query = []): array;
+    public function getWarehousePop(array $query = []): array;
 
     /**
      * Get warehouse zone POP data by warehouse ID.
      *
      * @param int $id Warehouse ID
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getWarehouseZonePop(int $id, ?array $query = []): array;
+    public function getWarehouseZonePop(int $id, array $query = []): array;
 
     /**
      * Get project POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getProjectPop(?array $query = []): array;
+    public function getProjectPop(array $query = []): array;
 
     /**
      * Get product POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getProductPop(?array $query = []): array;
+    public function getProductPop(array $query = []): array;
 
     /**
      * Get payment type POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getPaymentType(?array $query = []): array;
+    public function getPaymentTypePop(array $query = []): array;
+
+    /**
+     * Get payment type POP data.
+     *
+     * @deprecated Use getPaymentTypePop() instead for naming consistency
+     * @param array $query Additional query parameters
+     * @return array POP data
+     *
+     * @throws \Swotto\Exception\SwottoException On error
+     */
+    public function getPaymentType(array $query = []): array;
 
     /**
      * Get agreement POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getAgreementPop(?array $query = []): array;
+    public function getAgreementPop(array $query = []): array;
 
     /**
      * Get warehouse reason POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getWhsreasonPop(?array $query = []): array;
+    public function getWhsreasonPop(array $query = []): array;
 
     /**
      * Get warehouse inbound POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getWhsinboundPop(?array $query = []): array;
+    public function getWhsinboundPop(array $query = []): array;
 
     /**
      * Get warehouse order POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getWhsorderPop(?array $query = []): array;
+    public function getWhsorderPop(array $query = []): array;
 
     /**
      * Get family POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function getFamilyPop(?array $query = []): array;
+    public function getFamilyPop(array $query = []): array;
 
     /**
      * Get ship type POP data.

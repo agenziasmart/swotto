@@ -12,11 +12,6 @@ namespace Swotto\Exception;
 class ApiException extends SwottoException implements SwottoExceptionInterface
 {
     /**
-     * @var array Error data from the API response
-     */
-    protected array $errorData;
-
-    /**
      * Constructor.
      *
      * @param string $message Error message
@@ -26,14 +21,5 @@ class ApiException extends SwottoException implements SwottoExceptionInterface
     public function __construct(string $message, array $errorData = [], int $code = 0)
     {
         parent::__construct($message, $errorData, $code);
-        $this->errorData = $errorData;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getErrorData(): array
-    {
-        return $this->errorData;
     }
 }

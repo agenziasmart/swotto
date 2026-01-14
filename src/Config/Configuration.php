@@ -35,6 +35,13 @@ final class Configuration
       'circuit_breaker_enabled',
       'circuit_breaker_failure_threshold',
       'circuit_breaker_recovery_timeout',
+      // Retry configuration
+      'retry_enabled',
+      'retry_max_attempts',
+      'retry_initial_delay_ms',
+      'retry_max_delay_ms',
+      'retry_multiplier',
+      'retry_jitter',
     ];
 
     /**
@@ -89,12 +96,62 @@ final class Configuration
             throw new ConfigurationException('circuit_breaker_enabled must be boolean');
         }
 
-        if (isset($config['circuit_breaker_failure_threshold']) && (!is_int($config['circuit_breaker_failure_threshold']) || $config['circuit_breaker_failure_threshold'] < 1)) {
+        if (
+            isset($config['circuit_breaker_failure_threshold'])
+            && (!is_int($config['circuit_breaker_failure_threshold'])
+                || $config['circuit_breaker_failure_threshold'] < 1)
+        ) {
             throw new ConfigurationException('circuit_breaker_failure_threshold must be a positive integer');
         }
 
-        if (isset($config['circuit_breaker_recovery_timeout']) && (!is_int($config['circuit_breaker_recovery_timeout']) || $config['circuit_breaker_recovery_timeout'] < 1)) {
+        if (
+            isset($config['circuit_breaker_recovery_timeout'])
+            && (!is_int($config['circuit_breaker_recovery_timeout'])
+                || $config['circuit_breaker_recovery_timeout'] < 1)
+        ) {
             throw new ConfigurationException('circuit_breaker_recovery_timeout must be a positive integer');
+        }
+
+        // Validate retry options
+        if (isset($config['retry_enabled']) && !is_bool($config['retry_enabled'])) {
+            throw new ConfigurationException('retry_enabled must be boolean');
+        }
+
+        if (isset($config['retry_max_attempts'])) {
+            if (
+                !is_int($config['retry_max_attempts'])
+                || $config['retry_max_attempts'] < 1
+                || $config['retry_max_attempts'] > 10
+            ) {
+                throw new ConfigurationException('retry_max_attempts must be integer between 1 and 10');
+            }
+        }
+
+        if (
+            isset($config['retry_initial_delay_ms'])
+            && (!is_int($config['retry_initial_delay_ms']) || $config['retry_initial_delay_ms'] < 1)
+        ) {
+            throw new ConfigurationException('retry_initial_delay_ms must be a positive integer');
+        }
+
+        if (
+            isset($config['retry_max_delay_ms'])
+            && (!is_int($config['retry_max_delay_ms']) || $config['retry_max_delay_ms'] < 1)
+        ) {
+            throw new ConfigurationException('retry_max_delay_ms must be a positive integer');
+        }
+
+        if (isset($config['retry_multiplier'])) {
+            if (!is_float($config['retry_multiplier']) && !is_int($config['retry_multiplier'])) {
+                throw new ConfigurationException('retry_multiplier must be numeric');
+            }
+            if ($config['retry_multiplier'] < 1.0 || $config['retry_multiplier'] > 5.0) {
+                throw new ConfigurationException('retry_multiplier must be between 1.0 and 5.0');
+            }
+        }
+
+        if (isset($config['retry_jitter']) && !is_bool($config['retry_jitter'])) {
+            throw new ConfigurationException('retry_jitter must be boolean');
         }
     }
 
@@ -146,6 +203,18 @@ final class Configuration
     }
 
     /**
+     * Check if an access token is configured.
+     *
+     * @return bool True if access token is set and not empty
+     */
+    public function hasAccessToken(): bool
+    {
+        $token = $this->get('access_token');
+
+        return $token !== null && $token !== '';
+    }
+
+    /**
      * Sanitize a value to be used as HTTP header.
      *
      * Removes CRLF sequences and null bytes to prevent HTTP header injection attacks (CWE-113).
@@ -159,6 +228,15 @@ final class Configuration
         return preg_replace('/[\r\n\0]/', '', $value) ?? '';
     }
 
+    /**
+     * Detect and return the client's User-Agent string.
+     *
+     * In web context, retrieves the User-Agent from the HTTP request headers.
+     * In CLI context, returns the configured client_user_agent value.
+     * The returned value is sanitized to prevent HTTP header injection attacks.
+     *
+     * @return string|null The sanitized User-Agent string, or null if not available
+     */
     public function detectClientUserAgent(): ?string
     {
         if (PHP_SAPI !== 'cli' && isset($_SERVER['HTTP_USER_AGENT'])) {
@@ -172,6 +250,19 @@ final class Configuration
         return $configValue !== null ? $this->sanitizeHeaderValue((string) $configValue) : null;
     }
 
+    /**
+     * Detect and return the client's IP address.
+     *
+     * In web context, checks multiple sources in order of reliability:
+     * 1. HTTP_CLIENT_IP - Direct client IP (if set)
+     * 2. HTTP_X_FORWARDED_FOR - First IP in proxy chain (if behind proxy)
+     * 3. REMOTE_ADDR - Direct connection IP (may be proxy IP)
+     *
+     * In CLI context, returns the configured client_ip value.
+     * The returned value is sanitized to prevent HTTP header injection attacks.
+     *
+     * @return string|null The sanitized client IP address, or null if not available
+     */
     public function detectClientIp(): ?string
     {
         if (PHP_SAPI !== 'cli') {

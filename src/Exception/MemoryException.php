@@ -25,7 +25,8 @@ class MemoryException extends SwottoException
     {
         return new self(
             sprintf(
-                'Response too large for in-memory processing. Size: %s bytes, Maximum: %s bytes. Use saveToFile() instead.',
+                'Response too large for in-memory processing. '
+                . 'Size: %s bytes, Maximum: %s bytes. Use saveToFile() instead.',
                 number_format($actualSize),
                 number_format($maxSize)
             ),
