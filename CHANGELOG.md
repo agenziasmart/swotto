@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-14
+
+### Added
+
+- **RetryHttpClient**: New retry pattern decorator with exponential backoff and jitter
+  - `retry_enabled` configuration option (boolean)
+  - `retry_max_attempts` - Maximum retry attempts (default: 3)
+  - `retry_initial_delay_ms` - Initial delay in milliseconds (default: 100)
+  - `retry_max_delay_ms` - Maximum delay cap (default: 10000)
+  - `retry_multiplier` - Exponential backoff multiplier (default: 2.0)
+  - `retry_jitter` - Enable ±25% jitter to prevent thundering herd (default: true)
+- Automatic retry on 5xx server errors and network failures
+- Respects `Retry-After` header on 429 Rate Limit responses
+- Works alongside CircuitBreakerHttpClient for comprehensive resilience
+
+### Changed
+
+- Comprehensive test suite expansion from 98 to **323 tests** (+225 tests, +556 assertions)
+  - CircuitBreakerStateTest - Circuit breaker state machine tests
+  - ClientFileUploadTest - File upload scenarios
+  - ClientMethodsTest - HTTP method coverage
+  - EdgeCasesTest - Boundary conditions and edge cases
+  - ExceptionFactoryTest - Exception hierarchy tests
+  - GuzzleHttpClientTest - HTTP client implementation
+  - PopTraitCompleteTest - Complete POP method coverage
+  - SwottoResponseAdvancedTest - Response handling edge cases
+  - RetryHttpClientTest - Retry pattern tests
+  - SecurityTest - Security validation tests
+- Enhanced README documentation for Retry and Circuit Breaker patterns
+
+### Notes
+
+- RetryHttpClient is opt-in via `retry_enabled => true` configuration
+- Requires PSR-16 cache for state persistence (same as Circuit Breaker)
+- No breaking changes - existing code continues to work without modifications
+
+---
+
 ## [1.2.0] - 2026-01-06
 
 ### Added
