@@ -14,12 +14,12 @@ trait PopTrait
     /**
      * Get gender POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getGenderPop(?array $query = []): array
+    public function getGenderPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], ['public' => true]);
+        $query = \array_merge($query, ['public' => true]);
 
         return $this->fetchPop('open/gender', $query);
     }
@@ -27,12 +27,12 @@ trait PopTrait
     /**
      * Get user role POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getUserRolePop(?array $query = []): array
+    public function getUserRolePop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], ['public' => true]);
+        $query = \array_merge($query, ['public' => true]);
 
         return $this->fetchPop('open/role', $query);
     }
@@ -40,10 +40,10 @@ trait PopTrait
     /**
      * Get me organization data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getMeOrganization(?array $query = []): array
+    public function getMeOrganization(array $query = []): array
     {
         return $this->fetchPop('me/organization', $query);
     }
@@ -51,12 +51,12 @@ trait PopTrait
     /**
      * Get country POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getCountryPop(?array $query = []): array
+    public function getCountryPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
           'columns' => 'code,name',
@@ -68,12 +68,12 @@ trait PopTrait
     /**
      * Get system language POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getSysLanguagePop(?array $query = []): array
+    public function getSysLanguagePop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
           'columns' => 'name,code',
@@ -85,12 +85,12 @@ trait PopTrait
     /**
      * Get currency POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getCurrencyPop(?array $query = []): array
+    public function getCurrencyPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
           'columns' => 'code,name',
@@ -102,12 +102,12 @@ trait PopTrait
     /**
      * Get customer POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getCustomerPop(?array $query = []): array
+    public function getCustomerPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
           'columns' => 'id,name',
@@ -119,12 +119,12 @@ trait PopTrait
     /**
      * Get template POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getTemplatePop(?array $query = []): array
+    public function getTemplatePop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
           'columns' => 'uuid,name',
@@ -136,12 +136,12 @@ trait PopTrait
     /**
      * Get incoterm POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getIncotermPop(?array $query = []): array
+    public function getIncotermPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
           'columns' => 'uuid,name,code',
@@ -164,12 +164,12 @@ trait PopTrait
     /**
      * Get carrier POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getCarrierPop(?array $query = []): array
+    public function getCarrierPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
           'columns' => 'id,name',
@@ -181,12 +181,12 @@ trait PopTrait
     /**
      * Get category POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getCategoryPop(?array $query = []): array
+    public function getCategoryPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
         ]);
@@ -197,12 +197,12 @@ trait PopTrait
     /**
      * Get supplier POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getSupplierPop(?array $query = []): array
+    public function getSupplierPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
           'columns' => 'id,name',
@@ -214,12 +214,12 @@ trait PopTrait
     /**
      * Get warehouse POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getWarehousePop(?array $query = []): array
+    public function getWarehousePop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
         ]);
@@ -231,12 +231,12 @@ trait PopTrait
      * Get warehouse zone POP data by warehouse ID.
      *
      * @param int $id Warehouse ID
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getWarehouseZonePop(int $id, ?array $query = []): array
+    public function getWarehouseZonePop(int $id, array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
         ]);
@@ -247,12 +247,12 @@ trait PopTrait
     /**
      * Get project POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getProjectPop(?array $query = []): array
+    public function getProjectPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
         ]);
@@ -263,12 +263,12 @@ trait PopTrait
     /**
      * Get product POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getProductPop(?array $query = []): array
+    public function getProductPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
           'columns' => 'id,name',
@@ -280,12 +280,12 @@ trait PopTrait
     /**
      * Get payment type POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getPaymentType(?array $query = []): array
+    public function getPaymentTypePop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
         ]);
@@ -294,14 +294,26 @@ trait PopTrait
     }
 
     /**
-     * Get agreement POP data.
+     * Get payment type POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @deprecated Use getPaymentTypePop() instead for naming consistency
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getAgreementPop(?array $query = []): array
+    public function getPaymentType(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        return $this->getPaymentTypePop($query);
+    }
+
+    /**
+     * Get agreement POP data.
+     *
+     * @param array $query Additional query parameters
+     * @return array POP data
+     */
+    public function getAgreementPop(array $query = []): array
+    {
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
         ]);
@@ -312,12 +324,12 @@ trait PopTrait
     /**
      * Get warehouse reason POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getWhsreasonPop(?array $query = []): array
+    public function getWhsreasonPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
         ]);
@@ -328,11 +340,12 @@ trait PopTrait
     /**
      * Get warehouse inbound POP data.
      *
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getWhsinboundPop(?array $query = []): array
+    public function getWhsinboundPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'created_on',
         ]);
@@ -343,12 +356,12 @@ trait PopTrait
     /**
      * Get warehouse order POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getWhsorderPop(?array $query = []): array
+    public function getWhsorderPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'created_on',
         ]);
@@ -359,12 +372,12 @@ trait PopTrait
     /**
      * Get family POP data.
      *
-     * @param array|null $query Additional query parameters
+     * @param array $query Additional query parameters
      * @return array POP data
      */
-    public function getFamilyPop(?array $query = []): array
+    public function getFamilyPop(array $query = []): array
     {
-        $query = \array_merge($query ?? [], [
+        $query = \array_merge($query, [
           'limit' => 0,
           'orderby' => 'name',
         ]);
@@ -375,7 +388,10 @@ trait PopTrait
     /**
      * Get ship type POP data.
      *
-     * @return array POP data
+     * Note: This method returns static data and does NOT make an API call.
+     * Ship types are fixed values used for shipping configuration.
+     *
+     * @return array Static ship type data with id and name
      */
     public function getShiptypePop(): array
     {

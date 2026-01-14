@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Swotto;
 
+use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Psr\SimpleCache\CacheInterface;
 use Swotto\Config\Configuration;
 use Swotto\Contract\ClientInterface;
 use Swotto\Contract\HttpClientInterface;
+use Swotto\Exception\AuthenticationException;
 use Swotto\Exception\ConnectionException;
 use Swotto\Exception\SecurityException;
 use Swotto\Http\GuzzleHttpClient;
@@ -125,9 +127,25 @@ final class Client implements ClientInterface
     /**
      * {@inheritdoc}
      */
-    public function checkAuth(?array $options = null): array
+    public function checkAuth(?array $options = null): ?array
     {
-        return $this->get('auth', $options ?? []);
+        // Skip API call if no access token - user is not authenticated
+        if (!$this->hasAccessToken()) {
+            $this->logger->debug('checkAuth skipped - no access token configured');
+
+            return null;
+        }
+
+        try {
+            return $this->get('auth', $options ?? []);
+        } catch (AuthenticationException $e) {
+            // Token invalid or expired - normal behavior
+            $this->logger->debug('checkAuth failed - token invalid or expired', [
+                'status' => $e->getStatusCode(),
+            ]);
+
+            return null;
+        }
     }
 
     /**
@@ -165,9 +183,9 @@ final class Client implements ClientInterface
     /**
      * {@inheritdoc}
      */
-    public function fetchPop(string $uri, ?array $query = []): array
+    public function fetchPop(string $uri, array $query = []): array
     {
-        $response = $this->get($uri, ['query' => $query ?? []]);
+        $response = $this->get($uri, ['query' => $query]);
 
         return $response['data'] ?? [];
     }
@@ -226,14 +244,15 @@ final class Client implements ClientInterface
      * Send a POST request and parse the response.
      *
      * @param string $uri The URI to request
+     * @param mixed $data Data to send (array for JSON auto-detection)
      * @param array $options Request options to apply
-     * @return array The parsed response data
+     * @return array The parsed response data with 'data', 'paginator', 'success' keys
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function postParsed(string $uri, array $options = []): array
+    public function postParsed(string $uri, mixed $data = [], array $options = []): array
     {
-        $response = $this->post($uri, $options);
+        $response = $this->post($uri, $data, $options);
 
         return $this->parseSwottoResponse($response);
     }
@@ -242,14 +261,15 @@ final class Client implements ClientInterface
      * Send a PATCH request and parse the response.
      *
      * @param string $uri The URI to request
+     * @param mixed $data Data to send (array for JSON auto-detection)
      * @param array $options Request options to apply
-     * @return array The parsed response data
+     * @return array The parsed response data with 'data', 'paginator', 'success' keys
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function patchParsed(string $uri, array $options = []): array
+    public function patchParsed(string $uri, mixed $data = [], array $options = []): array
     {
-        $response = $this->patch($uri, $options);
+        $response = $this->patch($uri, $data, $options);
 
         return $this->parseSwottoResponse($response);
     }
@@ -258,14 +278,15 @@ final class Client implements ClientInterface
      * Send a PUT request and parse the response.
      *
      * @param string $uri The URI to request
+     * @param mixed $data Data to send (array for JSON auto-detection)
      * @param array $options Request options to apply
-     * @return array The parsed response data
+     * @return array The parsed response data with 'data', 'paginator', 'success' keys
      *
      * @throws \Swotto\Exception\SwottoException On error
      */
-    public function putParsed(string $uri, array $options = []): array
+    public function putParsed(string $uri, mixed $data = [], array $options = []): array
     {
-        $response = $this->put($uri, $options);
+        $response = $this->put($uri, $data, $options);
 
         return $this->parseSwottoResponse($response);
     }
@@ -385,6 +406,14 @@ final class Client implements ClientInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function hasAccessToken(): bool
+    {
+        return $this->config->hasAccessToken();
+    }
+
+    /**
      * Get response as SwottoResponse object for advanced content handling.
      *
      * @param string $uri The URI to request
@@ -420,30 +449,44 @@ final class Client implements ClientInterface
     }
 
     /**
-     * Create HTTP client with optional Circuit Breaker.
+     * Create HTTP client with optional Retry and Circuit Breaker decorators.
+     *
+     * Decorator chain order (bottom to top):
+     * 1. GuzzleHttpClient (base, makes actual HTTP calls)
+     * 2. RetryHttpClient (exponential backoff for transient errors)
+     * 3. CircuitBreakerHttpClient (fail-fast on persistent failures)
      *
      * @return HttpClientInterface HTTP client instance
      */
     private function createHttpClient(): HttpClientInterface
     {
-        $baseClient = new GuzzleHttpClient($this->config, $this->logger);
+        // Step 1: Base HTTP client
+        $client = new GuzzleHttpClient($this->config, $this->logger);
 
-        // Return base client if circuit breaker is disabled
-        if (!$this->config->get('circuit_breaker_enabled', false)) {
-            return $baseClient;
+        // Step 2: Wrap with retry decorator (if enabled)
+        if ($this->config->get('retry_enabled', false)) {
+            $client = new \Swotto\Retry\RetryHttpClient(
+                $client,
+                $this->config,
+                $this->logger
+            );
         }
 
-        // Create circuit breaker with configuration
+        // Step 3: Wrap with circuit breaker decorator (if enabled)
+        if (!$this->config->get('circuit_breaker_enabled', false)) {
+            return $client;
+        }
+
         $circuitBreaker = new \Swotto\CircuitBreaker\CircuitBreaker(
-            name: $this->config->getBaseUrl(), // Use base URL as unique identifier
+            name: $this->config->getBaseUrl(),
             failureThreshold: $this->config->get('circuit_breaker_failure_threshold', 5),
             recoveryTimeout: $this->config->get('circuit_breaker_recovery_timeout', 30),
-            successThreshold: 2, // Fixed for now
+            successThreshold: 2,
             cache: $this->cache,
             logger: $this->logger
         );
 
-        return new \Swotto\CircuitBreaker\CircuitBreakerHttpClient($baseClient, $circuitBreaker);
+        return new \Swotto\CircuitBreaker\CircuitBreakerHttpClient($client, $circuitBreaker);
     }
 
     /**
@@ -460,7 +503,12 @@ final class Client implements ClientInterface
     private function requestWithAutoDetection(string $method, string $uri, mixed $data, array $options): array
     {
         // Auto-detect JSON for array data
-        if (is_array($data) && !empty($data) && !isset($options['json'], $options['form_params'], $options['multipart'], $options['body'])) {
+        $hasBodyOption = isset($options['json'])
+            || isset($options['form_params'])
+            || isset($options['multipart'])
+            || isset($options['body']);
+
+        if (is_array($data) && !empty($data) && !$hasBodyOption) {
             $options['json'] = $data;
         }
 
@@ -548,15 +596,27 @@ final class Client implements ClientInterface
     }
 
     /**
-     * Build multipart data array for file upload.
+     * Build multipart form data for file upload.
      *
-     * @param resource|\Psr\Http\Message\StreamInterface $fileResource File resource
+     * @param resource|StreamInterface $fileResource File resource or PSR-7 stream
      * @param string $fieldName Field name for the file
-     * @param array $metadata Additional metadata fields
-     * @return array Multipart data array
+     * @param array $metadata Additional form fields
+     * @return array Multipart form data array
+     *
+     * @throws \InvalidArgumentException If $fileResource is not a valid type
      */
-    private function buildMultipartData($fileResource, string $fieldName, array $metadata): array
+    private function buildMultipartData(mixed $fileResource, string $fieldName, array $metadata): array
     {
+        // Validate file resource type
+        if (!is_resource($fileResource) && !$fileResource instanceof StreamInterface) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'File resource must be a PHP resource or StreamInterface, %s given',
+                    get_debug_type($fileResource)
+                )
+            );
+        }
+
         $multipart = [
             [
                 'name' => $fieldName,

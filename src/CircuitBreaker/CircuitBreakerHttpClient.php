@@ -75,8 +75,10 @@ final class CircuitBreakerHttpClient implements HttpClientInterface
         } catch (SwottoException $e) {
             // Record failure ONLY for server errors (5xx) or network issues
             // Client errors (4xx) should NOT increment the circuit breaker
-            if ($e instanceof NetworkException ||
-                ($e instanceof ApiException && $e->getStatusCode() >= 500)) {
+            if (
+                $e instanceof NetworkException
+                || ($e instanceof ApiException && $e->getStatusCode() >= 500)
+            ) {
                 $this->circuitBreaker->recordFailure();
             }
             throw $e;
@@ -108,8 +110,10 @@ final class CircuitBreakerHttpClient implements HttpClientInterface
         } catch (SwottoException $e) {
             // Record failure ONLY for server errors (5xx) or network issues
             // Client errors (4xx) should NOT increment the circuit breaker
-            if ($e instanceof NetworkException ||
-                ($e instanceof ApiException && $e->getStatusCode() >= 500)) {
+            if (
+                $e instanceof NetworkException
+                || ($e instanceof ApiException && $e->getStatusCode() >= 500)
+            ) {
                 $this->circuitBreaker->recordFailure();
             }
             throw $e;

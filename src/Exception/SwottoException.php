@@ -24,8 +24,12 @@ class SwottoException extends \Exception implements SwottoExceptionInterface
      * @param int $code Error code
      * @param \Throwable|null $previous Previous exception
      */
-    public function __construct(string $message = '', array $errorData = [], int $code = 0, ?\Throwable $previous = null)
-    {
+    public function __construct(
+        string $message = '',
+        array $errorData = [],
+        int $code = 0,
+        ?\Throwable $previous = null
+    ) {
         parent::__construct($message, $code, $previous);
         $this->errorData = $errorData;
     }

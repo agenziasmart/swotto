@@ -83,6 +83,9 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     public function initialize(array $config): void
     {
+        // Update internal configuration with new values
+        $this->config = new Configuration($config);
+
         // SDK User-Agent
         $sdkAuthor = 'Swotto-SDK/' . self::VERSION . ' PHP/' . PHP_VERSION;
         $headers = array_merge(
@@ -172,82 +175,8 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private function handleException(\Exception $exception, string $uri): array
     {
-        $this->logger->error("Error while requesting {$uri}: {$exception->getMessage()}");
-
-        if ($exception instanceof RequestException) {
-            $code = $exception->getCode();
-            $body = [];
-
-            if ($exception->hasResponse()) {
-                $response = $exception->getResponse();
-                if ($response !== null) {
-                    $body = json_decode($response->getBody()->getContents(), true);
-
-                    // Handle different error codes
-                    switch ($code) {
-                        case 400:
-                            throw new ValidationException(
-                                $body['message'] ?? 'Invalid field',
-                                $body ?? [],
-                                $code
-                            );
-
-                        case 401:
-                            throw new AuthenticationException(
-                                $body['message'] ?? 'Unauthorized',
-                                $body ?? [],
-                                $code
-                            );
-
-                        case 403:
-                            throw new ForbiddenException(
-                                $body['message'] ?? 'Forbidden',
-                                $body ?? [],
-                                $code
-                            );
-
-                        case 404:
-                            throw new NotFoundException(
-                                $body['message'] ?? 'Not Found',
-                                $body ?? [],
-                                $code
-                            );
-
-                        case 429:
-                            $retryAfter = (int) ($response->getHeader('Retry-After')[0] ?? 0);
-                            throw new RateLimitException(
-                                $body['message'] ?? 'Too Many Requests',
-                                $body ?? [],
-                                $retryAfter
-                            );
-                    }
-
-                    throw new ApiException(
-                        $body['message'] ?? $exception->getMessage(),
-                        $body ?? [],
-                        $code
-                    );
-                }
-            }
-
-            throw new NetworkException(
-                "Network error while requesting {$uri}: {$exception->getMessage()}",
-                [],
-                $code
-            );
-        }
-
-        if ($exception instanceof \GuzzleHttp\Exception\ConnectException) {
-            throw new ConnectionException(
-                $exception->getMessage(),
-                $this->config->getBaseUrl(),
-                array_slice(explode("\n", $exception->getTraceAsString()), 0, 10),
-                $exception->getCode()
-            );
-        }
-
-        // Rethrow any other exceptions
-        throw $exception;
+        $this->logException($exception, $uri);
+        $this->throwMappedException($exception, $uri, false);
     }
 
     /**
@@ -261,67 +190,46 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private function handleRawException(\Exception $exception, string $uri): never
     {
-        $this->logger->error("Error while requesting {$uri}: {$exception->getMessage()}");
+        $this->logException($exception, $uri);
+        $this->throwMappedException($exception, $uri, true);
+    }
 
+    /**
+     * Log exception with appropriate level.
+     *
+     * @param \Exception $exception The exception to log
+     * @param string $uri The requested URI
+     */
+    private function logException(\Exception $exception, string $uri): void
+    {
+        $is401 = $exception instanceof RequestException && $exception->getCode() === 401;
+        if ($is401) {
+            $this->logger->debug("Authentication required for {$uri}");
+        } else {
+            $this->logger->error("Error while requesting {$uri}: {$exception->getMessage()}");
+        }
+    }
+
+    /**
+     * Map exception to appropriate Swotto exception and throw it.
+     *
+     * @param \Exception $exception The original exception
+     * @param string $uri The requested URI
+     * @param bool $preserveRawBody Whether to preserve raw body for non-JSON responses
+     * @return never Always throws an exception
+     *
+     * @throws ApiException|ConnectionException|NetworkException|\Exception
+     */
+    private function throwMappedException(\Exception $exception, string $uri, bool $preserveRawBody): never
+    {
         if ($exception instanceof RequestException) {
             $code = $exception->getCode();
-            $body = [];
 
             if ($exception->hasResponse()) {
                 $response = $exception->getResponse();
                 if ($response !== null) {
-                    // Try to extract body for error details, but don't assume JSON
-                    try {
-                        $bodyContent = $response->getBody()->getContents();
-                        $body = json_decode($bodyContent, true) ?? ['raw_body' => $bodyContent];
-                    } catch (\Exception) {
-                        $body = ['error' => 'Could not read response body'];
-                    }
-
-                    // Handle different error codes
-                    switch ($code) {
-                        case 400:
-                            throw new ValidationException(
-                                $body['message'] ?? 'Invalid field',
-                                $body,
-                                $code
-                            );
-
-                        case 401:
-                            throw new AuthenticationException(
-                                $body['message'] ?? 'Unauthorized',
-                                $body,
-                                $code
-                            );
-
-                        case 403:
-                            throw new ForbiddenException(
-                                $body['message'] ?? 'Forbidden',
-                                $body,
-                                $code
-                            );
-
-                        case 404:
-                            throw new NotFoundException(
-                                $body['message'] ?? 'Not Found',
-                                $body,
-                                $code
-                            );
-
-                        case 429:
-                            $retryAfter = (int) ($response->getHeader('Retry-After')[0] ?? 0);
-                            throw new RateLimitException(
-                                $body['message'] ?? 'Too Many Requests',
-                                $body,
-                                $retryAfter
-                            );
-                    }
-
-                    throw new ApiException(
-                        $body['message'] ?? $exception->getMessage(),
-                        $body,
-                        $code
-                    );
+                    $body = $this->parseResponseBody($response, $preserveRawBody);
+                    $this->throwHttpException($code, $body, $response, $exception);
                 }
             }
 
@@ -341,8 +249,69 @@ final class GuzzleHttpClient implements HttpClientInterface
             );
         }
 
-        // Rethrow any other exceptions
         throw $exception;
+    }
+
+    /**
+     * Parse response body to array.
+     *
+     * @param ResponseInterface $response The HTTP response
+     * @param bool $preserveRawBody Whether to preserve raw body for non-JSON responses
+     * @return array Parsed body as array
+     */
+    private function parseResponseBody(ResponseInterface $response, bool $preserveRawBody): array
+    {
+        if ($preserveRawBody) {
+            try {
+                $bodyContent = $response->getBody()->getContents();
+                $decoded = json_decode($bodyContent, true);
+
+                return is_array($decoded) ? $decoded : ['raw_body' => $bodyContent];
+            } catch (\Exception) {
+                return ['error' => 'Could not read response body'];
+            }
+        }
+
+        $decoded = json_decode($response->getBody()->getContents(), true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Throw appropriate HTTP exception based on status code.
+     *
+     * @param int $code HTTP status code
+     * @param array $body Parsed response body
+     * @param ResponseInterface $response Original response
+     * @param RequestException $exception Original exception
+     * @return never Always throws an exception
+     *
+     * @throws ValidationException|AuthenticationException|ForbiddenException
+     * @throws NotFoundException|RateLimitException|ApiException
+     */
+    private function throwHttpException(
+        int $code,
+        array $body,
+        ResponseInterface $response,
+        RequestException $exception
+    ): never {
+        $message = $body['message'] ?? null;
+
+        switch ($code) {
+            case 400:
+                throw new ValidationException($message ?? 'Invalid field', $body, $code);
+            case 401:
+                throw new AuthenticationException($message ?? 'Unauthorized', $body, $code);
+            case 403:
+                throw new ForbiddenException($message ?? 'Forbidden', $body, $code);
+            case 404:
+                throw new NotFoundException($message ?? 'Not Found', $body, $code);
+            case 429:
+                $retryAfter = (int) ($response->getHeader('Retry-After')[0] ?? 0);
+                throw new RateLimitException($message ?? 'Too Many Requests', $body, $retryAfter);
+            default:
+                throw new ApiException($message ?? $exception->getMessage(), $body, $code);
+        }
     }
 
     /**

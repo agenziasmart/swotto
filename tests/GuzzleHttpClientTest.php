@@ -270,4 +270,184 @@ class GuzzleHttpClientTest extends TestCase
 
         $this->assertInstanceOf(GuzzleHttpClient::class, $client);
     }
+
+    /**
+     * Test that initialize() updates internal configuration.
+     *
+     * This is a critical test that verifies the fix for:
+     * "setAccessToken() non aggiornava correttamente gli headers"
+     *
+     * Before the fix, initialize() ignored the $config parameter and used
+     * the old $this->config. After the fix, $this->config is updated.
+     */
+    public function testInitializeUpdatesAccessTokenConfig(): void
+    {
+        // Create initial config WITHOUT access_token
+        $initialConfig = new Configuration(['url' => 'https://api.example.com']);
+        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
+
+        // Verify initial config has no access_token
+        $reflection = new \ReflectionClass($httpClient);
+        $configProperty = $reflection->getProperty('config');
+        $configProperty->setAccessible(true);
+        $config = $configProperty->getValue($httpClient);
+        $this->assertNull($config->get('access_token'));
+
+        // Now call initialize with NEW config including access_token
+        $newConfig = [
+            'url' => 'https://api.example.com',
+            'access_token' => 'new-bearer-token-123',
+        ];
+        $httpClient->initialize($newConfig);
+
+        // Verify the internal config was updated
+        $config = $configProperty->getValue($httpClient);
+        $this->assertEquals('new-bearer-token-123', $config->get('access_token'));
+
+        // Verify getHeaders() returns the new Authorization header
+        $headers = $config->getHeaders();
+        $this->assertArrayHasKey('Authorization', $headers);
+        $this->assertEquals('Bearer new-bearer-token-123', $headers['Authorization']);
+    }
+
+    /**
+     * Test that initialize() properly clears access_token when set to null.
+     */
+    public function testInitializeRemovesAccessTokenConfig(): void
+    {
+        // Create initial config WITH access_token
+        $initialConfig = new Configuration([
+            'url' => 'https://api.example.com',
+            'access_token' => 'initial-token',
+        ]);
+        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
+
+        // Verify initial config has access_token
+        $reflection = new \ReflectionClass($httpClient);
+        $configProperty = $reflection->getProperty('config');
+        $configProperty->setAccessible(true);
+        $config = $configProperty->getValue($httpClient);
+        $this->assertEquals('initial-token', $config->get('access_token'));
+
+        // Call initialize WITHOUT access_token (simulating clearAccessToken)
+        $newConfig = [
+            'url' => 'https://api.example.com',
+            'access_token' => null,
+        ];
+        $httpClient->initialize($newConfig);
+
+        // Verify access_token was cleared
+        $config = $configProperty->getValue($httpClient);
+        $this->assertNull($config->get('access_token'));
+
+        // Verify getHeaders() does not include Authorization
+        $headers = $config->getHeaders();
+        $this->assertArrayNotHasKey('Authorization', $headers);
+    }
+
+    /**
+     * Test that initialize() updates session_id in config.
+     */
+    public function testInitializeUpdatesSessionIdConfig(): void
+    {
+        // Create initial config without session_id
+        $initialConfig = new Configuration(['url' => 'https://api.example.com']);
+        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
+
+        $reflection = new \ReflectionClass($httpClient);
+        $configProperty = $reflection->getProperty('config');
+        $configProperty->setAccessible(true);
+
+        // Verify initial config has no session_id
+        $config = $configProperty->getValue($httpClient);
+        $this->assertNull($config->get('session_id'));
+
+        // Call initialize with session_id
+        $newConfig = [
+            'url' => 'https://api.example.com',
+            'session_id' => 'test-session-abc123',
+        ];
+        $httpClient->initialize($newConfig);
+
+        // Verify session_id was set
+        $config = $configProperty->getValue($httpClient);
+        $this->assertEquals('test-session-abc123', $config->get('session_id'));
+
+        // Verify getHeaders() returns the x-sid header
+        $headers = $config->getHeaders();
+        $this->assertArrayHasKey('x-sid', $headers);
+        $this->assertEquals('test-session-abc123', $headers['x-sid']);
+    }
+
+    /**
+     * Test that initialize() updates language in config.
+     */
+    public function testInitializeUpdatesLanguageConfig(): void
+    {
+        // Create initial config with default language
+        $initialConfig = new Configuration(['url' => 'https://api.example.com']);
+        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
+
+        $reflection = new \ReflectionClass($httpClient);
+        $configProperty = $reflection->getProperty('config');
+        $configProperty->setAccessible(true);
+
+        // Verify initial config has default language (null, defaults to 'en' in getHeaders)
+        $config = $configProperty->getValue($httpClient);
+        $this->assertNull($config->get('language'));
+
+        // Call initialize with Italian language
+        $newConfig = [
+            'url' => 'https://api.example.com',
+            'language' => 'it',
+        ];
+        $httpClient->initialize($newConfig);
+
+        // Verify language was set
+        $config = $configProperty->getValue($httpClient);
+        $this->assertEquals('it', $config->get('language'));
+
+        // Verify getHeaders() returns the new Accept-Language header
+        $headers = $config->getHeaders();
+        $this->assertArrayHasKey('Accept-Language', $headers);
+        $this->assertEquals('it', $headers['Accept-Language']);
+    }
+
+    /**
+     * Test that initialize() updates multiple config values at once.
+     */
+    public function testInitializeUpdatesMultipleConfigValues(): void
+    {
+        // Create initial config
+        $initialConfig = new Configuration(['url' => 'https://api.example.com']);
+        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
+
+        $reflection = new \ReflectionClass($httpClient);
+        $configProperty = $reflection->getProperty('config');
+        $configProperty->setAccessible(true);
+
+        // Call initialize with multiple values
+        $newConfig = [
+            'url' => 'https://api.example.com',
+            'access_token' => 'user-token-xyz',
+            'session_id' => 'session-123',
+            'language' => 'fr',
+            'key' => 'devapp-key-abc',
+        ];
+        $httpClient->initialize($newConfig);
+
+        // Verify all values were set
+        $config = $configProperty->getValue($httpClient);
+        $this->assertEquals('user-token-xyz', $config->get('access_token'));
+        $this->assertEquals('session-123', $config->get('session_id'));
+        $this->assertEquals('fr', $config->get('language'));
+        $this->assertEquals('devapp-key-abc', $config->get('key'));
+
+        // Verify all headers are present
+        $headers = $config->getHeaders();
+        $this->assertEquals('Bearer user-token-xyz', $headers['Authorization']);
+        $this->assertEquals('session-123', $headers['x-sid']);
+        $this->assertEquals('fr', $headers['Accept-Language']);
+        $this->assertEquals('devapp-key-abc', $headers['x-devapp']);
+    }
 }

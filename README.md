@@ -17,10 +17,10 @@ Swotto simplifies API integration with built-in authentication, error handling, 
 
 ✅ **Zero boilerplate** - Reduces API integration code by 87.5%
 ✅ **Type-safe** - PHPStan Level 8 compliant
-✅ **Resilient** - Built-in Circuit Breaker pattern
+✅ **Resilient** - Built-in Retry with Exponential Backoff + Circuit Breaker
 ✅ **Flexible** - Dual authentication (DevApp + Bearer tokens)
 ✅ **Smart responses** - Auto-detect JSON, CSV, PDF formats
-✅ **Battle-tested** - 78 comprehensive test cases
+✅ **Battle-tested** - 323 comprehensive test cases
 
 ## Table of Contents
 
@@ -36,6 +36,7 @@ Swotto simplifies API integration with built-in authentication, error handling, 
   - [File Uploads](#file-uploads)
 - [Advanced Features](#advanced-features)
   - [Multi-Format Responses](#multi-format-responses)
+  - [Retry with Exponential Backoff](#retry-with-exponential-backoff)
   - [Circuit Breaker Pattern](#circuit-breaker-pattern)
   - [POP Methods](#pop-methods)
 - [Common Use Cases](#common-use-cases)
@@ -259,6 +260,52 @@ if ($response->isJson()) {
 
 // Direct file download
 $client->downloadToFile('exports/large-dataset.csv', '/path/to/data.csv');
+```
+
+### Retry with Exponential Backoff
+
+Automatic retry for transient errors with configurable backoff:
+
+```php
+$client = new Client([
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_TOKEN',
+
+    // Retry configuration (opt-in)
+    'retry_enabled' => true,
+    'retry_max_attempts' => 3,           // Total attempts (1 + 2 retries)
+    'retry_initial_delay_ms' => 100,     // First retry delay
+    'retry_max_delay_ms' => 10000,       // Maximum delay cap
+    'retry_multiplier' => 2.0,           // Exponential factor
+    'retry_jitter' => true,              // ±25% randomization
+]);
+
+// Automatic retry on:
+// - Network errors (NetworkException, ConnectionException)
+// - Server errors (5xx status codes)
+// - Rate limits (429 - respects Retry-After header)
+
+// NO retry on client errors (won't change with retry):
+// - 401 Unauthorized
+// - 403 Forbidden
+// - 404 Not Found
+// - 422 Validation Error
+```
+
+**Combining Retry + Circuit Breaker:**
+
+```php
+$client = new Client([
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_TOKEN',
+
+    // Both can be enabled together
+    'retry_enabled' => true,
+    'circuit_breaker_enabled' => true,
+]);
+
+// Flow: Request → Retry (handles transient) → Circuit Breaker (handles persistent)
+// Retry exhausts attempts first, then CB records the final failure
 ```
 
 ### Circuit Breaker Pattern
@@ -524,6 +571,17 @@ function fetchWithRetry($client, $endpoint, $maxRetries = 3) {
 | `circuit_breaker_failure_threshold` | `int` | `5` | Failures before opening circuit |
 | `circuit_breaker_recovery_timeout` | `int` | `30` | Seconds before attempting recovery |
 
+### Retry Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `retry_enabled` | `bool` | `false` | Enable automatic retry with backoff |
+| `retry_max_attempts` | `int` | `3` | Total attempts (1-10) |
+| `retry_initial_delay_ms` | `int` | `100` | Initial delay in milliseconds |
+| `retry_max_delay_ms` | `int` | `10000` | Maximum delay cap in milliseconds |
+| `retry_multiplier` | `float` | `2.0` | Exponential backoff multiplier (1.0-5.0) |
+| `retry_jitter` | `bool` | `true` | Add ±25% randomization to prevent thundering herd |
+
 ### Client Metadata
 
 | Option | Type | Default | Description |
@@ -548,7 +606,11 @@ $client = new Client([
     'timeout' => 60,
     'verify' => true,
 
-    // Circuit Breaker
+    // Retry (handles transient errors)
+    'retry_enabled' => true,
+    'retry_max_attempts' => 3,
+
+    // Circuit Breaker (handles persistent failures)
     'circuit_breaker_enabled' => true,
     'circuit_breaker_failure_threshold' => 5,
     'circuit_breaker_recovery_timeout' => 30,
@@ -993,32 +1055,47 @@ try {
 }
 ```
 
-### How do I implement retry with exponential backoff?
+### Does Swotto have built-in retry?
+
+Yes! Enable automatic retry with exponential backoff:
+
+```php
+$client = new Client([
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_TOKEN',
+    'retry_enabled' => true,           // Enable retry
+    'retry_max_attempts' => 3,         // Max 3 attempts
+]);
+```
+
+Automatic retry on network errors, 5xx, and 429 (respects Retry-After header).
+No retry on 4xx client errors (they won't change with retry).
+
+For full configuration options, see [Retry with Exponential Backoff](#retry-with-exponential-backoff).
+
+### How do I implement custom retry logic?
+
+If you need custom retry behavior beyond the built-in options:
 
 ```php
 use Swotto\Exception\{NetworkException, RateLimitException};
 
-function retryRequest($client, $endpoint, $maxRetries = 3) {
+function customRetry($client, $endpoint, $maxRetries = 3) {
     $attempt = 0;
-    $baseDelay = 1; // seconds
+    $baseDelay = 1;
 
     while ($attempt < $maxRetries) {
         try {
             return $client->get($endpoint);
-
         } catch (RateLimitException $e) {
-            // Use API's Retry-After header
             sleep($e->getRetryAfter());
-
         } catch (NetworkException $e) {
-            // Exponential backoff: 1s, 2s, 4s, 8s
             $delay = $baseDelay * (2 ** $attempt);
             sleep($delay);
             $attempt++;
         }
     }
-
-    throw new \Exception("Max retries ({$maxRetries}) exceeded");
+    throw new \Exception("Max retries exceeded");
 }
 ```
 
