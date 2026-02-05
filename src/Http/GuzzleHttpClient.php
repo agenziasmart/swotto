@@ -9,9 +9,6 @@ use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Psr\SimpleCache\CacheInterface;
-use Swotto\CircuitBreaker\CircuitBreaker;
-use Swotto\CircuitBreaker\CircuitBreakerHttpClient;
 use Swotto\Config\Configuration;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Exception\ApiException;
@@ -26,14 +23,15 @@ use Swotto\Exception\ValidationException;
 /**
  * GuzzleHttpClient.
  *
- * HTTP Client implementation using Guzzle
+ * HTTP Client implementation using Guzzle.
+ * Immutable: configured once in constructor.
  */
 final class GuzzleHttpClient implements HttpClientInterface
 {
     /**
      * @var string SDK version
      */
-    private const VERSION = '3.0.0';
+    private const VERSION = '4.0.0';
 
     /**
      * @var int Default request timeout
@@ -51,19 +49,19 @@ final class GuzzleHttpClient implements HttpClientInterface
     private const VERIFY_SSL = true;
 
     /**
-     * @var GuzzleClient Guzzle HTTP client instance
+     * @var GuzzleClient Guzzle HTTP client instance (not readonly to allow test injection)
      */
     private GuzzleClient $client;
 
     /**
      * @var LoggerInterface Logger instance
      */
-    private LoggerInterface $logger;
+    private readonly LoggerInterface $logger;
 
     /**
      * @var Configuration Client configuration
      */
-    private Configuration $config;
+    private readonly Configuration $config;
 
     /**
      * Constructor.
@@ -75,29 +73,16 @@ final class GuzzleHttpClient implements HttpClientInterface
     {
         $this->config = $config;
         $this->logger = $logger ?? new NullLogger();
-        $this->initialize($config->toArray());
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function initialize(array $config): void
-    {
-        // Update internal configuration with new values
-        $this->config = new Configuration($config);
-
-        // SDK User-Agent
         $sdkAuthor = 'Swotto-SDK/' . self::VERSION . ' PHP/' . PHP_VERSION;
         $headers = array_merge(
-            [
-            'x-author' => $sdkAuthor,
-            ],
+            ['x-author' => $sdkAuthor],
             $this->config->getHeaders()
         );
 
         $verifySsl = $this->config->get('verify_ssl', self::VERIFY_SSL);
+        $timeout = $this->config->get('timeout', self::DEFAULT_TIMEOUT);
 
-        // Security warning when SSL verification is disabled
         if ($verifySsl === false) {
             $this->logger->warning(
                 'SSL verification is disabled - this is insecure and should only be used in development!'
@@ -105,11 +90,11 @@ final class GuzzleHttpClient implements HttpClientInterface
         }
 
         $httpConfig = [
-          'base_uri' => $this->config->getBaseUrl(),
-          'headers' => $headers,
-          'timeout' => self::DEFAULT_TIMEOUT,
-          'allow_redirects' => self::ALLOW_REDIRECTS,
-          'verify' => $verifySsl,
+            'base_uri' => $this->config->getBaseUrl(),
+            'headers' => $headers,
+            'timeout' => $timeout,
+            'allow_redirects' => self::ALLOW_REDIRECTS,
+            'verify' => $verifySsl,
         ];
 
         try {
@@ -134,14 +119,12 @@ final class GuzzleHttpClient implements HttpClientInterface
         try {
             $response = $this->client->request($method, $uri, $options);
 
-            // Return empty array if response body is empty
             if ($response->getBody()->getSize() === 0) {
                 return [];
             }
 
             $decoded = json_decode($response->getBody()->getContents(), true);
 
-            // json_decode returns null on invalid JSON, but method must return array
             if (!is_array($decoded)) {
                 return [];
             }
@@ -171,25 +154,20 @@ final class GuzzleHttpClient implements HttpClientInterface
     /**
      * Extract Swotto-specific per-call options and convert them to HTTP headers.
      *
-     * This enables stateless usage where request-specific parameters (like bearer_token)
-     * are passed per-call instead of mutating the client's global configuration.
-     * Pattern inspired by Stripe SDK's stripe_account parameter.
-     *
      * Supported per-call options:
-     * - bearer_token: Sets Authorization header (overrides global access_token)
+     * - bearer_token: Sets Authorization header
      * - language: Sets Accept-Language header
      * - session_id: Sets x-sid header
      * - client_ip: Sets Client-Ip header
      * - client_user_agent: Sets User-Agent header
      *
-     * @param array $options Request options (may contain Swotto-specific keys)
-     * @return array Options with Swotto keys converted to headers
+     * @param array<string, mixed> $options Request options (may contain Swotto-specific keys)
+     * @return array<string, mixed> Options with Swotto keys converted to headers
      */
     private function extractPerCallOptions(array $options): array
     {
         $perCallHeaders = [];
 
-        // Extract and remove Swotto-specific options, converting to headers
         if (isset($options['bearer_token'])) {
             $perCallHeaders['Authorization'] = 'Bearer ' . $options['bearer_token'];
             unset($options['bearer_token']);
@@ -215,8 +193,6 @@ final class GuzzleHttpClient implements HttpClientInterface
             unset($options['client_user_agent']);
         }
 
-        // Merge per-call headers with any existing headers in options
-        // Per-call headers take precedence over options['headers']
         if (!empty($perCallHeaders)) {
             $options['headers'] = array_merge($options['headers'] ?? [], $perCallHeaders);
         }
@@ -229,7 +205,7 @@ final class GuzzleHttpClient implements HttpClientInterface
      *
      * @param \Exception $exception The caught exception
      * @param string $uri The requested URI
-     * @return array Never returns, always throws an exception
+     * @return array<string, mixed> Never returns, always throws
      *
      * @throws ApiException|ConnectionException|NetworkException|\Exception
      */
@@ -240,11 +216,11 @@ final class GuzzleHttpClient implements HttpClientInterface
     }
 
     /**
-     * Handle exceptions for raw requests, preserving response data when possible.
+     * Handle exceptions for raw requests.
      *
      * @param \Exception $exception The caught exception
      * @param string $uri The requested URI
-     * @return never Always throws an exception
+     * @return never Always throws
      *
      * @throws ApiException|ConnectionException|NetworkException|\Exception
      */
@@ -275,8 +251,8 @@ final class GuzzleHttpClient implements HttpClientInterface
      *
      * @param \Exception $exception The original exception
      * @param string $uri The requested URI
-     * @param bool $preserveRawBody Whether to preserve raw body for non-JSON responses
-     * @return never Always throws an exception
+     * @param bool $preserveRawBody Whether to preserve raw body
+     * @return never Always throws
      *
      * @throws ApiException|ConnectionException|NetworkException|\Exception
      */
@@ -316,8 +292,8 @@ final class GuzzleHttpClient implements HttpClientInterface
      * Parse response body to array.
      *
      * @param ResponseInterface $response The HTTP response
-     * @param bool $preserveRawBody Whether to preserve raw body for non-JSON responses
-     * @return array Parsed body as array
+     * @param bool $preserveRawBody Whether to preserve raw body for non-JSON
+     * @return array<string, mixed> Parsed body
      */
     private function parseResponseBody(ResponseInterface $response, bool $preserveRawBody): array
     {
@@ -341,10 +317,10 @@ final class GuzzleHttpClient implements HttpClientInterface
      * Throw appropriate HTTP exception based on status code.
      *
      * @param int $code HTTP status code
-     * @param array $body Parsed response body
+     * @param array<string, mixed> $body Parsed response body
      * @param ResponseInterface $response Original response
      * @param RequestException $exception Original exception
-     * @return never Always throws an exception
+     * @return never Always throws
      *
      * @throws ValidationException|AuthenticationException|ForbiddenException
      * @throws NotFoundException|RateLimitException|ApiException
@@ -377,51 +353,40 @@ final class GuzzleHttpClient implements HttpClientInterface
     /**
      * Sanitize request options for safe logging.
      *
-     * Removes or masks sensitive data to prevent exposure in logs:
-     * - Binary file contents in multipart uploads
-     * - Stream/resource bodies
-     * - Sensitive headers (Authorization, Cookie, API keys)
-     * - Sensitive form parameters (passwords, tokens)
-     *
-     * Following OWASP Logging Cheat Sheet and GDPR compliance requirements.
-     *
-     * @param array $options Original Guzzle request options
-     * @return array Sanitized options safe for logging
+     * @param array<string, mixed> $options Original Guzzle request options
+     * @return array<string, mixed> Sanitized options safe for logging
      */
     private function sanitizeOptionsForLogging(array $options): array
     {
         $sanitized = $options;
 
-        // 1. Sanitize multipart file contents (e.g., file uploads)
+        // 1. Sanitize multipart file contents
         if (isset($sanitized['multipart'])) {
             foreach ($sanitized['multipart'] as &$part) {
                 if (!isset($part['contents'])) {
                     continue;
                 }
 
-                // Sanitize resources and streams (original logic)
                 if (!is_string($part['contents'])) {
                     $size = $this->getContentSize($part['contents']);
                     $part['contents'] = sprintf('<binary data: %d bytes>', $size);
+
                     continue;
                 }
 
-                // NEW: Sanitize binary strings (e.g., from file_get_contents())
                 if ($this->isBinaryString($part['contents'])) {
                     $size = strlen($part['contents']);
                     $part['contents'] = sprintf('<binary data: %d bytes>', $size);
                 }
-                // Text strings (metadata, JSON, etc.) pass through unchanged
             }
         }
 
-        // 2. Sanitize body streams/resources AND binary strings
+        // 2. Sanitize body streams/resources and binary strings
         if (isset($sanitized['body'])) {
             if (is_resource($sanitized['body']) || $sanitized['body'] instanceof \Psr\Http\Message\StreamInterface) {
                 $size = $this->getContentSize($sanitized['body']);
                 $sanitized['body'] = sprintf('<stream: %d bytes>', $size);
             } elseif (is_string($sanitized['body']) && $this->isBinaryString($sanitized['body'])) {
-                // NEW: Sanitize large binary string bodies
                 $sanitized['body'] = sprintf('<body: %d bytes>', strlen($sanitized['body']));
             }
         }
@@ -430,7 +395,6 @@ final class GuzzleHttpClient implements HttpClientInterface
         if (isset($sanitized['headers'])) {
             $sensitiveHeaders = ['Authorization', 'Cookie', 'Set-Cookie', 'X-Api-Key', 'X-Auth-Token', 'X-Devapp'];
             foreach ($sensitiveHeaders as $header) {
-                // Case-insensitive header check
                 foreach (array_keys($sanitized['headers']) as $key) {
                     if (is_string($key) && strcasecmp($key, $header) === 0) {
                         $sanitized['headers'][$key] = '****';
@@ -463,12 +427,12 @@ final class GuzzleHttpClient implements HttpClientInterface
     }
 
     /**
-     * Get size of content (string, resource, or stream).
+     * Get size of content.
      *
      * @param mixed $content Content to measure
      * @return int Size in bytes
      */
-    private function getContentSize($content): int
+    private function getContentSize(mixed $content): int
     {
         if (is_string($content)) {
             return strlen($content);
@@ -488,67 +452,24 @@ final class GuzzleHttpClient implements HttpClientInterface
     }
 
     /**
-     * Detect if string content is binary data (not safe for logging).
-     *
-     * Uses sample-based detection for optimal performance:
-     * - Quick null byte check on first 512 bytes (catches 95%+ of binary)
-     * - UTF-8 validation on first 1KB (catches remaining edge cases)
-     *
-     * Performance: ~0.001ms per MB (37x faster than full scan)
-     * Accuracy: 99%+ (tested with images, PDFs, text, JSON, UTF-8)
+     * Detect if string content is binary data.
      *
      * @param string $content Content to check
      * @return bool True if content appears to be binary
      */
     private function isBinaryString(string $content): bool
     {
-        // Empty strings are not binary
         if (strlen($content) === 0) {
             return false;
         }
 
-        // Quick null byte check on first 512 bytes (very fast, catches most binary)
         $quickSample = substr($content, 0, 512);
         if (strpos($quickSample, "\0") !== false) {
             return true;
         }
 
-        // If no null bytes, check UTF-8 validity on larger sample (1KB)
         $sample = substr($content, 0, 1024);
 
         return !mb_check_encoding($sample, 'UTF-8');
-    }
-
-    /**
-     * Create a new GuzzleHttpClient instance with circuit breaker support.
-     *
-     * @param Configuration $config Configuration instance
-     * @param LoggerInterface|null $logger Optional logger
-     * @param CacheInterface|null $cache Optional cache for circuit breaker state
-     * @return HttpClientInterface HTTP client with optional circuit breaker
-     */
-    public static function withCircuitBreaker(
-        Configuration $config,
-        ?LoggerInterface $logger = null,
-        ?CacheInterface $cache = null
-    ): HttpClientInterface {
-        $baseClient = new self($config, $logger);
-
-        // Return base client if circuit breaker is disabled
-        if (!$config->get('circuit_breaker_enabled', false)) {
-            return $baseClient;
-        }
-
-        // Create circuit breaker with configuration
-        $circuitBreaker = new CircuitBreaker(
-            name: $config->getBaseUrl(), // Use base URL as unique identifier
-            failureThreshold: $config->get('circuit_breaker_failure_threshold', 5),
-            recoveryTimeout: $config->get('circuit_breaker_recovery_timeout', 30),
-            successThreshold: 2, // Fixed for now
-            cache: $cache,
-            logger: $logger
-        );
-
-        return new CircuitBreakerHttpClient($baseClient, $circuitBreaker);
     }
 }

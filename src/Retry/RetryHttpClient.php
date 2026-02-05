@@ -20,19 +20,19 @@ use Swotto\Exception\RateLimitException;
  */
 final class RetryHttpClient implements HttpClientInterface
 {
-    private HttpClientInterface $decoratedClient;
+    private readonly HttpClientInterface $decoratedClient;
 
-    private int $maxAttempts;
+    private readonly int $maxAttempts;
 
-    private int $initialDelayMs;
+    private readonly int $initialDelayMs;
 
-    private int $maxDelayMs;
+    private readonly int $maxDelayMs;
 
-    private float $multiplier;
+    private readonly float $multiplier;
 
-    private bool $jitterEnabled;
+    private readonly bool $jitterEnabled;
 
-    private ?LoggerInterface $logger;
+    private readonly ?LoggerInterface $logger;
 
     /**
      * Constructor.
@@ -77,14 +77,6 @@ final class RetryHttpClient implements HttpClientInterface
             $method,
             $uri
         );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function initialize(array $config): void
-    {
-        $this->decoratedClient->initialize($config);
     }
 
     /**
@@ -134,11 +126,10 @@ final class RetryHttpClient implements HttpClientInterface
                     'error_class' => get_class($e),
                 ]);
 
-                usleep($delayMs * 1000); // ms → microseconds
+                usleep($delayMs * 1000);
             }
         }
 
-        // This should never be reached, but satisfies static analysis
         throw $lastException ?? new \RuntimeException('Unexpected retry loop exit');
     }
 
@@ -150,23 +141,18 @@ final class RetryHttpClient implements HttpClientInterface
      */
     private function isRetryable(\Exception $e): bool
     {
-        // Network errors - always retry (includes ConnectionException)
         if ($e instanceof NetworkException) {
             return true;
         }
 
-        // Rate limit (429) - retry with server delay
         if ($e instanceof RateLimitException) {
             return true;
         }
 
-        // Server errors (5xx) - retry
         if ($e instanceof ApiException && $e->getStatusCode() >= 500) {
             return true;
         }
 
-        // Client errors (4xx) - DON'T retry
-        // 401, 403, 404, 422 won't change with retry
         return false;
     }
 
@@ -179,18 +165,13 @@ final class RetryHttpClient implements HttpClientInterface
      */
     private function calculateDelay(\Exception $e, int $attempt): int
     {
-        // For 429, respect server's Retry-After header
         if ($e instanceof RateLimitException && $e->getRetryAfter() > 0) {
-            return $e->getRetryAfter() * 1000; // seconds → ms
+            return $e->getRetryAfter() * 1000;
         }
 
-        // Exponential backoff: initial * multiplier^(attempt-1)
         $delay = (int) ($this->initialDelayMs * pow($this->multiplier, $attempt - 1));
-
-        // Cap at max delay
         $delay = min($delay, $this->maxDelayMs);
 
-        // Add jitter (±25%) to prevent thundering herd
         if ($this->jitterEnabled && $delay > 0) {
             $jitter = (int) ($delay * 0.25);
             if ($jitter > 0) {
@@ -198,13 +179,13 @@ final class RetryHttpClient implements HttpClientInterface
             }
         }
 
-        return max(1, $delay); // Minimum 1ms
+        return max(1, $delay);
     }
 
     /**
      * Log a message with context.
      *
-     * @param string $level Log level (info, warning, etc.)
+     * @param string $level Log level
      * @param string $message Log message
      * @param array<string, mixed> $context Additional context
      * @return void

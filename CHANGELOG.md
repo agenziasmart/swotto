@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-02-05
+
+### Breaking Changes
+
+- **PHP 8.3 required** (was 8.1)
+- **Removed Circuit Breaker**: `CircuitBreakerHttpClient`, `CircuitBreaker`, `CircuitState`, `CircuitBreakerOpenException` all removed
+  - Remove `circuit_breaker_enabled`, `circuit_breaker_failure_threshold`, `circuit_breaker_recovery_timeout` from config
+  - Remove `GuzzleHttpClient::withCircuitBreaker()` factory method
+  - Remove `psr/simple-cache` dependency
+- **Removed POP methods**: `PopTrait` and all 27+ `get*Pop()` / `fetchPop()` methods removed
+- **Removed Parsed methods**: `getParsed()`, `postParsed()`, `putParsed()`, `patchParsed()`, `deleteParsed()` removed
+- **Removed all setter methods**: `setAccessToken()`, `clearAccessToken()`, `getAccessToken()`, `hasAccessToken()`, `setSessionId()`, `setLanguage()`, `setAccept()`, `setClientUserAgent()`, `setClientIp()`, `setLogger()` removed
+- **Removed `access_token` config key**: Use `bearer_token` instead
+- **Removed `accept` config key**: Accept header is always `application/json`
+- **Configuration is fully immutable**: No `update()` method, no setters
+- **`HttpClientInterface` simplified**: Only `request()` and `requestRaw()`, no `initialize()`
+- **Removed `psr/event-dispatcher` dependency**
+- **Removed `squizlabs/php_codesniffer` dev dependency** (using php-cs-fixer only)
+
+### Added
+
+- **Default options pattern** (Stripe-inspired): Context options (`bearer_token`, `language`, `session_id`, `client_ip`, `client_user_agent`) can be set in config and are automatically merged with per-call options on every request
+- Per-call options always override defaults (`array_merge` semantics)
+- `PATCH` method on `ClientInterface`
+
+### Changed
+
+- All properties `readonly` across `Client`, `Configuration`, `RetryHttpClient`
+- `Configuration::getHeaders()` returns only transport headers (`Accept`, `x-devapp`); context headers flow via `defaultOptions` → `mergeOptions` → `extractPerCallOptions`
+- PHPUnit upgraded to ^11, PHPStan to ^2, Mockery to ^1.6
+- PHP CS Fixer uses `@PHP83Migration` ruleset
+- Test suite: 222 tests, 743 assertions (was 323 tests in v1.4.0)
+
+### Removed
+
+- `src/CircuitBreaker/` directory (3 files)
+- `src/Trait/PopTrait.php`
+- `src/Exception/CircuitBreakerOpenException.php`
+- All deprecated setter methods from `Client`
+- `Configuration::update()` method
+- `Configuration::getClientUserAgent()` and `Configuration::getClientIp()` methods
+- CRLF/null-byte sanitization in Configuration (no longer needed, context flows via per-call options)
+
+### Migration
+
+See [UPGRADE.md](UPGRADE.md) for detailed migration guide from v1.x to v2.0.0.
+
+---
+
 ## [1.4.0] - 2026-02-05
 
 ### Added

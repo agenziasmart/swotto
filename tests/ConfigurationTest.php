@@ -37,6 +37,27 @@ class ConfigurationTest extends TestCase
         ]);
     }
 
+    public function testOldAccessTokenKeyIsRejected(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage("Invalid configuration key: 'access_token'");
+
+        new Configuration([
+            'url' => 'https://api.example.com',
+            'access_token' => 'token123',
+        ]);
+    }
+
+    public function testBearerTokenIsAccepted(): void
+    {
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'bearer_token' => 'token123',
+        ]);
+
+        $this->assertEquals('token123', $config->get('bearer_token'));
+    }
+
     public function testInvalidVerifySsl(): void
     {
         $this->expectException(ConfigurationException::class);
@@ -63,16 +84,6 @@ class ConfigurationTest extends TestCase
         $this->assertEquals('https://api.example.com', $config->getBaseUrl());
     }
 
-    public function testUpdateConfiguration(): void
-    {
-        $config = new Configuration(['url' => 'https://api.example.com']);
-        $updatedConfig = $config->update(['key' => 'test_key']);
-
-        $this->assertEquals('test_key', $updatedConfig->get('key'));
-        $this->assertEquals('https://api.example.com', $updatedConfig->get('url'));
-        $this->assertNull($config->get('key')); // Original unchanged
-    }
-
     public function testToArray(): void
     {
         $configData = [
@@ -86,24 +97,26 @@ class ConfigurationTest extends TestCase
         $this->assertEquals($configData, $config->toArray());
     }
 
-    public function testGetHeaders(): void
+    public function testGetHeadersTransportOnly(): void
     {
         $config = new Configuration([
             'url' => 'https://api.example.com',
             'key' => 'test_key',
-            'access_token' => 'token123',
+            'bearer_token' => 'token123',
             'session_id' => 'sess456',
             'language' => 'it',
-            'accept' => 'application/xml',
         ]);
 
         $headers = $config->getHeaders();
 
-        $this->assertEquals('application/xml', $headers['Accept']);
-        $this->assertEquals('it', $headers['Accept-Language']);
-        $this->assertEquals('Bearer token123', $headers['Authorization']);
+        // Only transport headers
+        $this->assertEquals('application/json', $headers['Accept']);
         $this->assertEquals('test_key', $headers['x-devapp']);
-        $this->assertEquals('sess456', $headers['x-sid']);
+
+        // Context headers are NOT in getHeaders() anymore
+        $this->assertArrayNotHasKey('Authorization', $headers);
+        $this->assertArrayNotHasKey('Accept-Language', $headers);
+        $this->assertArrayNotHasKey('x-sid', $headers);
     }
 
     public function testGetHeadersWithoutOptionalValues(): void
@@ -113,43 +126,34 @@ class ConfigurationTest extends TestCase
         $headers = $config->getHeaders();
 
         $this->assertEquals('application/json', $headers['Accept']);
-        $this->assertEquals('en', $headers['Accept-Language']);
-        $this->assertArrayNotHasKey('Authorization', $headers);
         $this->assertArrayNotHasKey('x-devapp', $headers);
-        $this->assertArrayNotHasKey('x-sid', $headers);
     }
 
-    public function testGetClientUserAgent(): void
+    public function testConfigurationMultipleTrailingSlashes(): void
+    {
+        $config = new Configuration(['url' => 'https://api.example.com///']);
+
+        $this->assertEquals('https://api.example.com', $config->getBaseUrl());
+    }
+
+    public function testTimeoutValidation(): void
     {
         $config = new Configuration([
             'url' => 'https://api.example.com',
-            'client_user_agent' => 'TestAgent/1.0',
+            'timeout' => 30,
         ]);
 
-        $this->assertEquals('TestAgent/1.0', $config->getClientUserAgent());
+        $this->assertEquals(30, $config->get('timeout'));
     }
 
-    public function testGetClientUserAgentReturnsNullWhenNotConfigured(): void
+    public function testInvalidTimeout(): void
     {
-        $config = new Configuration(['url' => 'https://api.example.com']);
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('timeout must be a positive integer');
 
-        $this->assertNull($config->getClientUserAgent());
-    }
-
-    public function testGetClientIp(): void
-    {
-        $config = new Configuration([
+        new Configuration([
             'url' => 'https://api.example.com',
-            'client_ip' => '192.168.1.1',
+            'timeout' => 0,
         ]);
-
-        $this->assertEquals('192.168.1.1', $config->getClientIp());
-    }
-
-    public function testGetClientIpReturnsNullWhenNotConfigured(): void
-    {
-        $config = new Configuration(['url' => 'https://api.example.com']);
-
-        $this->assertNull($config->getClientIp());
     }
 }

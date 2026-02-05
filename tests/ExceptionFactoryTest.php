@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Swotto\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Swotto\Exception\CircuitBreakerOpenException;
 use Swotto\Exception\FileOperationException;
 use Swotto\Exception\MemoryException;
 use Swotto\Exception\SecurityException;
@@ -285,51 +284,6 @@ class ExceptionFactoryTest extends TestCase
         $this->assertEquals(403, $exception->getCode());
     }
 
-    // ========== CircuitBreakerOpenException ==========
-
-    public function testCircuitBreakerOpenExceptionDefaultValues(): void
-    {
-        $exception = new CircuitBreakerOpenException();
-
-        $this->assertInstanceOf(CircuitBreakerOpenException::class, $exception);
-        $this->assertInstanceOf(SwottoException::class, $exception);
-        $this->assertStringContainsString('Circuit breaker is OPEN', $exception->getMessage());
-        $this->assertEquals(30, $exception->getRetryAfter());
-        $this->assertEquals(503, $exception->getCode()); // Service Unavailable
-    }
-
-    public function testCircuitBreakerOpenExceptionCustomValues(): void
-    {
-        $exception = new CircuitBreakerOpenException(
-            'Service unavailable - retry later',
-            60,
-            503
-        );
-
-        $this->assertEquals('Service unavailable - retry later', $exception->getMessage());
-        $this->assertEquals(60, $exception->getRetryAfter());
-        $this->assertEquals(503, $exception->getCode());
-    }
-
-    public function testCircuitBreakerOpenExceptionErrorDataContainsRetryAfter(): void
-    {
-        $exception = new CircuitBreakerOpenException('Test', 45, 503);
-
-        $errorData = $exception->getErrorData();
-
-        $this->assertArrayHasKey('retry_after', $errorData);
-        $this->assertEquals(45, $errorData['retry_after']);
-        $this->assertArrayHasKey('circuit_breaker_state', $errorData);
-        $this->assertEquals('open', $errorData['circuit_breaker_state']);
-    }
-
-    public function testCircuitBreakerOpenExceptionGetRetryAfter(): void
-    {
-        $exception = new CircuitBreakerOpenException('Test', 120, 503);
-
-        $this->assertEquals(120, $exception->getRetryAfter());
-    }
-
     // ========== Exception Hierarchy Tests ==========
 
     public function testAllExceptionsExtendSwottoException(): void
@@ -339,7 +293,6 @@ class ExceptionFactoryTest extends TestCase
             new MemoryException('test'),
             new StreamingException('test'),
             new SecurityException('test'),
-            new CircuitBreakerOpenException(),
         ];
 
         foreach ($exceptions as $exception) {
@@ -358,7 +311,6 @@ class ExceptionFactoryTest extends TestCase
             MemoryException::responseTooLarge(100, 50),
             StreamingException::readFailure('test'),
             SecurityException::pathTraversalDetected('../'),
-            new CircuitBreakerOpenException(),
         ];
 
         foreach ($exceptions as $exception) {

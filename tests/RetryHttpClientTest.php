@@ -79,20 +79,6 @@ class RetryHttpClientTest extends TestCase
         $this->assertEquals($expectedResponse, $response);
     }
 
-    public function testInitializeDelegatesToDecoratedClient(): void
-    {
-        $config = ['test' => 'value'];
-
-        $this->mockClient
-            ->shouldReceive('initialize')
-            ->once()
-            ->with($config);
-
-        $this->retryClient->initialize($config);
-
-        $this->assertTrue(true);
-    }
-
     // ========== RETRY ON NETWORK ERRORS ==========
 
     public function testRetryOnNetworkException(): void

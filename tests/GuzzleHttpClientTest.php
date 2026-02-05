@@ -36,6 +36,25 @@ class GuzzleHttpClientTest extends TestCase
         $this->httpClient = new GuzzleHttpClient($this->config, $this->mockLogger);
     }
 
+    /**
+     * Inject a mock Guzzle client into the HTTP client via reflection.
+     */
+    private function injectMockGuzzle(GuzzleClient $mockGuzzle): void
+    {
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+    }
+
+    public function testConstructorWithValidConfig(): void
+    {
+        $config = new Configuration(['url' => 'https://api.example.com']);
+        $client = new GuzzleHttpClient($config, $this->mockLogger);
+
+        $this->assertInstanceOf(GuzzleHttpClient::class, $client);
+    }
+
     public function testSuccessfulRequest(): void
     {
         $responseData = ['success' => true, 'data' => 'test'];
@@ -47,11 +66,7 @@ class GuzzleHttpClientTest extends TestCase
             ->with('GET', 'test', ['query' => ['param' => 'value']])
             ->willReturn($response);
 
-        // Use reflection to replace the internal Guzzle client
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->request('GET', 'test', ['query' => ['param' => 'value']]);
 
@@ -67,11 +82,7 @@ class GuzzleHttpClientTest extends TestCase
             ->method('request')
             ->willReturn($response);
 
-        // Use reflection to replace the internal Guzzle client
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->request('GET', 'test');
 
@@ -90,11 +101,7 @@ class GuzzleHttpClientTest extends TestCase
             ->method('request')
             ->willThrowException($exception);
 
-        // Use reflection to replace the internal Guzzle client
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Validation failed');
@@ -114,11 +121,7 @@ class GuzzleHttpClientTest extends TestCase
             ->method('request')
             ->willThrowException($exception);
 
-        // Use reflection to replace the internal Guzzle client
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Unauthorized');
@@ -138,11 +141,7 @@ class GuzzleHttpClientTest extends TestCase
             ->method('request')
             ->willThrowException($exception);
 
-        // Use reflection to replace the internal Guzzle client
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(ForbiddenException::class);
         $this->expectExceptionMessage('Access denied');
@@ -162,11 +161,7 @@ class GuzzleHttpClientTest extends TestCase
             ->method('request')
             ->willThrowException($exception);
 
-        // Use reflection to replace the internal Guzzle client
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage('Not found');
@@ -186,11 +181,7 @@ class GuzzleHttpClientTest extends TestCase
             ->method('request')
             ->willThrowException($exception);
 
-        // Use reflection to replace the internal Guzzle client
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(RateLimitException::class);
         $this->expectExceptionMessage('Too many requests');
@@ -213,11 +204,7 @@ class GuzzleHttpClientTest extends TestCase
             ->method('request')
             ->willThrowException($exception);
 
-        // Use reflection to replace the internal Guzzle client
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(ConnectionException::class);
         $this->expectExceptionMessage('Connection failed');
@@ -235,11 +222,7 @@ class GuzzleHttpClientTest extends TestCase
             ->method('request')
             ->willThrowException($exception);
 
-        // Use reflection to replace the internal Guzzle client
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(NetworkException::class);
         $this->expectExceptionMessage('Network error while requesting test: Network error');
@@ -247,209 +230,7 @@ class GuzzleHttpClientTest extends TestCase
         $this->httpClient->request('GET', 'test');
     }
 
-    public function testInitialize(): void
-    {
-        $newConfig = [
-            'url' => 'https://new-api.example.com',
-            'key' => 'test-key',
-            'session_id' => 'test-session',
-        ];
-
-        $this->httpClient->initialize($newConfig);
-
-        // Test that the client was reinitialized (we can't easily test internal state)
-        $this->assertTrue(true); // This test mainly ensures no exceptions are thrown
-    }
-
-    public function testInitializeWithConnectionException(): void
-    {
-        // This test is challenging because valid URLs don't cause Guzzle construction to fail
-        // We'll simulate it by testing that the client can be created with valid URLs
-        $config = new Configuration(['url' => 'https://api.example.com']);
-        $client = new GuzzleHttpClient($config, $this->mockLogger);
-
-        $this->assertInstanceOf(GuzzleHttpClient::class, $client);
-    }
-
-    /**
-     * Test that initialize() updates internal configuration.
-     *
-     * This is a critical test that verifies the fix for:
-     * "setAccessToken() non aggiornava correttamente gli headers"
-     *
-     * Before the fix, initialize() ignored the $config parameter and used
-     * the old $this->config. After the fix, $this->config is updated.
-     */
-    public function testInitializeUpdatesAccessTokenConfig(): void
-    {
-        // Create initial config WITHOUT access_token
-        $initialConfig = new Configuration(['url' => 'https://api.example.com']);
-        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
-
-        // Verify initial config has no access_token
-        $reflection = new \ReflectionClass($httpClient);
-        $configProperty = $reflection->getProperty('config');
-        $configProperty->setAccessible(true);
-        $config = $configProperty->getValue($httpClient);
-        $this->assertNull($config->get('access_token'));
-
-        // Now call initialize with NEW config including access_token
-        $newConfig = [
-            'url' => 'https://api.example.com',
-            'access_token' => 'new-bearer-token-123',
-        ];
-        $httpClient->initialize($newConfig);
-
-        // Verify the internal config was updated
-        $config = $configProperty->getValue($httpClient);
-        $this->assertEquals('new-bearer-token-123', $config->get('access_token'));
-
-        // Verify getHeaders() returns the new Authorization header
-        $headers = $config->getHeaders();
-        $this->assertArrayHasKey('Authorization', $headers);
-        $this->assertEquals('Bearer new-bearer-token-123', $headers['Authorization']);
-    }
-
-    /**
-     * Test that initialize() properly clears access_token when set to null.
-     */
-    public function testInitializeRemovesAccessTokenConfig(): void
-    {
-        // Create initial config WITH access_token
-        $initialConfig = new Configuration([
-            'url' => 'https://api.example.com',
-            'access_token' => 'initial-token',
-        ]);
-        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
-
-        // Verify initial config has access_token
-        $reflection = new \ReflectionClass($httpClient);
-        $configProperty = $reflection->getProperty('config');
-        $configProperty->setAccessible(true);
-        $config = $configProperty->getValue($httpClient);
-        $this->assertEquals('initial-token', $config->get('access_token'));
-
-        // Call initialize WITHOUT access_token (simulating clearAccessToken)
-        $newConfig = [
-            'url' => 'https://api.example.com',
-            'access_token' => null,
-        ];
-        $httpClient->initialize($newConfig);
-
-        // Verify access_token was cleared
-        $config = $configProperty->getValue($httpClient);
-        $this->assertNull($config->get('access_token'));
-
-        // Verify getHeaders() does not include Authorization
-        $headers = $config->getHeaders();
-        $this->assertArrayNotHasKey('Authorization', $headers);
-    }
-
-    /**
-     * Test that initialize() updates session_id in config.
-     */
-    public function testInitializeUpdatesSessionIdConfig(): void
-    {
-        // Create initial config without session_id
-        $initialConfig = new Configuration(['url' => 'https://api.example.com']);
-        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
-
-        $reflection = new \ReflectionClass($httpClient);
-        $configProperty = $reflection->getProperty('config');
-        $configProperty->setAccessible(true);
-
-        // Verify initial config has no session_id
-        $config = $configProperty->getValue($httpClient);
-        $this->assertNull($config->get('session_id'));
-
-        // Call initialize with session_id
-        $newConfig = [
-            'url' => 'https://api.example.com',
-            'session_id' => 'test-session-abc123',
-        ];
-        $httpClient->initialize($newConfig);
-
-        // Verify session_id was set
-        $config = $configProperty->getValue($httpClient);
-        $this->assertEquals('test-session-abc123', $config->get('session_id'));
-
-        // Verify getHeaders() returns the x-sid header
-        $headers = $config->getHeaders();
-        $this->assertArrayHasKey('x-sid', $headers);
-        $this->assertEquals('test-session-abc123', $headers['x-sid']);
-    }
-
-    /**
-     * Test that initialize() updates language in config.
-     */
-    public function testInitializeUpdatesLanguageConfig(): void
-    {
-        // Create initial config with default language
-        $initialConfig = new Configuration(['url' => 'https://api.example.com']);
-        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
-
-        $reflection = new \ReflectionClass($httpClient);
-        $configProperty = $reflection->getProperty('config');
-        $configProperty->setAccessible(true);
-
-        // Verify initial config has default language (null, defaults to 'en' in getHeaders)
-        $config = $configProperty->getValue($httpClient);
-        $this->assertNull($config->get('language'));
-
-        // Call initialize with Italian language
-        $newConfig = [
-            'url' => 'https://api.example.com',
-            'language' => 'it',
-        ];
-        $httpClient->initialize($newConfig);
-
-        // Verify language was set
-        $config = $configProperty->getValue($httpClient);
-        $this->assertEquals('it', $config->get('language'));
-
-        // Verify getHeaders() returns the new Accept-Language header
-        $headers = $config->getHeaders();
-        $this->assertArrayHasKey('Accept-Language', $headers);
-        $this->assertEquals('it', $headers['Accept-Language']);
-    }
-
-    /**
-     * Test that initialize() updates multiple config values at once.
-     */
-    public function testInitializeUpdatesMultipleConfigValues(): void
-    {
-        // Create initial config
-        $initialConfig = new Configuration(['url' => 'https://api.example.com']);
-        $httpClient = new GuzzleHttpClient($initialConfig, $this->mockLogger);
-
-        $reflection = new \ReflectionClass($httpClient);
-        $configProperty = $reflection->getProperty('config');
-        $configProperty->setAccessible(true);
-
-        // Call initialize with multiple values
-        $newConfig = [
-            'url' => 'https://api.example.com',
-            'access_token' => 'user-token-xyz',
-            'session_id' => 'session-123',
-            'language' => 'fr',
-            'key' => 'devapp-key-abc',
-        ];
-        $httpClient->initialize($newConfig);
-
-        // Verify all values were set
-        $config = $configProperty->getValue($httpClient);
-        $this->assertEquals('user-token-xyz', $config->get('access_token'));
-        $this->assertEquals('session-123', $config->get('session_id'));
-        $this->assertEquals('fr', $config->get('language'));
-        $this->assertEquals('devapp-key-abc', $config->get('key'));
-
-        // Verify all headers are present
-        $headers = $config->getHeaders();
-        $this->assertEquals('Bearer user-token-xyz', $headers['Authorization']);
-        $this->assertEquals('session-123', $headers['x-sid']);
-        $this->assertEquals('fr', $headers['Accept-Language']);
-        $this->assertEquals('devapp-key-abc', $headers['x-devapp']);
-    }
+    // ========== Per-Call Options Tests ==========
 
     /**
      * Test that per-call bearer_token option is extracted and converted to Authorization header.
@@ -466,18 +247,14 @@ class GuzzleHttpClientTest extends TestCase
                 'GET',
                 'test',
                 $this->callback(function ($options) {
-                    // Verify bearer_token was converted to Authorization header
                     return isset($options['headers']['Authorization'])
                         && $options['headers']['Authorization'] === 'Bearer per-call-token-123'
-                        && !isset($options['bearer_token']); // Original key should be removed
+                        && !isset($options['bearer_token']);
                 })
             )
             ->willReturn($response);
 
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->request('GET', 'test', ['bearer_token' => 'per-call-token-123']);
 
@@ -506,10 +283,7 @@ class GuzzleHttpClientTest extends TestCase
             )
             ->willReturn($response);
 
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->request('GET', 'test', ['language' => 'it']);
 
@@ -538,10 +312,7 @@ class GuzzleHttpClientTest extends TestCase
             )
             ->willReturn($response);
 
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->request('GET', 'test', ['session_id' => 'session-abc-123']);
 
@@ -570,10 +341,7 @@ class GuzzleHttpClientTest extends TestCase
             )
             ->willReturn($response);
 
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->request('GET', 'test', ['client_ip' => '192.168.1.100']);
 
@@ -602,10 +370,7 @@ class GuzzleHttpClientTest extends TestCase
             )
             ->willReturn($response);
 
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->request('GET', 'test', ['client_user_agent' => 'Mozilla/5.0 Custom']);
 
@@ -637,7 +402,6 @@ class GuzzleHttpClientTest extends TestCase
                         && $options['headers']['Client-Ip'] === '10.0.0.1'
                         && isset($options['headers']['User-Agent'])
                         && $options['headers']['User-Agent'] === 'TestApp/2.0'
-                        // Original keys should be removed
                         && !isset($options['bearer_token'])
                         && !isset($options['language'])
                         && !isset($options['session_id'])
@@ -647,10 +411,7 @@ class GuzzleHttpClientTest extends TestCase
             )
             ->willReturn($response);
 
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->request('GET', 'test', [
             'bearer_token' => 'token-xyz',
@@ -678,20 +439,15 @@ class GuzzleHttpClientTest extends TestCase
                 'GET',
                 'test',
                 $this->callback(function ($options) {
-                    // Custom header should be preserved
                     return isset($options['headers']['X-Custom-Header'])
                         && $options['headers']['X-Custom-Header'] === 'custom-value'
-                        // Per-call options should be added
                         && isset($options['headers']['Authorization'])
                         && $options['headers']['Authorization'] === 'Bearer per-call-token';
                 })
             )
             ->willReturn($response);
 
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->request('GET', 'test', [
             'headers' => ['X-Custom-Header' => 'custom-value'],
@@ -722,10 +478,7 @@ class GuzzleHttpClientTest extends TestCase
             )
             ->willReturn($response);
 
-        $reflection = new \ReflectionClass($this->httpClient);
-        $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
-        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+        $this->injectMockGuzzle($mockGuzzle);
 
         $result = $this->httpClient->requestRaw('GET', 'test', ['bearer_token' => 'raw-token']);
 
