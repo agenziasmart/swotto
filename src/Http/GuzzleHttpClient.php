@@ -33,7 +33,7 @@ final class GuzzleHttpClient implements HttpClientInterface
     /**
      * @var string SDK version
      */
-    private const VERSION = '2.3.0';
+    private const VERSION = '3.0.0';
 
     /**
      * @var int Default request timeout
@@ -127,6 +127,8 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     public function request(string $method, string $uri, array $options = []): array
     {
+        $options = $this->extractPerCallOptions($options);
+
         $this->logger->info("Requesting {$method} {$uri}", $this->sanitizeOptionsForLogging($options));
 
         try {
@@ -155,6 +157,8 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     public function requestRaw(string $method, string $uri, array $options = []): ResponseInterface
     {
+        $options = $this->extractPerCallOptions($options);
+
         $this->logger->info("Raw request {$method} {$uri}", $this->sanitizeOptionsForLogging($options));
 
         try {
@@ -162,6 +166,62 @@ final class GuzzleHttpClient implements HttpClientInterface
         } catch (\Exception $exception) {
             $this->handleRawException($exception, $uri);
         }
+    }
+
+    /**
+     * Extract Swotto-specific per-call options and convert them to HTTP headers.
+     *
+     * This enables stateless usage where request-specific parameters (like bearer_token)
+     * are passed per-call instead of mutating the client's global configuration.
+     * Pattern inspired by Stripe SDK's stripe_account parameter.
+     *
+     * Supported per-call options:
+     * - bearer_token: Sets Authorization header (overrides global access_token)
+     * - language: Sets Accept-Language header
+     * - session_id: Sets x-sid header
+     * - client_ip: Sets Client-Ip header
+     * - client_user_agent: Sets User-Agent header
+     *
+     * @param array $options Request options (may contain Swotto-specific keys)
+     * @return array Options with Swotto keys converted to headers
+     */
+    private function extractPerCallOptions(array $options): array
+    {
+        $perCallHeaders = [];
+
+        // Extract and remove Swotto-specific options, converting to headers
+        if (isset($options['bearer_token'])) {
+            $perCallHeaders['Authorization'] = 'Bearer ' . $options['bearer_token'];
+            unset($options['bearer_token']);
+        }
+
+        if (isset($options['language'])) {
+            $perCallHeaders['Accept-Language'] = $options['language'];
+            unset($options['language']);
+        }
+
+        if (isset($options['session_id'])) {
+            $perCallHeaders['x-sid'] = $options['session_id'];
+            unset($options['session_id']);
+        }
+
+        if (isset($options['client_ip'])) {
+            $perCallHeaders['Client-Ip'] = $options['client_ip'];
+            unset($options['client_ip']);
+        }
+
+        if (isset($options['client_user_agent'])) {
+            $perCallHeaders['User-Agent'] = $options['client_user_agent'];
+            unset($options['client_user_agent']);
+        }
+
+        // Merge per-call headers with any existing headers in options
+        // Per-call headers take precedence over options['headers']
+        if (!empty($perCallHeaders)) {
+            $options['headers'] = array_merge($options['headers'] ?? [], $perCallHeaders);
+        }
+
+        return $options;
     }
 
     /**

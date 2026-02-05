@@ -15,7 +15,14 @@ interface ClientInterface
      * Send a GET request.
      *
      * @param string $uri The URI to request
-     * @param array $options Request options to apply
+     * @param array $options Request options to apply. Supports Swotto per-call options:
+     *   - bearer_token: (string) Override Authorization header for this request (worker-safe)
+     *   - language: (string) Override Accept-Language for this request
+     *   - session_id: (string) Override x-sid header for this request
+     *   - client_ip: (string) Set Client-Ip header for this request
+     *   - client_user_agent: (string) Set User-Agent for this request
+     *   - query: (array) Query parameters
+     *   - headers: (array) Additional headers (merged with above, lower priority)
      * @return array The response data
      *
      * @throws \Swotto\Exception\SwottoException On error
@@ -27,7 +34,13 @@ interface ClientInterface
      *
      * @param string $uri The URI to request
      * @param mixed $data Data to send (array for JSON auto-detection, or resource for file)
-     * @param array $options Request options to apply (optional)
+     * @param array $options Request options. Supports Swotto per-call options:
+     *   - bearer_token: (string) Override Authorization header for this request (worker-safe)
+     *   - language: (string) Override Accept-Language for this request
+     *   - session_id: (string) Override x-sid header for this request
+     *   - client_ip: (string) Set Client-Ip header for this request
+     *   - client_user_agent: (string) Set User-Agent for this request
+     *   - headers: (array) Additional headers (merged with above, lower priority)
      * @return array The response data
      *
      * @throws \Swotto\Exception\SwottoException On error
@@ -39,7 +52,13 @@ interface ClientInterface
      *
      * @param string $uri The URI to request
      * @param mixed $data Data to send (array for JSON auto-detection, or resource for file)
-     * @param array $options Request options to apply (optional)
+     * @param array $options Request options. Supports Swotto per-call options:
+     *   - bearer_token: (string) Override Authorization header for this request (worker-safe)
+     *   - language: (string) Override Accept-Language for this request
+     *   - session_id: (string) Override x-sid header for this request
+     *   - client_ip: (string) Set Client-Ip header for this request
+     *   - client_user_agent: (string) Set User-Agent for this request
+     *   - headers: (array) Additional headers (merged with above, lower priority)
      * @return array The response data
      *
      * @throws \Swotto\Exception\SwottoException On error
@@ -51,7 +70,13 @@ interface ClientInterface
      *
      * @param string $uri The URI to request
      * @param mixed $data Data to send (array for JSON auto-detection, or resource for file)
-     * @param array $options Request options to apply (optional)
+     * @param array $options Request options. Supports Swotto per-call options:
+     *   - bearer_token: (string) Override Authorization header for this request (worker-safe)
+     *   - language: (string) Override Accept-Language for this request
+     *   - session_id: (string) Override x-sid header for this request
+     *   - client_ip: (string) Set Client-Ip header for this request
+     *   - client_user_agent: (string) Set User-Agent for this request
+     *   - headers: (array) Additional headers (merged with above, lower priority)
      * @return array The response data
      *
      * @throws \Swotto\Exception\SwottoException On error
@@ -62,7 +87,13 @@ interface ClientInterface
      * Send a DELETE request.
      *
      * @param string $uri The URI to request
-     * @param array $options Request options to apply
+     * @param array $options Request options. Supports Swotto per-call options:
+     *   - bearer_token: (string) Override Authorization header for this request (worker-safe)
+     *   - language: (string) Override Accept-Language for this request
+     *   - session_id: (string) Override x-sid header for this request
+     *   - client_ip: (string) Set Client-Ip header for this request
+     *   - client_user_agent: (string) Set User-Agent for this request
+     *   - headers: (array) Additional headers (merged with above, lower priority)
      * @return array The response data
      *
      * @throws \Swotto\Exception\SwottoException On error
@@ -103,6 +134,8 @@ interface ClientInterface
      *
      * @param string $sessionId The session ID
      * @return void
+     *
+     * @deprecated 3.0.0 Pass session_id in per-call options instead for worker-mode safety.
      */
     public function setSessionId(string $sessionId): void;
 
@@ -111,6 +144,8 @@ interface ClientInterface
      *
      * @param string $language The language code
      * @return void
+     *
+     * @deprecated 3.0.0 Pass language in per-call options instead for worker-mode safety.
      */
     public function setLanguage(string $language): void;
 
@@ -119,6 +154,8 @@ interface ClientInterface
      *
      * @param string $accept The accept header value
      * @return void
+     *
+     * @deprecated 3.0.0 Pass accept header in per-call options instead for worker-mode safety.
      */
     public function setAccept(string $accept): void;
 
@@ -196,6 +233,8 @@ interface ClientInterface
      *
      * @param string $token The access token (Bearer token)
      * @return void
+     *
+     * @deprecated 3.0.0 Pass bearer_token in per-call options instead for worker-mode safety.
      */
     public function setAccessToken(string $token): void;
 
@@ -303,6 +342,8 @@ interface ClientInterface
      *
      * @param string $userAgent Original client user agent
      * @return void
+     *
+     * @deprecated 3.0.0 Pass client_user_agent in per-call options instead for worker-mode safety.
      */
     public function setClientUserAgent(string $userAgent): void;
 
@@ -311,6 +352,8 @@ interface ClientInterface
      *
      * @param string $ip Original client IP
      * @return void
+     *
+     * @deprecated 3.0.0 Pass client_ip in per-call options instead for worker-mode safety.
      */
     public function setClientIp(string $ip): void;
 

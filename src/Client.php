@@ -158,25 +158,49 @@ final class Client implements ClientInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated 3.0.0 Pass session_id in per-call options instead for worker-mode safety.
+     *             Example: $client->get('uri', ['session_id' => $sessionId])
      */
     public function setSessionId(string $sessionId): void
     {
+        @trigger_error(
+            'setSessionId() is deprecated since Swotto 3.0. '
+            . 'Pass session_id in per-call options instead: $client->get($uri, [\'session_id\' => $sessionId])',
+            E_USER_DEPRECATED
+        );
         $this->updateConfig(['session_id' => $sessionId]);
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated 3.0.0 Pass language in per-call options instead for worker-mode safety.
+     *             Example: $client->get('uri', ['language' => $language])
      */
     public function setLanguage(string $language): void
     {
+        @trigger_error(
+            'setLanguage() is deprecated since Swotto 3.0. '
+            . 'Pass language in per-call options instead: $client->get($uri, [\'language\' => $language])',
+            E_USER_DEPRECATED
+        );
         $this->updateConfig(['language' => $language]);
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated 3.0.0 Pass accept in request headers instead for worker-mode safety.
+     *             Example: $client->get('uri', ['headers' => ['Accept' => $accept]])
      */
     public function setAccept(string $accept): void
     {
+        @trigger_error(
+            'setAccept() is deprecated since Swotto 3.0. '
+            . 'Pass accept header in per-call options instead.',
+            E_USER_DEPRECATED
+        );
         $this->updateConfig(['accept' => $accept]);
     }
 
@@ -207,9 +231,17 @@ final class Client implements ClientInterface
      *
      * @param string $userAgent Original client user agent
      * @return void
+     *
+     * @deprecated 3.0.0 Pass client_user_agent in per-call options instead for worker-mode safety.
+     *             Example: $client->get('uri', ['client_user_agent' => $userAgent])
      */
     public function setClientUserAgent(string $userAgent): void
     {
+        @trigger_error(
+            'setClientUserAgent() is deprecated since Swotto 3.0. '
+            . 'Pass client_user_agent in per-call options instead: $client->get($uri, [\'client_user_agent\' => $ua])',
+            E_USER_DEPRECATED
+        );
         $this->updateConfig(['client_user_agent' => $userAgent]);
     }
 
@@ -218,9 +250,17 @@ final class Client implements ClientInterface
      *
      * @param string $ip Original client IP
      * @return void
+     *
+     * @deprecated 3.0.0 Pass client_ip in per-call options instead for worker-mode safety.
+     *             Example: $client->get('uri', ['client_ip' => $ip])
      */
     public function setClientIp(string $ip): void
     {
+        @trigger_error(
+            'setClientIp() is deprecated since Swotto 3.0. '
+            . 'Pass client_ip in per-call options instead: $client->get($uri, [\'client_ip\' => $ip])',
+            E_USER_DEPRECATED
+        );
         $this->updateConfig(['client_ip' => $ip]);
     }
 
@@ -383,9 +423,17 @@ final class Client implements ClientInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated 3.0.0 Pass bearer_token in per-call options instead for worker-mode safety.
+     *             Example: $client->get('uri', ['bearer_token' => $token])
      */
     public function setAccessToken(string $token): void
     {
+        @trigger_error(
+            'setAccessToken() is deprecated since Swotto 3.0. '
+            . 'Pass bearer_token in per-call options instead: $client->get($uri, [\'bearer_token\' => $token])',
+            E_USER_DEPRECATED
+        );
         $this->updateConfig(['access_token' => $token]);
     }
 

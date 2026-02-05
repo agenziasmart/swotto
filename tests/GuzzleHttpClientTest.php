@@ -450,4 +450,285 @@ class GuzzleHttpClientTest extends TestCase
         $this->assertEquals('fr', $headers['Accept-Language']);
         $this->assertEquals('devapp-key-abc', $headers['x-devapp']);
     }
+
+    /**
+     * Test that per-call bearer_token option is extracted and converted to Authorization header.
+     */
+    public function testPerCallBearerTokenOption(): void
+    {
+        $responseData = ['success' => true];
+        $response = new Response(200, [], (string) json_encode($responseData));
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'test',
+                $this->callback(function ($options) {
+                    // Verify bearer_token was converted to Authorization header
+                    return isset($options['headers']['Authorization'])
+                        && $options['headers']['Authorization'] === 'Bearer per-call-token-123'
+                        && !isset($options['bearer_token']); // Original key should be removed
+                })
+            )
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $result = $this->httpClient->request('GET', 'test', ['bearer_token' => 'per-call-token-123']);
+
+        $this->assertEquals($responseData, $result);
+    }
+
+    /**
+     * Test that per-call language option is extracted and converted to Accept-Language header.
+     */
+    public function testPerCallLanguageOption(): void
+    {
+        $responseData = ['success' => true];
+        $response = new Response(200, [], (string) json_encode($responseData));
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'test',
+                $this->callback(function ($options) {
+                    return isset($options['headers']['Accept-Language'])
+                        && $options['headers']['Accept-Language'] === 'it'
+                        && !isset($options['language']);
+                })
+            )
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $result = $this->httpClient->request('GET', 'test', ['language' => 'it']);
+
+        $this->assertEquals($responseData, $result);
+    }
+
+    /**
+     * Test that per-call session_id option is extracted and converted to x-sid header.
+     */
+    public function testPerCallSessionIdOption(): void
+    {
+        $responseData = ['success' => true];
+        $response = new Response(200, [], (string) json_encode($responseData));
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'test',
+                $this->callback(function ($options) {
+                    return isset($options['headers']['x-sid'])
+                        && $options['headers']['x-sid'] === 'session-abc-123'
+                        && !isset($options['session_id']);
+                })
+            )
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $result = $this->httpClient->request('GET', 'test', ['session_id' => 'session-abc-123']);
+
+        $this->assertEquals($responseData, $result);
+    }
+
+    /**
+     * Test that per-call client_ip option is extracted and converted to Client-Ip header.
+     */
+    public function testPerCallClientIpOption(): void
+    {
+        $responseData = ['success' => true];
+        $response = new Response(200, [], (string) json_encode($responseData));
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'test',
+                $this->callback(function ($options) {
+                    return isset($options['headers']['Client-Ip'])
+                        && $options['headers']['Client-Ip'] === '192.168.1.100'
+                        && !isset($options['client_ip']);
+                })
+            )
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $result = $this->httpClient->request('GET', 'test', ['client_ip' => '192.168.1.100']);
+
+        $this->assertEquals($responseData, $result);
+    }
+
+    /**
+     * Test that per-call client_user_agent option is extracted and converted to User-Agent header.
+     */
+    public function testPerCallClientUserAgentOption(): void
+    {
+        $responseData = ['success' => true];
+        $response = new Response(200, [], (string) json_encode($responseData));
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'test',
+                $this->callback(function ($options) {
+                    return isset($options['headers']['User-Agent'])
+                        && $options['headers']['User-Agent'] === 'Mozilla/5.0 Custom'
+                        && !isset($options['client_user_agent']);
+                })
+            )
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $result = $this->httpClient->request('GET', 'test', ['client_user_agent' => 'Mozilla/5.0 Custom']);
+
+        $this->assertEquals($responseData, $result);
+    }
+
+    /**
+     * Test that multiple per-call options are extracted together.
+     */
+    public function testMultiplePerCallOptions(): void
+    {
+        $responseData = ['success' => true];
+        $response = new Response(200, [], (string) json_encode($responseData));
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'test',
+                $this->callback(function ($options) {
+                    return isset($options['headers']['Authorization'])
+                        && $options['headers']['Authorization'] === 'Bearer token-xyz'
+                        && isset($options['headers']['Accept-Language'])
+                        && $options['headers']['Accept-Language'] === 'fr'
+                        && isset($options['headers']['x-sid'])
+                        && $options['headers']['x-sid'] === 'sess-999'
+                        && isset($options['headers']['Client-Ip'])
+                        && $options['headers']['Client-Ip'] === '10.0.0.1'
+                        && isset($options['headers']['User-Agent'])
+                        && $options['headers']['User-Agent'] === 'TestApp/2.0'
+                        // Original keys should be removed
+                        && !isset($options['bearer_token'])
+                        && !isset($options['language'])
+                        && !isset($options['session_id'])
+                        && !isset($options['client_ip'])
+                        && !isset($options['client_user_agent']);
+                })
+            )
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $result = $this->httpClient->request('GET', 'test', [
+            'bearer_token' => 'token-xyz',
+            'language' => 'fr',
+            'session_id' => 'sess-999',
+            'client_ip' => '10.0.0.1',
+            'client_user_agent' => 'TestApp/2.0',
+        ]);
+
+        $this->assertEquals($responseData, $result);
+    }
+
+    /**
+     * Test that per-call options are merged with existing headers in options.
+     */
+    public function testPerCallOptionsMergeWithExistingHeaders(): void
+    {
+        $responseData = ['success' => true];
+        $response = new Response(200, [], (string) json_encode($responseData));
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'test',
+                $this->callback(function ($options) {
+                    // Custom header should be preserved
+                    return isset($options['headers']['X-Custom-Header'])
+                        && $options['headers']['X-Custom-Header'] === 'custom-value'
+                        // Per-call options should be added
+                        && isset($options['headers']['Authorization'])
+                        && $options['headers']['Authorization'] === 'Bearer per-call-token';
+                })
+            )
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $result = $this->httpClient->request('GET', 'test', [
+            'headers' => ['X-Custom-Header' => 'custom-value'],
+            'bearer_token' => 'per-call-token',
+        ]);
+
+        $this->assertEquals($responseData, $result);
+    }
+
+    /**
+     * Test that per-call options work with requestRaw() method too.
+     */
+    public function testPerCallOptionsInRequestRaw(): void
+    {
+        $response = new Response(200, [], 'raw content');
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'test',
+                $this->callback(function ($options) {
+                    return isset($options['headers']['Authorization'])
+                        && $options['headers']['Authorization'] === 'Bearer raw-token'
+                        && !isset($options['bearer_token']);
+                })
+            )
+            ->willReturn($response);
+
+        $reflection = new \ReflectionClass($this->httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($this->httpClient, $mockGuzzle);
+
+        $result = $this->httpClient->requestRaw('GET', 'test', ['bearer_token' => 'raw-token']);
+
+        $this->assertSame($response, $result);
+    }
 }

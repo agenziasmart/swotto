@@ -119,23 +119,37 @@ class ConfigurationTest extends TestCase
         $this->assertArrayNotHasKey('x-sid', $headers);
     }
 
-    public function testDetectClientUserAgent(): void
+    public function testGetClientUserAgent(): void
     {
         $config = new Configuration([
             'url' => 'https://api.example.com',
             'client_user_agent' => 'TestAgent/1.0',
         ]);
 
-        $this->assertEquals('TestAgent/1.0', $config->detectClientUserAgent());
+        $this->assertEquals('TestAgent/1.0', $config->getClientUserAgent());
     }
 
-    public function testDetectClientIp(): void
+    public function testGetClientUserAgentReturnsNullWhenNotConfigured(): void
+    {
+        $config = new Configuration(['url' => 'https://api.example.com']);
+
+        $this->assertNull($config->getClientUserAgent());
+    }
+
+    public function testGetClientIp(): void
     {
         $config = new Configuration([
             'url' => 'https://api.example.com',
             'client_ip' => '192.168.1.1',
         ]);
 
-        $this->assertEquals('192.168.1.1', $config->detectClientIp());
+        $this->assertEquals('192.168.1.1', $config->getClientIp());
+    }
+
+    public function testGetClientIpReturnsNullWhenNotConfigured(): void
+    {
+        $config = new Configuration(['url' => 'https://api.example.com']);
+
+        $this->assertNull($config->getClientIp());
     }
 }
