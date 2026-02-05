@@ -229,62 +229,30 @@ final class Configuration
     }
 
     /**
-     * Detect and return the client's User-Agent string.
+     * Get the configured client User-Agent.
      *
-     * In web context, retrieves the User-Agent from the HTTP request headers.
-     * In CLI context, returns the configured client_user_agent value.
-     * The returned value is sanitized to prevent HTTP header injection attacks.
+     * Returns the client_user_agent value from configuration if set.
+     * This should be passed explicitly via config or per-call options for worker-mode safety.
      *
-     * @return string|null The sanitized User-Agent string, or null if not available
+     * @return string|null The sanitized User-Agent string, or null if not configured
      */
-    public function detectClientUserAgent(): ?string
+    public function getClientUserAgent(): ?string
     {
-        if (PHP_SAPI !== 'cli' && isset($_SERVER['HTTP_USER_AGENT'])) {
-            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
-
-            return $userAgent !== null ? $this->sanitizeHeaderValue($userAgent) : null;
-        }
-
         $configValue = $this->get('client_user_agent', null);
 
         return $configValue !== null ? $this->sanitizeHeaderValue((string) $configValue) : null;
     }
 
     /**
-     * Detect and return the client's IP address.
+     * Get the configured client IP address.
      *
-     * In web context, checks multiple sources in order of reliability:
-     * 1. HTTP_CLIENT_IP - Direct client IP (if set)
-     * 2. HTTP_X_FORWARDED_FOR - First IP in proxy chain (if behind proxy)
-     * 3. REMOTE_ADDR - Direct connection IP (may be proxy IP)
+     * Returns the client_ip value from configuration if set.
+     * This should be passed explicitly via config or per-call options for worker-mode safety.
      *
-     * In CLI context, returns the configured client_ip value.
-     * The returned value is sanitized to prevent HTTP header injection attacks.
-     *
-     * @return string|null The sanitized client IP address, or null if not available
+     * @return string|null The sanitized client IP address, or null if not configured
      */
-    public function detectClientIp(): ?string
+    public function getClientIp(): ?string
     {
-        if (PHP_SAPI !== 'cli') {
-            // Check standard headers that might contain the real IP
-            if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-                return $this->sanitizeHeaderValue($_SERVER['HTTP_CLIENT_IP']);
-            }
-
-            // Check for proxy forwarded IP
-            if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                // HTTP_X_FORWARDED_FOR may contain a list of IPs, we take the first one
-                $ipList = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-
-                return $this->sanitizeHeaderValue(trim($ipList[0]));
-            }
-
-            // REMOTE_ADDR is the most reliable but might be the proxy's IP
-            $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? null;
-
-            return $remoteAddr !== null ? $this->sanitizeHeaderValue($remoteAddr) : null;
-        }
-
         $configValue = $this->get('client_ip', null);
 
         return $configValue !== null ? $this->sanitizeHeaderValue((string) $configValue) : null;
@@ -293,21 +261,22 @@ final class Configuration
     /**
      * Get HTTP headers from configuration.
      *
+     * Note: client_user_agent and client_ip are only included if explicitly configured.
+     * For worker-mode safety, these should be passed per-call via options instead of
+     * relying on $_SERVER superglobals.
+     *
      * @return array<string, string> Headers
      */
     public function getHeaders(): array
     {
-        $clientIp = $this->detectClientIp();
-        $clientUa = $this->detectClientUserAgent();
-
         return array_filter([
           'Accept' => $this->get('accept', 'application/json'),
           'Accept-Language' => $this->get('language', 'en'),
           'Authorization' => $this->get('access_token') ? "Bearer {$this->get('access_token')}" : null,
           'x-devapp' => $this->get('key'),
           'x-sid' => $this->get('session_id'),
-          'User-Agent' => $clientUa,
-          'Client-Ip' => $clientIp,
+          'User-Agent' => $this->getClientUserAgent(),
+          'Client-Ip' => $this->getClientIp(),
         ]);
     }
 }

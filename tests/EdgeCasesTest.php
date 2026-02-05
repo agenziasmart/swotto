@@ -89,7 +89,7 @@ class EdgeCasesTest extends TestCase
             'client_user_agent' => "MyApp/1.0\r\nX-Injected: malicious",
         ]);
 
-        $userAgent = $config->detectClientUserAgent();
+        $userAgent = $config->getClientUserAgent();
         $this->assertNotNull($userAgent);
 
         // CRLF should be stripped
@@ -108,7 +108,7 @@ class EdgeCasesTest extends TestCase
             'client_ip' => "192.168.1.1\r\nX-Injected: malicious",
         ]);
 
-        $clientIp = $config->detectClientIp();
+        $clientIp = $config->getClientIp();
         $this->assertNotNull($clientIp);
 
         // CRLF should be stripped
@@ -127,7 +127,7 @@ class EdgeCasesTest extends TestCase
             'client_user_agent' => "MyApp/1.0\0malicious",
         ]);
 
-        $userAgent = $config->detectClientUserAgent();
+        $userAgent = $config->getClientUserAgent();
         $this->assertNotNull($userAgent);
 
         // Null byte should be stripped
