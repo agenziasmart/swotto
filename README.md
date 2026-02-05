@@ -20,6 +20,7 @@ Swotto simplifies API integration with built-in authentication, error handling, 
 ✅ **Resilient** - Built-in Retry with Exponential Backoff + Circuit Breaker
 ✅ **Flexible** - Dual authentication (DevApp + Bearer tokens)
 ✅ **Smart responses** - Auto-detect JSON, CSV, PDF formats
+✅ **Worker-safe** - Stateless per-call options for FrankenPHP/Swoole
 ✅ **Battle-tested** - 323 comprehensive test cases
 
 ## Table of Contents
@@ -38,6 +39,7 @@ Swotto simplifies API integration with built-in authentication, error handling, 
   - [Multi-Format Responses](#multi-format-responses)
   - [Retry with Exponential Backoff](#retry-with-exponential-backoff)
   - [Circuit Breaker Pattern](#circuit-breaker-pattern)
+  - [Per-Call Options (Worker Mode)](#per-call-options-worker-mode)
   - [POP Methods](#pop-methods)
 - [Common Use Cases](#common-use-cases)
   - [Fetching Customers with Pagination](#fetching-customers-with-pagination)
@@ -115,11 +117,14 @@ $client = new Client([
 Authenticates specific end users within your application. **Optional but recommended.**
 
 ```php
-// Set user token after login
-$client->setAccessToken($userBearerToken);
+// Option 1: Per-call options (RECOMMENDED for worker mode)
+$orders = $client->get('orders', [
+    'bearer_token' => $userBearerToken
+]);
 
-// Now all requests are made on behalf of this user
-$userOrders = $client->get('orders');
+// Option 2: Setter method (deprecated, avoid in long-running processes)
+$client->setAccessToken($userBearerToken);
+$orders = $client->get('orders');
 
 // Clear token on logout
 $client->clearAccessToken();
@@ -155,6 +160,25 @@ $client->setAccessToken($loginResponse['data']['token']);
 // 5. Now all requests are authenticated with full context
 $profile = $client->get('account/profile');
 $customers = $client->getParsed('customers');
+```
+
+**RECOMMENDED: Stateless approach for FrankenPHP/Swoole workers**
+
+Pass context per-request instead of mutating shared client:
+
+```php
+$client = new Client([
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_TOKEN'
+]);
+
+// Each request carries its own context
+$profile = $client->get('account/profile', [
+    'bearer_token' => $userToken,
+    'client_ip' => $_SERVER['REMOTE_ADDR'],
+    'client_user_agent' => $_SERVER['HTTP_USER_AGENT'],
+    'language' => 'it'
+]);
 ```
 
 **How It Works**:
@@ -341,6 +365,47 @@ try {
     echo "Service unavailable, retry after: " . $e->getRetryAfter() . " seconds";
 }
 ```
+
+### Per-Call Options (Worker Mode)
+
+For long-running processes (FrankenPHP, Swoole, ReactPHP), pass request-specific
+parameters directly in options instead of using setters:
+
+```php
+// Singleton client (shared across requests)
+$client = new Client([
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_TOKEN'
+]);
+
+// Request 1 (User A)
+$ordersA = $client->get('orders', [
+    'bearer_token' => $userAToken,
+    'client_ip' => $requestA->getClientIp(),
+    'client_user_agent' => $requestA->getUserAgent(),
+    'language' => 'it'
+]);
+
+// Request 2 (User B) - no state leakage from Request 1
+$ordersB = $client->get('orders', [
+    'bearer_token' => $userBToken,
+    'client_ip' => $requestB->getClientIp(),
+    'client_user_agent' => $requestB->getUserAgent(),
+    'language' => 'en'
+]);
+```
+
+**Available per-call options:**
+
+| Option | Header | Description |
+|--------|--------|-------------|
+| `bearer_token` | `Authorization` | Bearer token for this request only |
+| `language` | `Accept-Language` | Response language |
+| `session_id` | `x-sid` | Session ID |
+| `client_ip` | `Client-Ip` | Original client IP |
+| `client_user_agent` | `User-Agent` | Original client User-Agent |
+
+> **Note**: Per-call options override any values set via Configuration or setters.
 
 ### POP Methods
 
@@ -586,8 +651,8 @@ function fetchWithRetry($client, $endpoint, $maxRetries = 3) {
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `client_user_agent` | `string` | Auto | Custom User-Agent header |
-| `client_ip` | `string` | Auto | Client IP address for logging |
+| `client_user_agent` | `string` | `null` | Custom User-Agent header (or pass per-call) |
+| `client_ip` | `string` | `null` | Client IP address (or pass per-call) |
 | `language` | `string` | `'it'` | Preferred response language |
 | `accept` | `string` | `'application/json'` | Accept header |
 
@@ -1206,16 +1271,25 @@ $client = new Client($config[$env]);
 
 ### Is Swotto thread-safe for multi-threaded applications?
 
-**Client object**: No, not thread-safe. Each thread must create its own Client instance.
+**With setters**: Not thread-safe. Each thread/request must use its own instance.
 
 ```php
-// ❌ Don't share between threads
+// ❌ Don't share between threads with setters
 $sharedClient = new Client($config);
+$sharedClient->setAccessToken($token); // state mutation = not safe
+```
 
-// ✅ Create instance per thread
-function worker($config) {
-    $client = new Client($config);
-    // ... use $client only in this thread
+**With per-call options** (RECOMMENDED): Thread-safe! Share single client instance:
+
+```php
+// ✅ Singleton client with per-call options
+$client = new Client($config);
+
+function handleRequest($client, $request) {
+    return $client->get('data', [
+        'bearer_token' => $request->getUserToken(),
+        'client_ip' => $request->getClientIp()
+    ]);
 }
 ```
 

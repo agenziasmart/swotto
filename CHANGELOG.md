@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-02-05
+
+### Added
+
+- **Stateless Per-Call Options**: Pass request-specific parameters directly in `$options` instead of mutating client state
+  - `bearer_token`: Override Authorization header for single request
+  - `language`: Override Accept-Language for single request
+  - `session_id`: Override x-sid header for single request
+  - `client_ip`: Set Client-Ip header for single request
+  - `client_user_agent`: Set User-Agent for single request
+- Pattern inspired by Stripe SDK's `stripe_account` per-request option
+- Full test coverage for per-call options in `GuzzleHttpClientTest.php`
+
+### Deprecated
+
+- `setAccessToken()`: Use `['bearer_token' => $token]` in per-call options
+- `setSessionId()`: Use `['session_id' => $sid]` in per-call options
+- `setLanguage()`: Use `['language' => $lang]` in per-call options
+- `setAccept()`: Use `['headers' => ['Accept' => $accept]]` in per-call options
+- `setClientUserAgent()`: Use `['client_user_agent' => $ua]` in per-call options
+- `setClientIp()`: Use `['client_ip' => $ip]` in per-call options
+
+### Changed
+
+- Remove `$_SERVER` auto-detection for `client_ip` and `client_user_agent` in Configuration
+- Deprecation warnings via `trigger_error(E_USER_DEPRECATED)` for all deprecated setters
+
+### Notes
+
+- **Worker-Mode Safe**: SDK can now be used as singleton in FrankenPHP/Swoole without state leakage
+- **Backward Compatible**: Deprecated setters still work, just emit deprecation warnings
+- **Migration Path**: See UPGRADE.md for step-by-step migration guide
+
+---
+
 ## [1.3.0] - 2026-01-14
 
 ### Added
