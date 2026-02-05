@@ -1,77 +1,225 @@
 # Upgrade Guide
 
-## Upgrading to v1.4.0
+## Upgrading from v1.x to v2.0.0
 
-### Breaking Changes
+v2.0.0 is a major release with breaking changes. This guide covers every change and how to migrate.
 
-None. All existing code continues to work.
+### Requirements
 
-### Deprecations
+- **PHP 8.3+** (was 8.1+)
+- Remove `psr/simple-cache` if you only used it for Swotto
 
-The following setter methods now emit `E_USER_DEPRECATED` warnings:
+### 1. Configuration Changes
 
-| Deprecated Method | Replacement |
-|-------------------|-------------|
-| `setAccessToken($token)` | `['bearer_token' => $token]` |
-| `setSessionId($sid)` | `['session_id' => $sid]` |
-| `setLanguage($lang)` | `['language' => $lang]` |
-| `setAccept($accept)` | `['headers' => ['Accept' => $accept]]` |
-| `setClientUserAgent($ua)` | `['client_user_agent' => $ua]` |
-| `setClientIp($ip)` | `['client_ip' => $ip]` |
-
-### Why This Change?
-
-The setter methods mutate client state, which causes **state leakage** in long-running
-processes like FrankenPHP worker mode. Per-call options are stateless and safe.
-
-### Migration Examples
-
-#### Before (v1.3.x)
+#### `access_token` renamed to `bearer_token`
 
 ```php
-$client = new Client(['url' => '...', 'key' => '...']);
+// v1.x
+$client = new Client([
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_TOKEN',
+    'access_token' => $userToken,  // OLD
+]);
 
-// State mutation - unsafe in worker mode
-$client->setAccessToken($userToken);
-$client->setClientIp($_SERVER['REMOTE_ADDR']);
-$client->setLanguage('it');
-
-$data = $client->get('customers');
-```
-
-#### After (v1.4.0+)
-
-```php
-$client = new Client(['url' => '...', 'key' => '...']);
-
-// Stateless - safe in worker mode
-$data = $client->get('customers', [
-    'bearer_token' => $userToken,
-    'client_ip' => $_SERVER['REMOTE_ADDR'],
-    'language' => 'it'
+// v2.0.0
+$client = new Client([
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_TOKEN',
+    'bearer_token' => $userToken,  // NEW
 ]);
 ```
 
-### Suppressing Deprecation Warnings
+#### Removed config keys
 
-If you can't migrate immediately, suppress warnings:
+| Removed Key | Replacement |
+|-------------|-------------|
+| `access_token` | `bearer_token` |
+| `accept` | Always `application/json` (not configurable) |
+| `circuit_breaker_enabled` | Removed entirely |
+| `circuit_breaker_failure_threshold` | Removed entirely |
+| `circuit_breaker_recovery_timeout` | Removed entirely |
+
+### 2. Setter Methods Removed
+
+All setter methods have been removed. Use config defaults or per-call options instead.
+
+| Removed Method | v2.0.0 Replacement |
+|----------------|-------------------|
+| `setAccessToken($token)` | Config: `'bearer_token' => $token` or per-call: `['bearer_token' => $token]` |
+| `clearAccessToken()` | Create a new Client instance without `bearer_token` |
+| `getAccessToken()` | Not needed (client is immutable) |
+| `hasAccessToken()` | Not needed (client is immutable) |
+| `setSessionId($sid)` | Config: `'session_id' => $sid` or per-call: `['session_id' => $sid]` |
+| `setLanguage($lang)` | Config: `'language' => $lang` or per-call: `['language' => $lang]` |
+| `setAccept($accept)` | Not available (always `application/json`) |
+| `setClientUserAgent($ua)` | Config: `'client_user_agent' => $ua` or per-call: `['client_user_agent' => $ua]` |
+| `setClientIp($ip)` | Config: `'client_ip' => $ip` or per-call: `['client_ip' => $ip]` |
+| `setLogger($logger)` | Pass logger in constructor: `new Client($config, $logger)` |
+
+#### Migration Example
 
 ```php
-// Temporarily suppress (not recommended)
-@$client->setAccessToken($token);
+// v1.x - Mutable state
+$client = new Client(['url' => '...', 'key' => '...']);
+$client->setAccessToken($userToken);
+$client->setLanguage('it');
+$client->setClientIp($_SERVER['REMOTE_ADDR']);
+$data = $client->get('customers');
 
-// Or via error handler
-set_error_handler(function($errno, $errstr) {
-    if (str_contains($errstr, 'deprecated since Swotto')) {
-        return true; // suppress
-    }
-    return false;
-}, E_USER_DEPRECATED);
+// v2.0.0 Option A - Config defaults (applied to every request)
+$client = new Client([
+    'url' => '...',
+    'key' => '...',
+    'bearer_token' => $userToken,
+    'language' => 'it',
+    'client_ip' => $_SERVER['REMOTE_ADDR'],
+]);
+$data = $client->get('customers');
+
+// v2.0.0 Option B - Per-call options (per-request, overrides defaults)
+$client = new Client(['url' => '...', 'key' => '...']);
+$data = $client->get('customers', [
+    'bearer_token' => $userToken,
+    'language' => 'it',
+    'client_ip' => $_SERVER['REMOTE_ADDR'],
+]);
 ```
 
-### Timeline
+### 3. Parsed Methods Removed
 
-- **v1.4.0**: Setters deprecated with warnings
-- **v2.0.0** (future): Setters will be removed
+`getParsed()`, `postParsed()`, `putParsed()`, `patchParsed()`, `deleteParsed()` are removed.
 
-We recommend migrating to per-call options as soon as possible.
+Use the standard methods and process the response directly:
+
+```php
+// v1.x
+$parsed = $client->getParsed('customers');
+$customers = $parsed['data'];
+$paginator = $parsed['paginator'];
+
+// v2.0.0
+$response = $client->get('customers');
+$customers = $response['data'];
+$pagination = $response['meta']['pagination'];
+```
+
+### 4. POP Methods Removed
+
+All `get*Pop()` methods and `fetchPop()` are removed. Call the API endpoints directly:
+
+```php
+// v1.x
+$countries = $client->getCountryPop();
+$genders = $client->getGenderPop();
+
+// v2.0.0
+$countries = $client->get('pop/country');
+$genders = $client->get('pop/gender');
+```
+
+If you need caching, implement it in your application layer.
+
+### 5. Circuit Breaker Removed
+
+The entire Circuit Breaker subsystem has been removed:
+
+```php
+// v1.x
+use Swotto\Http\GuzzleHttpClient;
+use Swotto\Exception\CircuitBreakerOpenException;
+
+$client = new Client(
+    $config,
+    $logger,
+    GuzzleHttpClient::withCircuitBreaker($configuration, $logger, $cache)
+);
+
+try {
+    $client->get('test');
+} catch (CircuitBreakerOpenException $e) {
+    // handle
+}
+
+// v2.0.0 - Use Retry instead (built-in), or implement CB externally
+$client = new Client([
+    'url' => '...',
+    'key' => '...',
+    'retry_enabled' => true,
+    'retry_max_attempts' => 3,
+]);
+```
+
+### 6. HttpClientInterface Simplified
+
+If you implemented a custom `HttpClientInterface`:
+
+```php
+// v1.x - Had initialize() method
+class MyHttpClient implements HttpClientInterface {
+    public function initialize(array $config): void { ... }
+    public function request(...): array { ... }
+    public function requestRaw(...): ResponseInterface { ... }
+}
+
+// v2.0.0 - Only request() and requestRaw()
+class MyHttpClient implements HttpClientInterface {
+    public function request(string $method, string $uri, array $options = []): array { ... }
+    public function requestRaw(string $method, string $uri, array $options = []): ResponseInterface { ... }
+}
+```
+
+### 7. Exception Hierarchy
+
+`CircuitBreakerOpenException` is removed from the exception hierarchy:
+
+```
+// v2.0.0 Exception Hierarchy
+SwottoExceptionInterface
+└── SwottoException
+    ├── ApiException (HTTP 400-599)
+    │   ├── AuthenticationException (401)
+    │   ├── ForbiddenException (403)
+    │   ├── NotFoundException (404)
+    │   ├── ValidationException (422)
+    │   └── RateLimitException (429)
+    ├── NetworkException
+    │   └── ConnectionException
+    ├── SecurityException
+    │   ├── FileOperationException
+    │   └── MemoryException
+    └── StreamingException
+```
+
+### 8. Default Options Pattern (New)
+
+v2.0.0 introduces the Stripe-inspired default options pattern:
+
+```php
+// Config-level defaults are merged with per-call options
+$client = new Client([
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_TOKEN',
+    'bearer_token' => 'default-token',   // applied to every request
+    'language' => 'it',                   // applied to every request
+]);
+
+// Per-call options override defaults
+$data = $client->get('customers', [
+    'language' => 'en',  // overrides 'it' for this request only
+]);
+
+// Next request uses default 'it' again
+$other = $client->get('products');
+```
+
+### Quick Migration Checklist
+
+- [ ] Update PHP to 8.3+
+- [ ] Replace `access_token` with `bearer_token` in config
+- [ ] Remove all `set*()` calls, use config defaults or per-call options
+- [ ] Replace `getParsed()` calls with `get()` + direct response processing
+- [ ] Replace `get*Pop()` calls with `get('pop/...')`
+- [ ] Remove Circuit Breaker config and `CircuitBreakerOpenException` catches
+- [ ] Remove `accept` from config (if used)
+- [ ] Remove `psr/simple-cache` from composer.json (if only used for Swotto)
+- [ ] Run `composer cs-fix && composer phpstan && composer test`

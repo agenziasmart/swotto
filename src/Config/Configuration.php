@@ -9,7 +9,8 @@ use Swotto\Exception\ConfigurationException;
 /**
  * Configuration.
  *
- * Manages and validates Swotto Client configuration
+ * Manages and validates Swotto Client configuration.
+ * Immutable: no update() method. Context options flow via defaultOptions + merge.
  */
 final class Configuration
 {
@@ -22,26 +23,24 @@ final class Configuration
      * @var array<int, string> Allowed configuration keys
      */
     private const ALLOWED_CONFIG = [
-      'url',
-      'key',
-      'access_token',
-      'session_id',
-      'language',
-      'accept',
-      'verify_ssl',
-      'headers',
-      'client_user_agent',
-      'client_ip',
-      'circuit_breaker_enabled',
-      'circuit_breaker_failure_threshold',
-      'circuit_breaker_recovery_timeout',
-      // Retry configuration
-      'retry_enabled',
-      'retry_max_attempts',
-      'retry_initial_delay_ms',
-      'retry_max_delay_ms',
-      'retry_multiplier',
-      'retry_jitter',
+        // Transport
+        'url',
+        'key',
+        'verify_ssl',
+        'timeout',
+        // Context (extracted as defaultOptions in Client)
+        'bearer_token',
+        'language',
+        'session_id',
+        'client_ip',
+        'client_user_agent',
+        // Retry
+        'retry_enabled',
+        'retry_max_attempts',
+        'retry_initial_delay_ms',
+        'retry_max_delay_ms',
+        'retry_multiplier',
+        'retry_jitter',
     ];
 
     /**
@@ -91,25 +90,8 @@ final class Configuration
             throw new ConfigurationException('verify_ssl must be boolean');
         }
 
-        // Validate circuit breaker options
-        if (isset($config['circuit_breaker_enabled']) && !is_bool($config['circuit_breaker_enabled'])) {
-            throw new ConfigurationException('circuit_breaker_enabled must be boolean');
-        }
-
-        if (
-            isset($config['circuit_breaker_failure_threshold'])
-            && (!is_int($config['circuit_breaker_failure_threshold'])
-                || $config['circuit_breaker_failure_threshold'] < 1)
-        ) {
-            throw new ConfigurationException('circuit_breaker_failure_threshold must be a positive integer');
-        }
-
-        if (
-            isset($config['circuit_breaker_recovery_timeout'])
-            && (!is_int($config['circuit_breaker_recovery_timeout'])
-                || $config['circuit_breaker_recovery_timeout'] < 1)
-        ) {
-            throw new ConfigurationException('circuit_breaker_recovery_timeout must be a positive integer');
+        if (isset($config['timeout']) && (!is_int($config['timeout']) || $config['timeout'] < 1)) {
+            throw new ConfigurationException('timeout must be a positive integer');
         }
 
         // Validate retry options
@@ -172,24 +154,9 @@ final class Configuration
      * @param mixed $default Default value if key is not set
      * @return mixed Configuration value or default
      */
-    public function get(string $key, $default = null): mixed
+    public function get(string $key, mixed $default = null): mixed
     {
         return $this->config[$key] ?? $default;
-    }
-
-    /**
-     * Update configuration with new values.
-     *
-     * @param array<string, mixed> $newConfig New configuration options
-     * @return self New configuration instance
-     *
-     * @throws ConfigurationException On invalid configuration
-     */
-    public function update(array $newConfig): self
-    {
-        $updatedConfig = array_merge($this->config, $newConfig);
-
-        return new self($updatedConfig);
     }
 
     /**
@@ -203,80 +170,18 @@ final class Configuration
     }
 
     /**
-     * Check if an access token is configured.
+     * Get transport-only HTTP headers (x-devapp, Accept).
      *
-     * @return bool True if access token is set and not empty
-     */
-    public function hasAccessToken(): bool
-    {
-        $token = $this->get('access_token');
-
-        return $token !== null && $token !== '';
-    }
-
-    /**
-     * Sanitize a value to be used as HTTP header.
+     * Context headers (Authorization, Accept-Language, x-sid, Client-Ip, User-Agent)
+     * are handled via defaultOptions → merge → extractPerCallOptions in GuzzleHttpClient.
      *
-     * Removes CRLF sequences and null bytes to prevent HTTP header injection attacks (CWE-113).
-     *
-     * @param string $value The value to sanitize
-     * @return string Sanitized value safe for use in HTTP headers
-     */
-    private function sanitizeHeaderValue(string $value): string
-    {
-        // Remove carriage return, line feed, and null bytes
-        return preg_replace('/[\r\n\0]/', '', $value) ?? '';
-    }
-
-    /**
-     * Get the configured client User-Agent.
-     *
-     * Returns the client_user_agent value from configuration if set.
-     * This should be passed explicitly via config or per-call options for worker-mode safety.
-     *
-     * @return string|null The sanitized User-Agent string, or null if not configured
-     */
-    public function getClientUserAgent(): ?string
-    {
-        $configValue = $this->get('client_user_agent', null);
-
-        return $configValue !== null ? $this->sanitizeHeaderValue((string) $configValue) : null;
-    }
-
-    /**
-     * Get the configured client IP address.
-     *
-     * Returns the client_ip value from configuration if set.
-     * This should be passed explicitly via config or per-call options for worker-mode safety.
-     *
-     * @return string|null The sanitized client IP address, or null if not configured
-     */
-    public function getClientIp(): ?string
-    {
-        $configValue = $this->get('client_ip', null);
-
-        return $configValue !== null ? $this->sanitizeHeaderValue((string) $configValue) : null;
-    }
-
-    /**
-     * Get HTTP headers from configuration.
-     *
-     * Note: client_user_agent and client_ip are only included if explicitly configured.
-     * For worker-mode safety, these should be passed per-call via options instead of
-     * relying on $_SERVER superglobals.
-     *
-     * @return array<string, string> Headers
+     * @return array<string, string> Transport headers
      */
     public function getHeaders(): array
     {
         return array_filter([
-          'Accept' => $this->get('accept', 'application/json'),
-          'Accept-Language' => $this->get('language', 'en'),
-          'Authorization' => $this->get('access_token') ? "Bearer {$this->get('access_token')}" : null,
-          'x-devapp' => $this->get('key'),
-          'x-sid' => $this->get('session_id'),
-          'User-Agent' => $this->getClientUserAgent(),
-          'Client-Ip' => $this->getClientIp(),
+            'Accept' => 'application/json',
+            'x-devapp' => $this->get('key'),
         ]);
     }
 }
