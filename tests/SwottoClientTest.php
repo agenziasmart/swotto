@@ -6,25 +6,25 @@ namespace Swotto\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Swotto\Client;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Exception\ConnectionException;
 use Swotto\Exception\ValidationException;
+use Swotto\SwottoClient;
 
-class ClientTest extends TestCase
+class SwottoClientTest extends TestCase
 {
     private HttpClientInterface $mockHttpClient;
 
     private LoggerInterface $mockLogger;
 
-    private Client $client;
+    private SwottoClient $client;
 
     protected function setUp(): void
     {
         $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
         $this->mockLogger = $this->createMock(LoggerInterface::class);
 
-        $this->client = new Client(
+        $this->client = new SwottoClient(
             ['url' => 'https://api.example.com'],
             $this->mockLogger,
             $this->mockHttpClient

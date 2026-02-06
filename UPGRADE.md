@@ -1,5 +1,44 @@
 # Upgrade Guide
 
+## Upgrading from v2.0.0 to v2.1.0
+
+v2.1.0 renames the client classes to follow the Stripe PHP SDK naming convention (brand prefix on public API classes).
+
+### Class Renames
+
+| v2.0.0 | v2.1.0 |
+|--------|--------|
+| `Swotto\Client` | `Swotto\SwottoClient` |
+| `Swotto\Contract\ClientInterface` | `Swotto\Contract\SwottoClientInterface` |
+
+### Migration
+
+Search and replace in your codebase:
+
+```php
+// v2.0.0
+use Swotto\Client;
+use Swotto\Contract\ClientInterface;
+
+$client = new SwottoClient([...]);
+
+// v2.1.0
+use Swotto\SwottoClient;
+use Swotto\Contract\SwottoClientInterface;
+
+$client = new SwottoClient([...]);
+```
+
+### Quick Migration Checklist
+
+- [ ] Replace `use Swotto\Client` with `use Swotto\SwottoClient`
+- [ ] Replace `use Swotto\Contract\ClientInterface` with `use Swotto\Contract\SwottoClientInterface`
+- [ ] Replace `new Client(` with `new SwottoClient(`
+- [ ] Update any type hints from `Client` to `SwottoClient` and `ClientInterface` to `SwottoClientInterface`
+- [ ] Run `composer cs-fix && composer phpstan && composer test`
+
+---
+
 ## Upgrading from v1.x to v2.0.0
 
 v2.0.0 is a major release with breaking changes. This guide covers every change and how to migrate.
@@ -15,14 +54,14 @@ v2.0.0 is a major release with breaking changes. This guide covers every change 
 
 ```php
 // v1.x
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
     'access_token' => $userToken,  // OLD
 ]);
 
 // v2.0.0
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
     'bearer_token' => $userToken,  // NEW
@@ -54,20 +93,20 @@ All setter methods have been removed. Use config defaults or per-call options in
 | `setAccept($accept)` | Not available (always `application/json`) |
 | `setClientUserAgent($ua)` | Config: `'client_user_agent' => $ua` or per-call: `['client_user_agent' => $ua]` |
 | `setClientIp($ip)` | Config: `'client_ip' => $ip` or per-call: `['client_ip' => $ip]` |
-| `setLogger($logger)` | Pass logger in constructor: `new Client($config, $logger)` |
+| `setLogger($logger)` | Pass logger in constructor: `new SwottoClient($config, $logger)` |
 
 #### Migration Example
 
 ```php
 // v1.x - Mutable state
-$client = new Client(['url' => '...', 'key' => '...']);
+$client = new SwottoClient(['url' => '...', 'key' => '...']);
 $client->setAccessToken($userToken);
 $client->setLanguage('it');
 $client->setClientIp($_SERVER['REMOTE_ADDR']);
 $data = $client->get('customers');
 
 // v2.0.0 Option A - Config defaults (applied to every request)
-$client = new Client([
+$client = new SwottoClient([
     'url' => '...',
     'key' => '...',
     'bearer_token' => $userToken,
@@ -77,7 +116,7 @@ $client = new Client([
 $data = $client->get('customers');
 
 // v2.0.0 Option B - Per-call options (per-request, overrides defaults)
-$client = new Client(['url' => '...', 'key' => '...']);
+$client = new SwottoClient(['url' => '...', 'key' => '...']);
 $data = $client->get('customers', [
     'bearer_token' => $userToken,
     'language' => 'it',
@@ -141,7 +180,7 @@ try {
 }
 
 // v2.0.0 - Use Retry instead (built-in), or implement CB externally
-$client = new Client([
+$client = new SwottoClient([
     'url' => '...',
     'key' => '...',
     'retry_enabled' => true,
@@ -196,7 +235,7 @@ v2.0.0 introduces the Stripe-inspired default options pattern:
 
 ```php
 // Config-level defaults are merged with per-call options
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
     'bearer_token' => 'default-token',   // applied to every request

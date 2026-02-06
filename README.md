@@ -61,10 +61,10 @@ composer require agenziasmart/swotto
 <?php
 require_once 'vendor/autoload.php';
 
-use Swotto\Client;
+use Swotto\SwottoClient;
 
 // Initialize the client
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
 ]);
@@ -83,7 +83,7 @@ Swotto supports **dual authentication** to identify both your application and en
 Identifies your third-party application to SW4. **Required for all requests.**
 
 ```php
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
 ]);
@@ -91,7 +91,7 @@ $client = new Client([
 
 > **Security Note**: Never commit DevApp tokens to version control. Use environment variables:
 > ```php
-> $client = new Client([
+> $client = new SwottoClient([
 >     'url' => $_ENV['SW4_API_URL'],
 >     'key' => $_ENV['SW4_DEVAPP_TOKEN'],
 > ]);
@@ -103,7 +103,7 @@ Authenticates specific end users within your application. Can be set as default 
 
 ```php
 // Option A: Config default (applied to every request)
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
     'bearer_token' => $userBearerToken,
@@ -119,7 +119,7 @@ $orders = $client->get('orders', [
 
 ```php
 // 1. Initialize with DevApp token and user context
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
     'client_ip' => $_SERVER['REMOTE_ADDR'],
@@ -133,7 +133,7 @@ $loginResponse = $client->post('auth/login', [
 ]);
 
 // 3. Create authenticated client with Bearer token
-$authClient = new Client([
+$authClient = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
     'bearer_token' => $loginResponse['data']['token'],
@@ -149,7 +149,7 @@ $customers = $authClient->get('customers');
 **For FrankenPHP/Swoole workers**, use per-call options instead:
 
 ```php
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
 ]);
@@ -237,7 +237,7 @@ $client->downloadToFile('exports/large-dataset.csv', '/path/to/data.csv');
 Automatic retry for transient errors with configurable backoff:
 
 ```php
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
 
@@ -267,7 +267,7 @@ $client = new Client([
 Pass request-specific parameters directly in options:
 
 ```php
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
 ]);
@@ -302,7 +302,7 @@ $ordersB = $client->get('orders', [
 Set context options in config as defaults. Per-call options override defaults.
 
 ```php
-$client = new Client([
+$client = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
     'bearer_token' => 'default-token',  // applied to every request
@@ -451,7 +451,7 @@ try {
 ### Complete Example
 
 ```php
-$client = new Client([
+$client = new SwottoClient([
     // Required
     'url' => 'https://api.sw4.it',
 
@@ -483,7 +483,7 @@ Run the test suite:
 composer test
 
 # Run specific tests
-composer test -- --filter ClientTest
+composer test -- --filter SwottoClientTest
 
 # Code style check
 composer cs
@@ -519,7 +519,7 @@ PHP 8.3 or higher.
 Inject a PSR-3 logger in the constructor:
 
 ```php
-$client = new Client($config, $yourPsr3Logger);
+$client = new SwottoClient($config, $yourPsr3Logger);
 ```
 
 ### Can I use this with Laravel/Symfony/other frameworks?
