@@ -8,19 +8,19 @@ use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Swotto\Config\Configuration;
-use Swotto\Contract\ClientInterface;
 use Swotto\Contract\HttpClientInterface;
+use Swotto\Contract\SwottoClientInterface;
 use Swotto\Exception\ConnectionException;
 use Swotto\Http\GuzzleHttpClient;
 use Swotto\Response\SwottoResponse;
 
 /**
- * Client.
+ * SwottoClient.
  *
  * Main Swotto API Client implementation.
  * Immutable, worker-safe. Uses defaultOptions + merge pattern (Stripe-inspired).
  */
-final class Client implements ClientInterface
+final class SwottoClient implements SwottoClientInterface
 {
     private readonly HttpClientInterface $httpClient;
 

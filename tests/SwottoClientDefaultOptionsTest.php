@@ -6,17 +6,17 @@ namespace Swotto\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Swotto\Client;
 use Swotto\Contract\HttpClientInterface;
+use Swotto\SwottoClient;
 
 /**
- * ClientDefaultOptionsTest.
+ * SwottoClientDefaultOptionsTest.
  *
  * Tests for the defaultOptions + merge pattern (Stripe-inspired).
  * Verifies that config-level context options (bearer_token, language, session_id,
  * client_ip, client_user_agent) are extracted as defaults and merged with per-call options.
  */
-class ClientDefaultOptionsTest extends TestCase
+class SwottoClientDefaultOptionsTest extends TestCase
 {
     private HttpClientInterface $mockHttpClient;
 
@@ -30,7 +30,7 @@ class ClientDefaultOptionsTest extends TestCase
 
     public function testDefaultBearerTokenIsPassedOnEveryRequest(): void
     {
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com', 'bearer_token' => 'default-token-123'],
             $this->mockLogger,
             $this->mockHttpClient
@@ -46,7 +46,7 @@ class ClientDefaultOptionsTest extends TestCase
 
     public function testDefaultLanguageIsPassedOnEveryRequest(): void
     {
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com', 'language' => 'it'],
             $this->mockLogger,
             $this->mockHttpClient
@@ -62,7 +62,7 @@ class ClientDefaultOptionsTest extends TestCase
 
     public function testPerCallOptionOverridesDefault(): void
     {
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com', 'bearer_token' => 'default-token'],
             $this->mockLogger,
             $this->mockHttpClient
@@ -79,7 +79,7 @@ class ClientDefaultOptionsTest extends TestCase
 
     public function testNoDefaultsNoPerCallMeansEmptyOptions(): void
     {
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com'],
             $this->mockLogger,
             $this->mockHttpClient
@@ -95,7 +95,7 @@ class ClientDefaultOptionsTest extends TestCase
 
     public function testMultipleDefaultsMergedWithPerCall(): void
     {
-        $client = new Client(
+        $client = new SwottoClient(
             [
                 'url' => 'https://api.example.com',
                 'bearer_token' => 'default-token',
@@ -126,7 +126,7 @@ class ClientDefaultOptionsTest extends TestCase
 
     public function testDefaultOptionsAreImmutable(): void
     {
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com', 'bearer_token' => 'immutable-token'],
             $this->mockLogger,
             $this->mockHttpClient
@@ -149,7 +149,7 @@ class ClientDefaultOptionsTest extends TestCase
 
     public function testEmptyBearerTokenNotIncludedInDefaults(): void
     {
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com', 'bearer_token' => ''],
             $this->mockLogger,
             $this->mockHttpClient
@@ -166,7 +166,7 @@ class ClientDefaultOptionsTest extends TestCase
 
     public function testDefaultOptionsForPostWithData(): void
     {
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com', 'bearer_token' => 'post-token'],
             $this->mockLogger,
             $this->mockHttpClient
@@ -190,7 +190,7 @@ class ClientDefaultOptionsTest extends TestCase
 
     public function testDefaultClientIpAndUserAgent(): void
     {
-        $client = new Client(
+        $client = new SwottoClient(
             [
                 'url' => 'https://api.example.com',
                 'client_ip' => '192.168.1.1',

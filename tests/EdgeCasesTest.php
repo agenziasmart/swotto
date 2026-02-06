@@ -9,13 +9,13 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Swotto\Client;
 use Swotto\Config\Configuration;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Exception\ApiException;
 use Swotto\Exception\RateLimitException;
 use Swotto\Http\GuzzleHttpClient;
 use Swotto\Response\SwottoResponse;
+use Swotto\SwottoClient;
 
 /**
  * EdgeCasesTest.
@@ -52,7 +52,7 @@ class EdgeCasesTest extends TestCase
             ->method('request')
             ->willReturn(['data' => $unicodeData]);
 
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com'],
             $this->mockLogger,
             $this->mockHttpClient
@@ -292,7 +292,7 @@ class EdgeCasesTest extends TestCase
             ->with('GET', $longPath, $this->anything())
             ->willReturn(['data' => 'ok']);
 
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com'],
             $this->mockLogger,
             $this->mockHttpClient
@@ -315,7 +315,7 @@ class EdgeCasesTest extends TestCase
             ->with('GET', $specialPath, $this->anything())
             ->willReturn(['data' => 'ok']);
 
-        $client = new Client(
+        $client = new SwottoClient(
             ['url' => 'https://api.example.com'],
             $this->mockLogger,
             $this->mockHttpClient

@@ -8,17 +8,17 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
-use Swotto\Client;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Response\SwottoResponse;
+use Swotto\SwottoClient;
 
-class ClientMethodsTest extends TestCase
+class SwottoClientMethodsTest extends TestCase
 {
     private HttpClientInterface $mockHttpClient;
 
     private LoggerInterface $mockLogger;
 
-    private Client $client;
+    private SwottoClient $client;
 
     private string $tempDir;
 
@@ -27,7 +27,7 @@ class ClientMethodsTest extends TestCase
         $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
         $this->mockLogger = $this->createMock(LoggerInterface::class);
 
-        $this->client = new Client(
+        $this->client = new SwottoClient(
             ['url' => 'https://api.example.com'],
             $this->mockLogger,
             $this->mockHttpClient

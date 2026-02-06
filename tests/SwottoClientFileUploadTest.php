@@ -8,28 +8,28 @@ use GuzzleHttp\Psr7\Stream;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
-use Swotto\Client;
 use Swotto\Contract\HttpClientInterface;
+use Swotto\SwottoClient;
 
 /**
- * ClientFileUploadTest.
+ * SwottoClientFileUploadTest.
  *
  * Test file upload methods: postFile, postFiles, putFile, patchFile.
  */
-class ClientFileUploadTest extends TestCase
+class SwottoClientFileUploadTest extends TestCase
 {
     private HttpClientInterface $mockHttpClient;
 
     private LoggerInterface $mockLogger;
 
-    private Client $client;
+    private SwottoClient $client;
 
     protected function setUp(): void
     {
         $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
         $this->mockLogger = $this->createMock(LoggerInterface::class);
 
-        $this->client = new Client(
+        $this->client = new SwottoClient(
             ['url' => 'https://api.example.com'],
             $this->mockLogger,
             $this->mockHttpClient

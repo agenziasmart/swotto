@@ -7,12 +7,12 @@ namespace Swotto\Contract;
 use Swotto\Response\SwottoResponse;
 
 /**
- * Interface ClientInterface.
+ * Interface SwottoClientInterface.
  *
  * Defines the contract for Swotto API Client.
  * 12 methods: 5 HTTP verbs, 4 file upload, 2 advanced, 1 health.
  */
-interface ClientInterface
+interface SwottoClientInterface
 {
     /**
      * Send a GET request.
