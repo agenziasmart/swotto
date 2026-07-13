@@ -34,6 +34,9 @@ final class Configuration
         'session_id',
         'client_ip',
         'client_user_agent',
+        // App identification
+        'app_name',
+        'app_version',
         // Retry
         'retry_enabled',
         'retry_max_attempts',

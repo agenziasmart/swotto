@@ -156,4 +156,16 @@ class ConfigurationTest extends TestCase
             'timeout' => 0,
         ]);
     }
+
+    public function testAppNameAndVersionAreAccepted(): void
+    {
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'app_name' => 'MyApp',
+            'app_version' => '1.0.0',
+        ]);
+
+        $this->assertEquals('MyApp', $config->get('app_name'));
+        $this->assertEquals('1.0.0', $config->get('app_version'));
+    }
 }

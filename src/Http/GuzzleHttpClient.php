@@ -31,7 +31,7 @@ final class GuzzleHttpClient implements HttpClientInterface
     /**
      * @var string SDK version
      */
-    private const VERSION = '4.0.0';
+    private const VERSION = '2.2.0';
 
     /**
      * @var int Default request timeout
@@ -74,9 +74,14 @@ final class GuzzleHttpClient implements HttpClientInterface
         $this->config = $config;
         $this->logger = $logger ?? new NullLogger();
 
-        $sdkAuthor = 'Swotto-SDK/' . self::VERSION . ' PHP/' . PHP_VERSION;
+        $userAgent = $this->buildUserAgent();
+        $telemetry = $this->buildTelemetry();
+
         $headers = array_merge(
-            ['x-author' => $sdkAuthor],
+            [
+                'User-Agent' => $userAgent,
+                'X-Swotto-Client-Info' => $telemetry,
+            ],
             $this->config->getHeaders()
         );
 
@@ -159,7 +164,7 @@ final class GuzzleHttpClient implements HttpClientInterface
      * - language: Sets Accept-Language header
      * - session_id: Sets x-sid header
      * - client_ip: Sets Client-Ip header
-     * - client_user_agent: Sets User-Agent header
+     * - client_user_agent: Sets X-Client-User-Agent header (end-user UA forwarding)
      *
      * @param array<string, mixed> $options Request options (may contain Swotto-specific keys)
      * @return array<string, mixed> Options with Swotto keys converted to headers
@@ -189,7 +194,7 @@ final class GuzzleHttpClient implements HttpClientInterface
         }
 
         if (isset($options['client_user_agent'])) {
-            $perCallHeaders['User-Agent'] = $options['client_user_agent'];
+            $perCallHeaders['X-Client-User-Agent'] = $options['client_user_agent'];
             unset($options['client_user_agent']);
         }
 
@@ -198,6 +203,58 @@ final class GuzzleHttpClient implements HttpClientInterface
         }
 
         return $options;
+    }
+
+    /**
+     * Build SDK User-Agent string.
+     *
+     * Format: Swotto/v1 PHP-SDK/{version} [AppName/AppVersion] PHP/{php_version}
+     *
+     * @return string User-Agent string
+     */
+    private function buildUserAgent(): string
+    {
+        $parts = ['Swotto/v1 PHP-SDK/' . self::VERSION];
+
+        $appName = $this->config->get('app_name');
+        $appVersion = $this->config->get('app_version');
+        if ($appName !== null && $appName !== '') {
+            $appPart = (string) $appName;
+            if ($appVersion !== null && $appVersion !== '') {
+                $appPart .= '/' . (string) $appVersion;
+            }
+            $parts[] = $appPart;
+        }
+
+        $parts[] = 'PHP/' . PHP_VERSION;
+
+        return implode(' ', $parts);
+    }
+
+    /**
+     * Build JSON telemetry string for X-Swotto-Client-Info header.
+     *
+     * @return string JSON-encoded telemetry data
+     */
+    private function buildTelemetry(): string
+    {
+        $data = [
+            'sdk_version' => self::VERSION,
+            'lang' => 'php',
+            'lang_version' => PHP_VERSION,
+            'os' => PHP_OS,
+        ];
+
+        $appName = $this->config->get('app_name');
+        if ($appName !== null && $appName !== '') {
+            $data['app_name'] = (string) $appName;
+            $appVersion = $this->config->get('app_version');
+            if ($appVersion !== null && $appVersion !== '') {
+                $data['app_version'] = (string) $appVersion;
+            }
+        }
+
+        return (string) json_encode($data);
     }
 
     /**
@@ -239,8 +296,9 @@ final class GuzzleHttpClient implements HttpClientInterface
     private function logException(\Exception $exception, string $uri): void
     {
         $is401 = $exception instanceof RequestException && $exception->getCode() === 401;
-        if ($is401) {
-            $this->logger->debug("Authentication required for {$uri}");
+        $is404 = $exception instanceof RequestException && $exception->getCode() === 404;
+        if ($is401 || $is404) {
+            $this->logger->debug("HTTP {$exception->getCode()} for {$uri}");
         } else {
             $this->logger->error("Error while requesting {$uri}: {$exception->getMessage()}");
         }
