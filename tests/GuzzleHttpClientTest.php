@@ -32,7 +32,7 @@ class GuzzleHttpClientTest extends TestCase
     protected function setUp(): void
     {
         $this->config = new Configuration(['url' => 'https://api.example.com']);
-        $this->mockLogger = $this->createMock(LoggerInterface::class);
+        $this->mockLogger = $this->createStub(LoggerInterface::class);
         $this->httpClient = new GuzzleHttpClient($this->config, $this->mockLogger);
     }
 

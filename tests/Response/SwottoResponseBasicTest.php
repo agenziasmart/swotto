@@ -18,11 +18,11 @@ class SwottoResponseBasicTest extends TestCase
 {
     private function createMockResponse(string $contentType, string $content): ResponseInterface
     {
-        $stream = $this->createMock(StreamInterface::class);
+        $stream = $this->createStub(StreamInterface::class);
         $stream->method('getContents')->willReturn($content);
         $stream->method('__toString')->willReturn($content);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
         $response->method('getHeaderLine')
             ->willReturnCallback(function ($header) use ($contentType) {

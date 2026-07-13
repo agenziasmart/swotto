@@ -25,7 +25,7 @@ class SwottoClientDefaultOptionsTest extends TestCase
     protected function setUp(): void
     {
         $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
-        $this->mockLogger = $this->createMock(LoggerInterface::class);
+        $this->mockLogger = $this->createStub(LoggerInterface::class);
     }
 
     public function testDefaultBearerTokenIsPassedOnEveryRequest(): void

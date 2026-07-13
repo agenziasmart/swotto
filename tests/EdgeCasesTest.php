@@ -30,8 +30,7 @@ class EdgeCasesTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
-        $this->mockLogger = $this->createMock(LoggerInterface::class);
+        $this->mockLogger = $this->createStub(LoggerInterface::class);
     }
 
     // ========== Response Edge Cases ==========
@@ -48,6 +47,7 @@ class EdgeCasesTest extends TestCase
             'arabic' => 'hello',
         ];
 
+        $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
         $this->mockHttpClient->expects($this->once())
             ->method('request')
             ->willReturn(['data' => $unicodeData]);
@@ -287,6 +287,7 @@ class EdgeCasesTest extends TestCase
     {
         $longPath = str_repeat('a', 2000);
 
+        $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
         $this->mockHttpClient->expects($this->once())
             ->method('request')
             ->with('GET', $longPath, $this->anything())
@@ -310,6 +311,7 @@ class EdgeCasesTest extends TestCase
     {
         $specialPath = 'test/path with spaces/file%20name';
 
+        $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
         $this->mockHttpClient->expects($this->once())
             ->method('request')
             ->with('GET', $specialPath, $this->anything())

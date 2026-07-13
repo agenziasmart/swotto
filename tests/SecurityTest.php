@@ -46,11 +46,11 @@ class SecurityTest extends TestCase
 
     private function createMockResponseWithStream(string $content): SwottoResponse
     {
-        $stream = $this->createMock(StreamInterface::class);
+        $stream = $this->createStub(StreamInterface::class);
         $stream->method('eof')->willReturnOnConsecutiveCalls(false, true);
         $stream->method('read')->willReturn($content);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
         $response->method('getHeaderLine')->willReturn('application/octet-stream');
 

@@ -23,12 +23,12 @@ class SwottoResponseAdvancedTest extends TestCase
         string $content,
         array $headers = []
     ): ResponseInterface {
-        $stream = $this->createMock(StreamInterface::class);
+        $stream = $this->createStub(StreamInterface::class);
         $stream->method('getContents')->willReturn($content);
         $stream->method('__toString')->willReturn($content);
         $stream->method('isSeekable')->willReturn(true);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
         $response->method('getStatusCode')->willReturn($headers['statusCode'] ?? 200);
         $response->method('getHeaders')->willReturn($headers['headers'] ?? []);
@@ -510,7 +510,7 @@ class SwottoResponseAdvancedTest extends TestCase
         $stream->expects($this->once())->method('getContents')->willReturn($content);
         $stream->method('isSeekable')->willReturn(true);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
         $response->method('getHeaderLine')->willReturn('');
 
@@ -533,7 +533,7 @@ class SwottoResponseAdvancedTest extends TestCase
         $stream->expects($this->once())->method('getContents')->willReturn(json_encode($jsonData));
         $stream->method('isSeekable')->willReturn(true);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
         $response->method('getHeaderLine')
             ->willReturnCallback(function ($header) {
