@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Swotto\Tests\Response;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -63,9 +64,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test isBinary for image content types.
-     *
-     * @dataProvider imageContentTypesProvider
      */
+    #[DataProvider('imageContentTypesProvider')]
     public function testIsBinaryForImages(string $contentType): void
     {
         $mockResponse = $this->createMockResponse($contentType, 'binary image data');
@@ -92,9 +92,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test isBinary for video content types.
-     *
-     * @dataProvider videoContentTypesProvider
      */
+    #[DataProvider('videoContentTypesProvider')]
     public function testIsBinaryForVideos(string $contentType): void
     {
         $mockResponse = $this->createMockResponse($contentType, 'binary video data');
@@ -119,9 +118,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test isBinary for audio content types.
-     *
-     * @dataProvider audioContentTypesProvider
      */
+    #[DataProvider('audioContentTypesProvider')]
     public function testIsBinaryForAudio(string $contentType): void
     {
         $mockResponse = $this->createMockResponse($contentType, 'binary audio data');
@@ -395,9 +393,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test JSON parsing with various content type variations.
-     *
-     * @dataProvider jsonContentTypesProvider
      */
+    #[DataProvider('jsonContentTypesProvider')]
     public function testJsonContentTypeVariations(string $contentType): void
     {
         $jsonData = ['test' => 'value'];
@@ -425,9 +422,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test CSV content type variations.
-     *
-     * @dataProvider csvContentTypesProvider
      */
+    #[DataProvider('csvContentTypesProvider')]
     public function testCsvContentTypeVariations(string $contentType): void
     {
         $csvContent = "col1,col2\nval1,val2";
@@ -453,9 +449,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test PDF content type variations.
-     *
-     * @dataProvider pdfContentTypesProvider
      */
+    #[DataProvider('pdfContentTypesProvider')]
     public function testPdfContentTypeVariations(string $contentType): void
     {
         $mockResponse = $this->createMockResponse($contentType, 'PDF content');

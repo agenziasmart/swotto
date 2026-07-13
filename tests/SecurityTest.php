@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Swotto\Tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -129,9 +130,8 @@ class SecurityTest extends TestCase
 
     /**
      * Test invalid characters < > : " | ? * are blocked.
-     *
-     * @dataProvider invalidFilenameCharactersProvider
      */
+    #[DataProvider('invalidFilenameCharactersProvider')]
     public function testSaveToFileBlocksInvalidCharacters(string $char): void
     {
         $swottoResponse = $this->createMockResponseWithStream('malicious content');
@@ -162,9 +162,8 @@ class SecurityTest extends TestCase
 
     /**
      * Test control characters are blocked.
-     *
-     * @dataProvider controlCharactersProvider
      */
+    #[DataProvider('controlCharactersProvider')]
     public function testSaveToFileBlocksControlCharacters(string $char, string $description): void
     {
         $swottoResponse = $this->createMockResponseWithStream('malicious content');
