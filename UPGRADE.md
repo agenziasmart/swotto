@@ -1,5 +1,70 @@
 # Upgrade Guide
 
+## Upgrading from v2.1.0 to v2.2.0
+
+v2.2.0 adds SDK identification headers and fixes the User-Agent collision between SDK and end-user forwarding.
+
+### Breaking Change: `client_user_agent` header renamed
+
+| v2.1.0 | v2.2.0 |
+|--------|--------|
+| `client_user_agent` → `User-Agent` header | `client_user_agent` → `X-Client-User-Agent` header |
+
+**Impact**: If your SW4 API server reads the `User-Agent` header to extract end-user browser info, you must update it to read `X-Client-User-Agent` instead.
+
+**SDK code** (no change needed):
+```php
+// This code works the same in both versions
+$client->get('customers', [
+    'client_user_agent' => $_SERVER['HTTP_USER_AGENT'],
+]);
+```
+
+**Server-side** (update required):
+```php
+// v2.1.0 server code
+$endUserAgent = $request->getHeaderLine('User-Agent');
+
+// v2.2.0 server code
+$endUserAgent = $request->getHeaderLine('X-Client-User-Agent');
+$sdkVersion = $request->getHeaderLine('User-Agent'); // Now contains "Swotto/v1 PHP-SDK/2.2.0 ..."
+```
+
+### New: SDK User-Agent
+
+All requests now automatically include an SDK identification User-Agent:
+```
+User-Agent: Swotto/v1 PHP-SDK/2.2.0 PHP/8.3.14
+```
+
+### New: Telemetry Header
+
+All requests include `X-Swotto-Client-Info` with JSON metadata:
+```json
+{"sdk_version":"2.2.0","lang":"php","lang_version":"8.3.14","os":"Linux"}
+```
+
+### New: App Identification
+
+Optional config options to identify your application:
+```php
+$client = new SwottoClient([
+    'url' => 'https://api.sw4.it',
+    'key' => 'YOUR_DEVAPP_TOKEN',
+    'app_name' => 'MyERP',
+    'app_version' => '1.0.0',
+]);
+// User-Agent: Swotto/v1 PHP-SDK/2.2.0 MyERP/1.0.0 PHP/8.3.14
+```
+
+### Quick Migration Checklist
+
+- [ ] Update server-side code to read `X-Client-User-Agent` instead of `User-Agent` for end-user browser info
+- [ ] (Optional) Add `app_name` and `app_version` to config for better server-side tracking
+- [ ] Run `composer cs-fix && composer phpstan && composer test`
+
+---
+
 ## Upgrading from v2.0.0 to v2.1.0
 
 v2.1.0 renames the client classes to follow the Stripe PHP SDK naming convention (brand prefix on public API classes).

@@ -13,7 +13,7 @@ insert_final_newline = true
 trim_trailing_whitespace = false
 
 [*.{yml,yaml,py}]
-intent_style = tab
+indent_style = tab
 
 # Tab indentation (no size specified)
 [*.js]

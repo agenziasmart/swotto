@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-02-06
+
+### Breaking Changes
+
+- **`client_user_agent` now maps to `X-Client-User-Agent` header** (was `User-Agent`). This separates end-user UA forwarding from SDK identification. If your server reads `User-Agent` for end-user data, update it to read `X-Client-User-Agent` instead.
+
+### Added
+
+- **SDK User-Agent identification**: All requests now include `User-Agent: Swotto/v1 PHP-SDK/2.2.0 PHP/8.3.x`, following Stripe/Twilio/SendGrid convention
+- **Telemetry header**: `X-Swotto-Client-Info` JSON header with `sdk_version`, `lang`, `lang_version`, `os` (and optionally `app_name`, `app_version`)
+- **App identification**: New config options `app_name` and `app_version` to identify third-party apps in User-Agent and telemetry (like Stripe's `setAppInfo()` pattern)
+
+### Changed
+
+- `client_user_agent` per-call option now sets `X-Client-User-Agent` header instead of `User-Agent`
+- `User-Agent` header is now reserved for SDK identification and is never overwritten by per-call options
+- Removed legacy `x-author` header (replaced by standard `User-Agent` and `X-Swotto-Client-Info`)
+
+### Migration
+
+See [UPGRADE.md](UPGRADE.md) for detailed migration guide.
+
+---
+
 ## [2.1.0] - 2026-02-06
 
 ### Breaking Changes

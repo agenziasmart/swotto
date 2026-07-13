@@ -349,7 +349,7 @@ class GuzzleHttpClientTest extends TestCase
     }
 
     /**
-     * Test that per-call client_user_agent option is extracted and converted to User-Agent header.
+     * Test that per-call client_user_agent option is extracted and converted to X-Client-User-Agent header.
      */
     public function testPerCallClientUserAgentOption(): void
     {
@@ -363,8 +363,8 @@ class GuzzleHttpClientTest extends TestCase
                 'GET',
                 'test',
                 $this->callback(function ($options) {
-                    return isset($options['headers']['User-Agent'])
-                        && $options['headers']['User-Agent'] === 'Mozilla/5.0 Custom'
+                    return isset($options['headers']['X-Client-User-Agent'])
+                        && $options['headers']['X-Client-User-Agent'] === 'Mozilla/5.0 Custom'
                         && !isset($options['client_user_agent']);
                 })
             )
@@ -400,8 +400,8 @@ class GuzzleHttpClientTest extends TestCase
                         && $options['headers']['x-sid'] === 'sess-999'
                         && isset($options['headers']['Client-Ip'])
                         && $options['headers']['Client-Ip'] === '10.0.0.1'
-                        && isset($options['headers']['User-Agent'])
-                        && $options['headers']['User-Agent'] === 'TestApp/2.0'
+                        && isset($options['headers']['X-Client-User-Agent'])
+                        && $options['headers']['X-Client-User-Agent'] === 'TestApp/2.0'
                         && !isset($options['bearer_token'])
                         && !isset($options['language'])
                         && !isset($options['session_id'])
@@ -483,5 +483,164 @@ class GuzzleHttpClientTest extends TestCase
         $result = $this->httpClient->requestRaw('GET', 'test', ['bearer_token' => 'raw-token']);
 
         $this->assertSame($response, $result);
+    }
+
+    // ========== SDK User-Agent & Telemetry Tests ==========
+
+    /**
+     * Test that SDK User-Agent is set as base header in Guzzle client.
+     */
+    public function testSdkUserAgentIsSetInBaseHeaders(): void
+    {
+        $config = new Configuration(['url' => 'https://api.example.com']);
+        $client = new GuzzleHttpClient($config);
+
+        $reflection = new \ReflectionClass($client);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        /** @var GuzzleClient $guzzle */
+        $guzzle = $clientProperty->getValue($client);
+
+        $guzzleConfig = $guzzle->getConfig();
+        $headers = $guzzleConfig['headers'] ?? [];
+
+        $this->assertArrayHasKey('User-Agent', $headers);
+        $this->assertStringContainsString('Swotto/v1 PHP-SDK/', $headers['User-Agent']);
+        $this->assertStringContainsString('PHP/' . PHP_VERSION, $headers['User-Agent']);
+    }
+
+    /**
+     * Test that X-Swotto-Client-Info telemetry header is set.
+     */
+    public function testTelemetryHeaderIsSet(): void
+    {
+        $config = new Configuration(['url' => 'https://api.example.com']);
+        $client = new GuzzleHttpClient($config);
+
+        $reflection = new \ReflectionClass($client);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        /** @var GuzzleClient $guzzle */
+        $guzzle = $clientProperty->getValue($client);
+
+        $guzzleConfig = $guzzle->getConfig();
+        $headers = $guzzleConfig['headers'] ?? [];
+
+        $this->assertArrayHasKey('X-Swotto-Client-Info', $headers);
+
+        $telemetry = json_decode($headers['X-Swotto-Client-Info'], true);
+        $this->assertIsArray($telemetry);
+        $this->assertArrayHasKey('sdk_version', $telemetry);
+        $this->assertArrayHasKey('lang', $telemetry);
+        $this->assertEquals('php', $telemetry['lang']);
+        $this->assertEquals(PHP_VERSION, $telemetry['lang_version']);
+        $this->assertEquals(PHP_OS, $telemetry['os']);
+    }
+
+    /**
+     * Test that app_name and app_version are included in User-Agent.
+     */
+    public function testAppInfoInUserAgent(): void
+    {
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'app_name' => 'MyApp',
+            'app_version' => '3.5.0',
+        ]);
+        $client = new GuzzleHttpClient($config);
+
+        $reflection = new \ReflectionClass($client);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        /** @var GuzzleClient $guzzle */
+        $guzzle = $clientProperty->getValue($client);
+
+        $guzzleConfig = $guzzle->getConfig();
+        $headers = $guzzleConfig['headers'] ?? [];
+
+        $this->assertStringContainsString('MyApp/3.5.0', $headers['User-Agent']);
+        $this->assertStringContainsString('Swotto/v1 PHP-SDK/', $headers['User-Agent']);
+        $this->assertStringContainsString('PHP/', $headers['User-Agent']);
+    }
+
+    /**
+     * Test that app_name without app_version works.
+     */
+    public function testAppNameWithoutVersion(): void
+    {
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'app_name' => 'MyApp',
+        ]);
+        $client = new GuzzleHttpClient($config);
+
+        $reflection = new \ReflectionClass($client);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        /** @var GuzzleClient $guzzle */
+        $guzzle = $clientProperty->getValue($client);
+
+        $guzzleConfig = $guzzle->getConfig();
+        $ua = $guzzleConfig['headers']['User-Agent'] ?? '';
+
+        $this->assertStringContainsString('MyApp', $ua);
+        $this->assertStringNotContainsString('MyApp/', $ua);
+    }
+
+    /**
+     * Test that app_name is included in telemetry.
+     */
+    public function testAppInfoInTelemetry(): void
+    {
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'app_name' => 'TestApp',
+            'app_version' => '1.0.0',
+        ]);
+        $client = new GuzzleHttpClient($config);
+
+        $reflection = new \ReflectionClass($client);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        /** @var GuzzleClient $guzzle */
+        $guzzle = $clientProperty->getValue($client);
+
+        $guzzleConfig = $guzzle->getConfig();
+        $headers = $guzzleConfig['headers'] ?? [];
+
+        $telemetry = json_decode($headers['X-Swotto-Client-Info'], true);
+        $this->assertEquals('TestApp', $telemetry['app_name']);
+        $this->assertEquals('1.0.0', $telemetry['app_version']);
+    }
+
+    /**
+     * Test that client_user_agent does NOT overwrite SDK User-Agent.
+     */
+    public function testClientUserAgentDoesNotOverwriteSdkUserAgent(): void
+    {
+        $responseData = ['success' => true];
+        $response = new Response(200, [], (string) json_encode($responseData));
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->with(
+                'GET',
+                'test',
+                $this->callback(function ($options) {
+                    // X-Client-User-Agent should have the end-user UA
+                    // User-Agent should NOT be overwritten by per-call options
+                    return isset($options['headers']['X-Client-User-Agent'])
+                        && $options['headers']['X-Client-User-Agent'] === 'Mozilla/5.0 EndUser'
+                        && !isset($options['headers']['User-Agent']);
+                })
+            )
+            ->willReturn($response);
+
+        $this->injectMockGuzzle($mockGuzzle);
+
+        $result = $this->httpClient->request('GET', 'test', ['client_user_agent' => 'Mozilla/5.0 EndUser']);
+
+        $this->assertEquals($responseData, $result);
     }
 }

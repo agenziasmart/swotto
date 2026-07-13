@@ -23,7 +23,7 @@ interface SwottoClientInterface
      *   - language: (string) Override Accept-Language header
      *   - session_id: (string) Override x-sid header
      *   - client_ip: (string) Set Client-Ip header
-     *   - client_user_agent: (string) Set User-Agent header
+     *   - client_user_agent: (string) Set X-Client-User-Agent header (end-user UA forwarding)
      *   - query: (array) Query parameters
      *   - headers: (array) Additional headers
      * @return array<string, mixed> The response data

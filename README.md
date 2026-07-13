@@ -20,7 +20,7 @@ Swotto simplifies API integration with built-in authentication, error handling, 
 - **Immutable** - Fully stateless, worker-safe (FrankenPHP/Swoole)
 - **Flexible** - Dual authentication (DevApp + Bearer tokens)
 - **Smart responses** - Auto-detect JSON, CSV, PDF formats
-- **Tested** - 222 tests, 743 assertions
+- **Tested** - 229 tests, 767 assertions
 
 ## Table of Contents
 
@@ -295,7 +295,7 @@ $ordersB = $client->get('orders', [
 | `language` | `Accept-Language` | Response language |
 | `session_id` | `x-sid` | Session ID |
 | `client_ip` | `Client-Ip` | Original client IP |
-| `client_user_agent` | `User-Agent` | Original client User-Agent |
+| `client_user_agent` | `X-Client-User-Agent` | Original client User-Agent |
 
 ### Default Options Pattern
 
@@ -444,9 +444,16 @@ try {
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `client_user_agent` | `string` | `null` | Custom User-Agent header |
+| `client_user_agent` | `string` | `null` | End-user User-Agent (sent as `X-Client-User-Agent`) |
 | `client_ip` | `string` | `null` | Client IP address |
 | `language` | `string` | `null` | Preferred response language |
+
+### App Identification
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `app_name` | `string` | `null` | Your application name (included in `User-Agent`) |
+| `app_version` | `string` | `null` | Your application version (included in `User-Agent`) |
 
 ### Complete Example
 
@@ -462,6 +469,10 @@ $client = new SwottoClient([
     // HTTP
     'timeout' => 60,
     'verify_ssl' => true,
+
+    // App identification (optional)
+    'app_name' => 'MyERP',
+    'app_version' => '1.0.0',
 
     // Retry (handles transient errors)
     'retry_enabled' => true,
