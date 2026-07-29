@@ -20,7 +20,7 @@ Swotto simplifies API integration with built-in authentication, error handling, 
 - **Immutable** - Fully stateless, worker-safe (FrankenPHP/Swoole)
 - **Flexible** - Dual authentication (DevApp + Bearer tokens)
 - **Smart responses** - Auto-detect JSON, CSV, PDF formats
-- **Tested** - 229 tests, 767 assertions
+- **Tested** - 297 tests, 886 assertions
 
 ## Table of Contents
 
@@ -253,13 +253,22 @@ $client = new SwottoClient([
 // Automatic retry on:
 // - Network errors (NetworkException, ConnectionException)
 // - Server errors (5xx status codes)
-// - Rate limits (429 - respects Retry-After header)
+// - Rate limits (429 - Retry-After is honoured, capped at retry_max_delay_ms)
 
 // NO retry on client errors:
 // - 401 Unauthorized
 // - 403 Forbidden
 // - 404 Not Found
 // - 422 Validation Error
+```
+
+Only safe and idempotent methods are retried automatically: `GET`, `HEAD`, `PUT`, `DELETE`,
+`OPTIONS`, `TRACE`. A network error is ambiguous — the request may well have reached the
+server — so replaying a `POST` or `PATCH` could duplicate an order, a document or an upload.
+Accept that risk per request when the endpoint is safe to repeat:
+
+```php
+$client->post('webhooks/ping', $payload, ['retry_non_idempotent' => true]);
 ```
 
 ### Per-Call Options
@@ -358,7 +367,7 @@ SwottoExceptionInterface (interface)
     |   +-- AuthenticationException (401)
     |   +-- ForbiddenException (403)
     |   +-- NotFoundException (404)
-    |   +-- ValidationException (422)
+    |   +-- ValidationException (400, 422)
     |   +-- RateLimitException (429)
     +-- NetworkException (connection issues)
     |   +-- ConnectionException
@@ -384,7 +393,7 @@ try {
     $result = $client->post('customers', $data);
 
 } catch (ValidationException $e) {
-    // Handle validation errors (422)
+    // Handle validation errors (400 and 422)
     $errors = $e->getErrorData();
 
 } catch (AuthenticationException $e) {
@@ -436,9 +445,12 @@ try {
 | `retry_enabled` | `bool` | `false` | Enable automatic retry with backoff |
 | `retry_max_attempts` | `int` | `3` | Total attempts (1-10) |
 | `retry_initial_delay_ms` | `int` | `100` | Initial delay in milliseconds |
-| `retry_max_delay_ms` | `int` | `10000` | Maximum delay cap in milliseconds |
+| `retry_max_delay_ms` | `int` | `10000` | Maximum delay cap in milliseconds, `Retry-After` included |
 | `retry_multiplier` | `float` | `2.0` | Exponential backoff multiplier (1.0-5.0) |
 | `retry_jitter` | `bool` | `true` | Add +/-25% randomization |
+
+`retry_non_idempotent` is a **per-call** option, not a config key: pass it in the options of
+a single `POST` or `PATCH` to allow that request to be retried.
 
 ### Client Metadata
 

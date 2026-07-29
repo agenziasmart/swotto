@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-07-29
+
+Aligns the public contract with the API the SDK actually talks to, and stops replaying
+requests that cannot be replayed safely.
+
+### Changed
+
+- **HTTP 422 now raises `ValidationException`.** The SW4 API answers 422 for validation
+  errors, not 400, so every validation failure used to surface as a generic `ApiException` —
+  contradicting both the README and the API. `ValidationException` extends `ApiException`,
+  so code that catches `ApiException` keeps working unchanged. 400 still maps there too.
+- **Exception messages are read from the API's error envelope.** The SDK looked for a
+  top-level `message`, while the API nests it under `error.message`. Every exception
+  therefore carried a hardcoded English fallback or the raw Guzzle message. A `message` that
+  is not a non-empty string now falls back to the default instead of raising a `TypeError`.
+- **Only idempotent methods are retried automatically** — `GET`, `HEAD`, `PUT`, `DELETE`,
+  `OPTIONS`, `TRACE`. A network error is ambiguous, so replaying a `POST` could duplicate an
+  order or an upload. Pass `['retry_non_idempotent' => true]` per request to accept that
+  risk. Retry is opt-in and no consumer had it enabled, so nothing in production changes.
+- **`post()`, `put()` and `patch()` honour their `mixed $data` signature.** A string, stream,
+  resource or scalar becomes a raw request body; previously anything that was not a non-empty
+  array was discarded without a word, so `post($uri, 'raw-payload')` sent nothing. An array
+  still becomes a JSON body, an empty array still sends no body, and an explicit body option
+  still wins. An unsupported type now raises `InvalidArgumentException`.
+- **Request bodies are logged at debug level, not info.** In an ERP that body is full of
+  commercial and personal data; the info-level line keeps method and path, with the query
+  string stripped since tokens travel there often enough to matter.
+
+### Fixed
+
+- **Application headers no longer follow a cross-origin redirect.** Guzzle strips
+  `Authorization` and `Cookie` on its own but knows nothing about `x-devapp`,
+  `X-Swotto-Client-Info` and `x-sid`, which used to travel to whatever host a redirect
+  pointed at. Redirects are also capped at 5 and, for an `https` base URL, refused over
+  cleartext.
+- **Log redaction is recursive and case-insensitive.** Only the first level of `json` and
+  `form_params` was checked and `query` was not checked at all, so a secret one level deeper
+  — or in a query string — reached the logger in the clear. Multipart parts are matched by
+  field name, since the value lives under `contents` while the name lives under `name`.
+- **CSV parsing no longer tears quoted multi-line fields apart.** Records were split on
+  `\n` before parsing, so a quoted field containing a line break became two rows.
+- **`isBinary()` recognises the formats an ERP exports**: `application/octet-stream`,
+  archives, and the Office and OpenDocument families. A spreadsheet download was previously
+  reported as non-binary.
+- **Configuration validates `url`.** A non-string, empty, relative or non-HTTP URL raises
+  `ConfigurationException` instead of a `TypeError` deep inside `rtrim()`. `http` remains
+  valid — the documented Docker setup reaches the API over `http://host.docker.internal:8081`.
+
+---
+
 ## [2.2.1] - 2026-07-29
 
 Correctness fixes for response handling and retry pacing. No public API changes: every

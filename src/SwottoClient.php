@@ -281,11 +281,18 @@ final class SwottoClient implements SwottoClientInterface
     /**
      * Request with auto-detection for data type.
      *
+     * An array becomes a JSON body. A string, stream or resource becomes a raw body, which
+     * is what the `mixed $data` signature has always promised: previously anything that was
+     * not a non-empty array was dropped without a word, so `post($uri, 'raw-payload')` sent
+     * an empty request. An explicit body option in $options always wins.
+     *
      * @param string $method HTTP method
      * @param string $uri URI to request
      * @param mixed $data Data to send
      * @param array<string, mixed> $options Additional options
      * @return array<string, mixed> Response data
+     *
+     * @throws \InvalidArgumentException If $data is of a type that cannot become a body
      */
     private function requestWithAutoDetection(string $method, string $uri, mixed $data, array $options): array
     {
@@ -294,11 +301,55 @@ final class SwottoClient implements SwottoClientInterface
             || isset($options['multipart'])
             || isset($options['body']);
 
-        if (is_array($data) && !empty($data) && !$hasBodyOption) {
-            $options['json'] = $data;
+        if (!$hasBodyOption) {
+            $options = $this->applyDataAsBody($data, $options);
         }
 
         return $this->httpClient->request($method, $uri, $this->mergeOptions($options));
+    }
+
+    /**
+     * Place $data into the request options according to its type.
+     *
+     * @param mixed $data Data to send
+     * @param array<string, mixed> $options Request options
+     * @return array<string, mixed> Options carrying the body
+     *
+     * @throws \InvalidArgumentException If $data cannot be turned into a request body
+     */
+    private function applyDataAsBody(mixed $data, array $options): array
+    {
+        if (is_array($data)) {
+            // An empty array stays a bodyless request, as it always has.
+            if ($data !== []) {
+                $options['json'] = $data;
+            }
+
+            return $options;
+        }
+
+        if ($data === null) {
+            return $options;
+        }
+
+        if (is_string($data) || is_resource($data) || $data instanceof StreamInterface) {
+            $options['body'] = $data;
+
+            return $options;
+        }
+
+        if (is_scalar($data)) {
+            $options['body'] = (string) $data;
+
+            return $options;
+        }
+
+        throw new \InvalidArgumentException(
+            sprintf(
+                'Request data must be an array, string, stream or scalar, %s given',
+                get_debug_type($data)
+            )
+        );
     }
 
     /**

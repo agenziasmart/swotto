@@ -32,6 +32,25 @@ final class SwottoResponse
     private const CHUNK_SIZE = 8192; // 8KB
 
     /**
+     * Exact content types treated as binary, beyond the image/video/audio/font families.
+     *
+     * @var array<int, string>
+     */
+    private const BINARY_CONTENT_TYPES = [
+        'application/octet-stream',
+        'application/zip',
+        'application/x-zip-compressed',
+        'application/gzip',
+        'application/x-tar',
+        'application/x-7z-compressed',
+        'application/x-rar-compressed',
+        'application/msword',
+        'application/vnd.ms-excel',
+        'application/vnd.ms-powerpoint',
+        'application/rtf',
+    ];
+
+    /**
      * Cached parsed array data.
      */
     private ?array $cachedArray = null;
@@ -259,10 +278,21 @@ final class SwottoResponse
     {
         $contentType = $this->normalizeContentType($this->getContentType());
 
-        return in_array($contentType, ['pdf'], true) ||
-               str_starts_with($contentType, 'image/') ||
-               str_starts_with($contentType, 'video/') ||
-               str_starts_with($contentType, 'audio/');
+        if (in_array($contentType, ['pdf'], true)) {
+            return true;
+        }
+
+        foreach (['image/', 'video/', 'audio/', 'font/'] as $prefix) {
+            if (str_starts_with($contentType, $prefix)) {
+                return true;
+            }
+        }
+
+        // The generic binary type plus the archive and Office families an ERP actually
+        // exports: without these, a spreadsheet download was reported as non-binary.
+        return in_array($contentType, self::BINARY_CONTENT_TYPES, true)
+            || str_starts_with($contentType, 'application/vnd.openxmlformats-officedocument.')
+            || str_starts_with($contentType, 'application/vnd.oasis.opendocument.');
     }
 
     /**
@@ -469,43 +499,51 @@ final class SwottoResponse
      */
     private function parseCsvContent(string $content): array
     {
-        $lines = explode("\n", trim($content));
-        $firstLine = array_shift($lines);
-        if ($firstLine === '') {
+        if (trim($content) === '') {
             return [];
         }
 
-        $headers = str_getcsv($firstLine);
-        // str_getcsv always returns non-empty array in PHP 8.0+
-        // Check if result contains only empty strings (invalid CSV header)
-        $nonEmptyHeaders = array_filter($headers, fn ($h) => $h !== null && $h !== '');
-        if ($nonEmptyHeaders === []) {
+        // Splitting on "\n" before parsing would tear apart a quoted field containing a
+        // line break — valid CSV that an ERP export produces routinely. fgetcsv understands
+        // quoting, so the record boundaries are found by the parser, not by us.
+        $handle = fopen('php://temp', 'r+');
+        if ($handle === false) {
             return [];
         }
 
-        $data = [];
+        try {
+            fwrite($handle, $content);
+            rewind($handle);
 
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if ($line === '') {
-                continue;
+            $headers = fgetcsv($handle, 0, ',', '"', '\\');
+            if (!is_array($headers)) {
+                return [];
             }
 
-            $row = str_getcsv($line);
-
-            // Pad or trim row to match headers count
-            $row = array_pad($row, count($headers), '');
-            $row = array_slice($row, 0, count($headers));
-
-            // Ensure we have valid keys for array_combine
-            $safeHeaders = array_map(fn ($h) => (string) ($h ?? ''), $headers);
-            $combinedRow = array_combine($safeHeaders, $row);
-            if ($combinedRow !== false) {
-                $data[] = $combinedRow;
+            $safeHeaders = array_map(static fn ($h) => (string) ($h ?? ''), $headers);
+            if (array_filter($safeHeaders, static fn (string $h): bool => $h !== '') === []) {
+                return [];
             }
+
+            $columnCount = count($safeHeaders);
+            $data = [];
+
+            while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
+                if ($row === [null]) {
+                    // A blank line yields [null]; skip it rather than emit an empty record.
+                    continue;
+                }
+
+                $row = array_map(static fn ($value) => (string) ($value ?? ''), $row);
+                $row = array_slice(array_pad($row, $columnCount, ''), 0, $columnCount);
+
+                $data[] = array_combine($safeHeaders, $row);
+            }
+
+            return $data;
+        } finally {
+            fclose($handle);
         }
-
-        return $data;
     }
 
     /**

@@ -1,5 +1,80 @@
 # Upgrade Guide
 
+## Upgrading from v2.2.x to v2.3.0
+
+No breaking API changes: no class was renamed, no signature narrowed, no exception moved in
+the hierarchy. Four behaviours changed, and each is worth a look before deploying.
+
+### HTTP 422 now raises `ValidationException`
+
+The SW4 API answers 422 for validation errors. The SDK mapped only 400 to
+`ValidationException`, so every real validation failure arrived as a generic `ApiException`.
+
+This is backward compatible — `ValidationException extends ApiException` — so existing
+handlers keep catching it:
+
+```php
+// Kept working before, keeps working now
+try {
+    $client->post('orders', $payload);
+} catch (ApiException $e) {
+    if ($e->getStatusCode() === 422) { /* ... */ }
+}
+
+// Now possible, and clearer
+try {
+    $client->post('orders', $payload);
+} catch (ValidationException $e) {
+    $details = $e->getErrorData()['error']['details'] ?? [];
+}
+```
+
+If you branch on the exception *class* and have a `ValidationException` arm that previously
+never ran for 422, it will start running. Check that it does the right thing.
+
+### Exception messages come from the API
+
+`$e->getMessage()` used to return a hardcoded fallback (`'Not Found'`, `'Invalid field'`) or
+the raw Guzzle message, because the SDK looked for a top-level `message` while the API nests
+it under `error.message`. It now returns what the API actually said.
+
+If you match on exception message text, those assertions will need updating. Matching on
+`getStatusCode()` or `getErrorData()` was and remains the reliable approach.
+
+### POST and PATCH are no longer retried automatically
+
+Retry is opt-in (`retry_enabled`), and it now applies only to methods that can be replayed
+safely: `GET`, `HEAD`, `PUT`, `DELETE`, `OPTIONS`, `TRACE`. A network error cannot tell you
+whether the request reached the server, so replaying a `POST` risks duplicating an order, a
+document or an upload.
+
+Where an endpoint is genuinely safe to repeat, say so per request:
+
+```php
+$client->post('webhooks/ping', $payload, ['retry_non_idempotent' => true]);
+```
+
+### Non-array request data is now sent
+
+`post()`, `put()` and `patch()` declare `mixed $data`, but anything that was not a non-empty
+array used to be discarded silently — `post($uri, 'raw-payload')` sent an empty request.
+Strings, streams, resources and scalars now become the raw request body.
+
+If you relied on that data being dropped, pass `[]` instead. An unsupported type (an object
+that is not a stream, for instance) now raises `InvalidArgumentException` rather than being
+ignored.
+
+### Also worth knowing
+
+- Request options, including the body, moved from `info` to `debug` level. If you relied on
+  info-level logs to capture payloads, lower your handler's threshold.
+- `url` is now validated: a non-string, empty, relative or non-HTTP value raises
+  `ConfigurationException` at construction instead of failing later. `http` remains valid.
+- `saveToFile()` fails explicitly rather than writing an empty file when the stream cannot
+  be rewound, and rejects a body shorter than its `Content-Length` (see v2.2.1).
+
+---
+
 ## Upgrading from v2.1.0 to v2.2.0
 
 v2.2.0 adds SDK identification headers and fixes the User-Agent collision between SDK and end-user forwarding.

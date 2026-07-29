@@ -28,8 +28,23 @@ class LogSanitizationTest extends TestCase
     protected function setUp(): void
     {
         $this->config = new Configuration(['url' => 'https://api.example.com']);
+    }
+
+    /**
+     * Create the logger mock for tests that assert on what was logged, and rebuild the
+     * HTTP client around it.
+     *
+     * Built on demand rather than in setUp() so tests that observe logging through a stub
+     * are not left holding an unconfigured mock.
+     *
+     * @return LoggerInterface&\PHPUnit\Framework\MockObject\MockObject
+     */
+    private function useMockLogger(): LoggerInterface
+    {
         $this->mockLogger = $this->createMock(LoggerInterface::class);
         $this->httpClient = new GuzzleHttpClient($this->config, $this->mockLogger);
+
+        return $this->mockLogger;
     }
 
     public function testSanitizeMultipartBinaryData(): void
@@ -56,10 +71,10 @@ class LogSanitizationTest extends TestCase
         ];
 
         // Expect logger to receive sanitized options (NOT the binary content)
-        $this->mockLogger->expects($this->once())
-            ->method('info')
+        $this->useMockLogger()->expects($this->once())
+            ->method('debug')
             ->with(
-                'Requesting POST /upload',
+                'Requesting POST /upload options',
                 $this->callback(function ($loggedOptions) {
                     // Verify multipart is present
                     $this->assertArrayHasKey('multipart', $loggedOptions);
@@ -106,10 +121,10 @@ class LogSanitizationTest extends TestCase
         ];
 
         // Expect logger to mask sensitive headers but preserve non-sensitive ones
-        $this->mockLogger->expects($this->once())
-            ->method('info')
+        $this->useMockLogger()->expects($this->once())
+            ->method('debug')
             ->with(
-                'Requesting GET /user',
+                'Requesting GET /user options',
                 $this->callback(function ($loggedOptions) {
                     $this->assertArrayHasKey('headers', $loggedOptions);
 
@@ -152,10 +167,10 @@ class LogSanitizationTest extends TestCase
         ];
 
         // Expect logger to mask password and token but preserve other fields
-        $this->mockLogger->expects($this->once())
-            ->method('info')
+        $this->useMockLogger()->expects($this->once())
+            ->method('debug')
             ->with(
-                'Requesting POST /login',
+                'Requesting POST /login options',
                 $this->callback(function ($loggedOptions) {
                     $this->assertArrayHasKey('form_params', $loggedOptions);
 
@@ -198,10 +213,10 @@ class LogSanitizationTest extends TestCase
         ];
 
         // Expect logger to mask password and api_key in JSON body
-        $this->mockLogger->expects($this->once())
-            ->method('info')
+        $this->useMockLogger()->expects($this->once())
+            ->method('debug')
             ->with(
-                'Requesting POST /api/register',
+                'Requesting POST /api/register options',
                 $this->callback(function ($loggedOptions) {
                     $this->assertArrayHasKey('json', $loggedOptions);
 
@@ -246,10 +261,10 @@ class LogSanitizationTest extends TestCase
         ];
 
         // Expect logger to replace stream with size indicator
-        $this->mockLogger->expects($this->once())
-            ->method('info')
+        $this->useMockLogger()->expects($this->once())
+            ->method('debug')
             ->with(
-                'Requesting PUT /document',
+                'Requesting PUT /document options',
                 $this->callback(function ($loggedOptions) {
                     $this->assertArrayHasKey('body', $loggedOptions);
 
@@ -289,10 +304,10 @@ class LogSanitizationTest extends TestCase
         ];
 
         // Expect logger to mask X-Devapp header (SW4-specific)
-        $this->mockLogger->expects($this->once())
-            ->method('info')
+        $this->useMockLogger()->expects($this->once())
+            ->method('debug')
             ->with(
-                'Requesting GET /organizations',
+                'Requesting GET /organizations options',
                 $this->callback(function ($loggedOptions) {
                     $this->assertArrayHasKey('headers', $loggedOptions);
 
@@ -330,10 +345,10 @@ class LogSanitizationTest extends TestCase
         ];
 
         // Verify requestRaw also sanitizes logs
-        $this->mockLogger->expects($this->once())
-            ->method('info')
+        $this->useMockLogger()->expects($this->once())
+            ->method('debug')
             ->with(
-                'Raw request GET /raw',
+                'Raw request GET /raw options',
                 $this->callback(function ($loggedOptions) {
                     $this->assertEquals('****', $loggedOptions['headers']['Authorization']);
 
@@ -388,10 +403,10 @@ class LogSanitizationTest extends TestCase
         ];
 
         // Expect logger to receive sanitized binary string
-        $this->mockLogger->expects($this->once())
-            ->method('info')
+        $this->useMockLogger()->expects($this->once())
+            ->method('debug')
             ->with(
-                'Requesting POST /upload',
+                'Requesting POST /upload options',
                 $this->callback(function ($loggedOptions) {
                     // Verify multipart array exists
                     $this->assertArrayHasKey('multipart', $loggedOptions);
@@ -455,10 +470,10 @@ class LogSanitizationTest extends TestCase
         ];
 
         // Expect UTF-8 text to be preserved completely
-        $this->mockLogger->expects($this->once())
-            ->method('info')
+        $this->useMockLogger()->expects($this->once())
+            ->method('debug')
             ->with(
-                'Requesting POST /upload',
+                'Requesting POST /upload options',
                 $this->callback(function ($loggedOptions) use ($utf8Text) {
                     // Verify UTF-8 text is preserved exactly
                     $this->assertEquals($utf8Text, $loggedOptions['multipart'][0]['contents']);
@@ -479,5 +494,179 @@ class LogSanitizationTest extends TestCase
         $clientProperty->setValue($this->httpClient, $mockGuzzle);
 
         $this->httpClient->request('POST', '/upload', $multipartOptions);
+    }
+
+    /**
+     * Run a request and return the options the logger received at debug level.
+     *
+     * @param array<string, mixed> $options Options to send
+     * @return array<string, mixed> Sanitized options as logged
+     */
+    private function captureLoggedOptions(string $method, string $uri, array $options): array
+    {
+        $logged = [];
+
+        $this->runWithRecordingLogger(
+            function (string $level, string $message, array $context) use (&$logged): void {
+                if ($level === 'debug' && str_ends_with($message, 'options')) {
+                    $logged = $context;
+                }
+            },
+            $method,
+            $uri,
+            $options
+        );
+
+        return $logged;
+    }
+
+    /**
+     * Run a request against a stubbed transport, feeding every log call to $record.
+     *
+     * @param callable(string, string, array<string, mixed>): void $record Log observer
+     * @param array<string, mixed> $options Options to send
+     */
+    private function runWithRecordingLogger(
+        callable $record,
+        string $method,
+        string $uri,
+        array $options
+    ): void {
+        $logger = $this->createStub(LoggerInterface::class);
+        $logger->method('info')
+            ->willReturnCallback(static function (string $message, array $context = []) use ($record): void {
+                $record('info', $message, $context);
+            });
+        $logger->method('debug')
+            ->willReturnCallback(static function (string $message, array $context = []) use ($record): void {
+                $record('debug', $message, $context);
+            });
+
+        $httpClient = new GuzzleHttpClient($this->config, $logger);
+
+        $guzzle = $this->createStub(GuzzleClient::class);
+        $guzzle->method('request')
+            ->willReturn(new Response(200, [], (string) json_encode(['success' => true])));
+
+        $reflection = new \ReflectionClass($httpClient);
+        $clientProperty = $reflection->getProperty('client');
+        $clientProperty->setAccessible(true);
+        $clientProperty->setValue($httpClient, $guzzle);
+
+        $httpClient->request($method, $uri, $options);
+    }
+
+    /**
+     * Only first-level keys of `json` and `form_params` were redacted, so a secret one
+     * level deeper reached the logger in the clear.
+     */
+    public function testRedactsSecretsNestedInJsonBody(): void
+    {
+        $logged = $this->captureLoggedOptions('POST', '/integrations', [
+            'json' => [
+                'name' => 'ERP connector',
+                'connection' => [
+                    'username' => 'operator',
+                    'password' => 'PLACEHOLDER_PASSWORD',
+                    'oauth' => ['refresh_token' => 'PLACEHOLDER_REFRESH_TOKEN'],
+                ],
+            ],
+        ]);
+
+        $this->assertSame('ERP connector', $logged['json']['name']);
+        $this->assertSame('operator', $logged['json']['connection']['username']);
+        $this->assertSame('****', $logged['json']['connection']['password']);
+        $this->assertSame('****', $logged['json']['connection']['oauth']['refresh_token']);
+    }
+
+    /**
+     * A container whose own name is sensitive is redacted whole, without descending into
+     * it: nothing under `credentials` is worth the risk of leaking one key by omission.
+     */
+    public function testRedactsAWholeSensitiveContainer(): void
+    {
+        $logged = $this->captureLoggedOptions('POST', '/integrations', [
+            'json' => [
+                'name' => 'ERP connector',
+                'credentials' => ['username' => 'operator', 'password' => 'PLACEHOLDER_PASSWORD'],
+            ],
+        ]);
+
+        $this->assertSame('ERP connector', $logged['json']['name']);
+        $this->assertSame('****', $logged['json']['credentials']);
+    }
+
+    /**
+     * The query container was not sanitized at all.
+     */
+    public function testRedactsSecretsInQueryString(): void
+    {
+        $logged = $this->captureLoggedOptions('GET', '/exports', [
+            'query' => [
+                'from' => '2026-01-01',
+                'access_token' => 'PLACEHOLDER_ACCESS_TOKEN',
+            ],
+        ]);
+
+        $this->assertSame('2026-01-01', $logged['query']['from']);
+        $this->assertSame('****', $logged['query']['access_token']);
+    }
+
+    /**
+     * Key matching ignores case and separators, so ApiKey, api-key and api_key all match.
+     */
+    public function testRedactionIgnoresCasingAndSeparators(): void
+    {
+        $logged = $this->captureLoggedOptions('POST', '/things', [
+            'json' => [
+                'ApiKey' => 'PLACEHOLDER_A',
+                'api-key' => 'PLACEHOLDER_B',
+                'CLIENT_SECRET' => 'PLACEHOLDER_C',
+                'label' => 'kept',
+            ],
+        ]);
+
+        $this->assertSame('****', $logged['json']['ApiKey']);
+        $this->assertSame('****', $logged['json']['api-key']);
+        $this->assertSame('****', $logged['json']['CLIENT_SECRET']);
+        $this->assertSame('kept', $logged['json']['label']);
+    }
+
+    /**
+     * In multipart the value sits under 'contents' while the field name sits under 'name',
+     * so a generic key walk would miss a part literally named "password".
+     */
+    public function testRedactsSensitiveMultipartFieldByName(): void
+    {
+        $logged = $this->captureLoggedOptions('POST', '/login', [
+            'multipart' => [
+                ['name' => 'username', 'contents' => 'operator'],
+                ['name' => 'password', 'contents' => 'PLACEHOLDER_PASSWORD'],
+            ],
+        ]);
+
+        $this->assertSame('operator', $logged['multipart'][0]['contents']);
+        $this->assertSame('****', $logged['multipart'][1]['contents']);
+    }
+
+    /**
+     * A query string can carry a token, so the info-level request line drops it entirely.
+     */
+    public function testInfoLineOmitsQueryString(): void
+    {
+        $lines = [];
+
+        $this->runWithRecordingLogger(
+            function (string $level, string $message) use (&$lines): void {
+                if ($level === 'info') {
+                    $lines[] = $message;
+                }
+            },
+            'GET',
+            '/exports?access_token=PLACEHOLDER_ACCESS_TOKEN&from=2026-01-01',
+            []
+        );
+
+        $this->assertSame(['Requesting GET /exports'], $lines);
     }
 }
