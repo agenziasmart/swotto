@@ -26,10 +26,16 @@ logs/
 # OS generated files #
 .DS_Store*
 Thumbs.db
+# The blanket `.*` on line 1 swallows every dotfile, including project configuration that
+# belongs in the repository. Anything already committed stays tracked, which is why the gap
+# is easy to miss: a NEW workflow or ruleset is simply dropped by `git add -A`, in silence.
+# Re-include the ones that are part of the project.
 !.gitignore
 !.htaccess
 !.gitkeep
 !.editorconfig
+!.github/
+!.php-cs-fixer.php
 !.gitattributes
 
 # Claude Code working directory — stays out of a public repo: it holds internal

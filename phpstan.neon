@@ -7,19 +7,22 @@ parameters:
         - vendor
     reportUnmatchedIgnoredErrors: false
     tmpDir: build/phpstan
+    # src/ passes level 8 with no exemptions: every ignore below is scoped to tests/, where
+    # fixture arrays and mock chains are not worth the annotation noise. Keep it that way —
+    # a project-wide missingType ignore would silently hand consumers untyped arrays.
     ignoreErrors:
         -
             identifier: missingType.iterableValue
+            paths:
+                - tests/*
         -
             identifier: missingType.generics
+            paths:
+                - tests/*
         -
             identifier: method.notFound
             paths:
                 - tests/*
-        -
-            identifier: notIdentical.alwaysTrue
-            paths:
-                - src/Response/SwottoResponse.php
         -
             identifier: method.alreadyNarrowedType
             paths:

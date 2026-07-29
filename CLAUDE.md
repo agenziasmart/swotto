@@ -13,7 +13,7 @@ User-facing documentation lives in `README.md`; released versions and migration 
 ## Commands
 
 ```bash
-composer test                          # PHPUnit 11 suite
+composer test                          # PHPUnit 12 suite
 composer test -- --filter TestName     # focused run
 composer cs                            # PSR-12 check (no changes)
 composer cs-fix                        # apply formatting
@@ -31,17 +31,31 @@ Production code lives in `src/` under the `Swotto\` PSR-4 namespace: `Config/`, 
 
 **`SwottoClient`** is the entry point and implements `SwottoClientInterface`. It is **fully
 immutable** — every property `readonly`, no setters, no mutable state — and takes its logger
-and HTTP client by injection (PSR-3, PSR-18).
+and HTTP client by injection (PSR-3, PSR-18). One deliberate exception:
+`GuzzleHttpClient::$client` is **not** `readonly`, so tests can swap the transport in by
+reflection. Nothing in production writes it after construction.
 
 **`Http/`** holds `GuzzleHttpClient` (PSR-7/PSR-18) and `RetryHttpClient`, a decorator adding
 retry with exponential backoff. `extractPerCallOptions()` turns context options into HTTP
 headers.
 
 **`Response/SwottoResponse`** wraps responses for multi-format content: content-type detection
-(JSON, CSV, PDF, binary), memory-safe streaming (10 MB threshold, 50 MB hard limit), and
-guarded file operations (path traversal, permissions).
+(JSON, CSV, PDF, binary), memory-safe streaming and guarded file operations. The body is
+always read in 8 KB chunks and capped at 50 MB **on the bytes actually received** — an
+absent or lying `Content-Length` cannot get past it. `saveToFile()` rewinds a seekable
+stream, refuses a consumed non-seekable one rather than writing an empty file, and rejects a
+body shorter than its advertised `Content-Length`.
 
-**`Config/Configuration`** requires `url`; accepts `key` (DevApp token), `bearer_token`,
+Be precise about what the path validation promises: it checks the **basename** for traversal
+sequences, separators and control characters, and requires the target directory to exist and
+be writable. It is not a sandbox — `../` inside the directory part is canonicalised by
+`realpath()` and accepted. That is the right scope, because the path comes from the calling
+application; the case that matters is a filename derived from a server-controlled
+`Content-Disposition`, and that is exactly what the basename check covers.
+
+**`Config/Configuration`** requires `url` — validated as a non-empty string with an `http`
+or `https` scheme and a host; `http` stays valid because local development reaches the API
+over `http://host.docker.internal:8081`. It also accepts `key` (DevApp token), `bearer_token`,
 context keys (`language`, `session_id`, `client_ip`, `client_user_agent`), retry settings and
 `timeout` / `verify_ssl`. Note that `getHeaders()` returns **transport headers only**
 (`Accept`, `x-devapp`): context headers travel a different path, described below.
@@ -102,11 +116,29 @@ $client->patchFile($uri, $fileResource);
 ```
 
 Retry is opt-in (`retry_enabled`) and tunable (`retry_max_attempts`, `retry_initial_delay_ms`,
-`retry_max_delay_ms`, `retry_multiplier`, `retry_jitter`). `RetryHttpClient::isRetryable()`
-retries exactly three things: `NetworkException` (and therefore `ConnectionException`, which
-extends it), `RateLimitException` — a 429 **is** retried, using its `Retry-After` as the delay
-instead of the backoff — and `ApiException` with a status of 500 or above. Everything else,
-including 401, 403, 404 and 422, fails on the first attempt.
+`retry_max_delay_ms`, `retry_multiplier`, `retry_jitter`). Two independent gates must both
+open before a request is replayed, and confusing them is the easiest mistake to make here:
+
+- **the method** — only `GET`, `HEAD`, `PUT`, `DELETE`, `OPTIONS` and `TRACE` are replayed by
+  default, because a network error cannot tell you whether the request reached the server.
+  `POST` and `PATCH` need `['retry_non_idempotent' => true]` in that call's options;
+- **the exception** — `RetryHttpClient::isRetryable()` accepts exactly three things:
+  `NetworkException` (and therefore `ConnectionException`, which extends it),
+  `RateLimitException` — a 429 **is** retried, using its `Retry-After` as the delay instead
+  of the backoff, **capped at `retry_max_delay_ms`** — and `ApiException` with a status of
+  500 or above. Everything else, 401, 403, 404 and 422 included, fails on the first attempt.
+
+`Retry-After` is read in both RFC 9110 forms, delay-seconds and HTTP-date; an unparsable or
+past value yields 0 and the backoff takes over.
+
+### Errors
+
+The API answers with `{"success": false, "error": {"type", "message", "status", "details"},
+"timestamp"}`. The message is read from `error.message`, falling back to a flat `message` and
+then to a per-status default — a value that is not a non-empty string is discarded rather
+than passed on. **HTTP 422 is the API's validation status**, not 400, and both map to
+`ValidationException`, which extends `ApiException` so status-code-based handling keeps
+working.
 
 ## Branches and releases
 
@@ -116,16 +148,18 @@ and reaches `master` through a pull request.
 **Tags are created on `master` only** — never on `develop`, never without updating
 `CHANGELOG.md` first. Use annotated tags and semantic versioning (`git tag -a v2.2.0`).
 
-Pushing a `v*` tag triggers `.github/workflows/release.yml`, which extracts that version's
-section from `CHANGELOG.md` and publishes a GitHub Release. Two details worth knowing, because
-they are easy to assume wrong:
+`.github/workflows/ci.yml` runs the quality gate — `composer validate`,
+`check-platform-reqs`, `cs`, `phpstan`, `test` on PHP 8.3, the tests again on 8.4 and 8.5, and
+`composer audit` over a fresh `--no-dev` install — on every push to `master` and `develop` and
+on every pull request.
 
-- **A missing CHANGELOG section does not fail the release.** The workflow falls back to a
-  generic body pointing at the changelog, so a release can succeed and still ship empty notes —
-  check the published release, not just the green check.
-- **The workflow does not notify Packagist.** The final step only echoes that Packagist will
-  update; the actual refresh comes from the GitHub → Packagist webhook. If the package does not
-  appear, look at the webhook, not at the Actions log.
+Pushing a `v*` tag triggers `.github/workflows/release.yml`, which calls that same gate as a
+prerequisite job, extracts the version's section from `CHANGELOG.md` and publishes a GitHub
+Release. It **fails** when that section is missing or empty, rather than shipping generic
+notes. One detail still worth knowing: **the workflow does not notify Packagist.** The final
+step only echoes that Packagist will update; the actual refresh comes from the GitHub →
+Packagist webhook. If the package does not appear, look at the webhook, not at the Actions
+log.
 
 Downloadable `.zip` and `.tar.gz` archives are the ones GitHub attaches to any tag — the
 workflow does not build them. To remove a tag: `git tag -d <tag>` locally,
@@ -133,7 +167,7 @@ workflow does not build them. To remove a tag: `git tag -d <tag>` locally,
 
 ## Testing
 
-PHPUnit 11 with Mockery for test doubles; configuration in `phpunit.xml.dist`. Name a test
+PHPUnit 12 with Mockery for test doubles; configuration in `phpunit.xml.dist`. Name a test
 file after its subject with a `Test` suffix. There is no coverage threshold: cover observable
 behaviour and edge cases, and add a regression test with every fix.
 
@@ -151,8 +185,12 @@ LF endings, `declare(strict_types=1)` everywhere, short arrays, single quotes, o
 trailing commas in multiline constructs. Classes `PascalCase`, methods and properties
 `camelCase`, interfaces suffixed `Interface`.
 
-PHPStan runs at **level 8** (`phpstan.neon`) over `src/` and `tests/`. Keep it clean by adding
-precise scalar, return and PHPDoc generic types rather than by widening the ignore list.
+PHPStan runs at **level 8** (`phpstan.neon`) over `src/` and `tests/`. **`src/` passes with no
+exemptions** — every entry in `ignoreErrors` is scoped to `tests/`, where fixture arrays and
+mock chains are not worth the annotation noise. Keep it that way: a project-wide
+`missingType` ignore silently hands consumers untyped arrays, and consumers run PHPStan too.
+Fix findings with precise scalar, return and PHPDoc generic types, never by widening a
+path.
 
 Commits follow Conventional Commits (`feat:`, `fix:`, `docs:`, `feat!:` for breaking changes),
 with a focused scope and an imperative summary. A pull request should explain the motivation,
@@ -162,6 +200,20 @@ list the verification commands, and state backward compatibility; update `README
 ## Security
 
 Never log tokens or credentials — the default logger is a `NullLogger`, and a real one is
-injected. DevApp tokens come from the environment and are never hardcoded. File operations
-guard against path traversal and invalid characters, enforce directory permissions, and cap
-memory (streaming above 10 MB, 50 MB hard limit).
+injected. DevApp tokens come from the environment and are never hardcoded.
+
+Redaction in `sanitizeOptionsForLogging()` is **recursive** over `json`, `form_params` and
+`query`, matching key names without regard to case or separators, and matches multipart parts
+by their `name` because the value sits under `contents`. Request options, the body included,
+are logged at **debug**; the info line keeps only method and path, with the query string
+stripped — tokens travel there often enough to matter.
+
+The DevApp token is bound to the configured origin: a middleware at the bottom of the Guzzle
+handler stack removes `x-devapp`, `X-Swotto-Client-Info` and `x-sid` whenever the host
+changes, which is the only position from which redirected requests are visible. Guzzle itself
+removes `Authorization` and `Cookie` across origins. Redirects are capped at 5 and, when the
+base URL is `https`, refused over cleartext.
+
+File operations validate the **filename** against traversal sequences and control characters
+and require a writable directory — see the scope note in the architecture section above — and
+memory is capped at 50 MB on the bytes actually read.

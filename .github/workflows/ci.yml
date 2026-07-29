@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+  workflow_call:
+
+jobs:
+  quality:
+    name: Quality gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          # The floor declared in composer.json. Passing here is what makes ">=8.3" a claim
+          # rather than a hope.
+          php-version: '8.3'
+          extensions: mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --strict --no-check-lock
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Check platform requirements
+        run: composer check-platform-reqs
+
+      - name: Coding standards
+        run: composer cs
+
+      - name: Static analysis
+        run: composer phpstan
+
+      - name: Tests
+        run: composer test
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+          coverage: none
+          tools: composer:v2
+
+      # composer.lock is not published, so consumers resolve the constraints in
+      # composer.json. Auditing a fresh production install is what tells us whether those
+      # constraints can still pick a vulnerable version.
+      - name: Install production dependencies
+        run: composer update --no-dev --prefer-dist --no-progress --no-interaction
+
+      - name: Audit
+        run: composer audit --no-dev
+
+  matrix:
+    name: Tests on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Tests
+        run: composer test

@@ -17,7 +17,7 @@ class ConnectionException extends NetworkException
     private string $url;
 
     /**
-     * @var array Trace details
+     * @var array<int, string> Trace details
      */
     private array $traceDetails;
 
@@ -26,7 +26,7 @@ class ConnectionException extends NetworkException
      *
      * @param string $message Error message
      * @param string $url URL that failed to connect
-     * @param array $traceDetails Trace details
+     * @param array<int, string> $traceDetails Trace details
      * @param int $code Error code
      */
     public function __construct(string $message, string $url, array $traceDetails = [], int $code = 0)
@@ -49,7 +49,7 @@ class ConnectionException extends NetworkException
     /**
      * Get trace details.
      *
-     * @return array Trace details
+     * @return array<int, string> Trace details
      */
     public function getTraceDetails(): array
     {

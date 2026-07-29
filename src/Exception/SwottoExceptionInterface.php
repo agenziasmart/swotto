@@ -14,7 +14,7 @@ interface SwottoExceptionInterface
     /**
      * Get error data.
      *
-     * @return array Error data
+     * @return array<string, mixed> Error data
      */
     public function getErrorData(): array;
 

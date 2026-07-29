@@ -52,6 +52,8 @@ final class SwottoResponse
 
     /**
      * Cached parsed array data.
+     *
+     * @var array<array-key, mixed>|null
      */
     private ?array $cachedArray = null;
 
@@ -73,7 +75,9 @@ final class SwottoResponse
     /**
      * Get response content as array (for JSON or CSV).
      *
-     * @return array Parsed response data
+     * JSON keeps whatever shape the payload has; CSV yields a list of rows keyed by header.
+     *
+     * @return array<array-key, mixed> Parsed response data
      * @throws MemoryException If response is too large for memory
      * @throws StreamingException If JSON parsing fails
      */
@@ -454,7 +458,7 @@ final class SwottoResponse
      * Parse JSON content safely.
      *
      * @param string $content JSON string
-     * @return array Parsed JSON data
+     * @return array<array-key, mixed> Parsed JSON data
      * @throws StreamingException If JSON parsing fails
      */
     private function parseJsonContent(string $content): array
@@ -495,7 +499,7 @@ final class SwottoResponse
      * Parse CSV content to array.
      *
      * @param string $content CSV string
-     * @return array Parsed CSV data
+     * @return list<array<string, string>> One entry per record, keyed by header
      */
     private function parseCsvContent(string $content): array
     {

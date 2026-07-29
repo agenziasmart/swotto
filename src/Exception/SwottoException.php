@@ -12,7 +12,7 @@ namespace Swotto\Exception;
 class SwottoException extends \Exception implements SwottoExceptionInterface
 {
     /**
-     * @var array Error data
+     * @var array<string, mixed> Error data
      */
     protected array $errorData = [];
 
@@ -20,7 +20,7 @@ class SwottoException extends \Exception implements SwottoExceptionInterface
      * Constructor.
      *
      * @param string $message Error message
-     * @param array $errorData Error data
+     * @param array<string, mixed> $errorData Error data
      * @param int $code Error code
      * @param \Throwable|null $previous Previous exception
      */
@@ -37,7 +37,7 @@ class SwottoException extends \Exception implements SwottoExceptionInterface
     /**
      * Get error data.
      *
-     * @return array Error data
+     * @return array<string, mixed> Error data
      */
     public function getErrorData(): array
     {
