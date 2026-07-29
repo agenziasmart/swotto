@@ -220,6 +220,40 @@ class RetryHttpClientTest extends TestCase
         $this->assertEquals($expectedResponse, $response);
     }
 
+    /**
+     * A server-supplied Retry-After must never exceed retry_max_delay_ms.
+     *
+     * Without the cap, `Retry-After: 86400` — a legitimate value — parked the worker for
+     * a full day on a single response.
+     */
+    public function testRetryAfterIsCappedByMaxDelay(): void
+    {
+        $expectedResponse = ['data' => 'success'];
+
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with('GET', '/test', [])
+            ->andThrow(new RateLimitException('Too Many Requests', [], 86400)); // 24 hours
+
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with('GET', '/test', [])
+            ->andReturn($expectedResponse);
+
+        $startedAt = microtime(true);
+        $response = $this->retryClient->request('GET', '/test', []);
+        $elapsedMs = (microtime(true) - $startedAt) * 1000;
+
+        $this->assertEquals($expectedResponse, $response);
+        $this->assertLessThan(
+            1000,
+            $elapsedMs,
+            'Retry-After must be capped at retry_max_delay_ms (100 ms in this configuration)'
+        );
+    }
+
     // ========== NO RETRY ON 4XX CLIENT ERRORS ==========
 
     public function testNoRetryOn401Unauthorized(): void

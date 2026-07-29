@@ -27,11 +27,6 @@ final class SwottoResponse
     private const MAX_MEMORY_SIZE = 50 * 1024 * 1024; // 50MB
 
     /**
-     * Threshold (in bytes) above which streaming is used even for in-memory operations.
-     */
-    private const STREAMING_THRESHOLD = 10 * 1024 * 1024; // 10MB
-
-    /**
      * Chunk size for streaming operations.
      */
     private const CHUNK_SIZE = 8192; // 8KB
@@ -105,22 +100,15 @@ final class SwottoResponse
 
         $contentLength = $this->getContentLength();
 
-        // Check memory limit
+        // Content-Length, when present, lets us reject an oversized response before
+        // reading a single byte. It is an optimisation, never the only safeguard:
+        // chunked responses and proxies that drop the header would slip past it.
         if ($contentLength !== null && $contentLength > self::MAX_MEMORY_SIZE) {
             throw MemoryException::responseTooLarge($contentLength, self::MAX_MEMORY_SIZE);
         }
 
-        // Use streaming for large responses
-        if ($contentLength !== null && $contentLength > self::STREAMING_THRESHOLD) {
-            $this->cachedString = $this->streamToString();
-        } else {
-            $stream = $this->response->getBody();
-            // Rewind stream if possible to ensure we read from the beginning
-            if ($stream->isSeekable()) {
-                $stream->rewind();
-            }
-            $this->cachedString = $stream->getContents();
-        }
+        // Always read in chunks so the limit applies to the bytes actually received.
+        $this->cachedString = $this->streamToString();
 
         return $this->cachedString;
     }
@@ -128,17 +116,34 @@ final class SwottoResponse
     /**
      * Save response content to file with security validations.
      *
+     * The stream is rewound when seekable, so saving after `asString()` or `asArray()`
+     * still writes the full content. A non-seekable stream that has already been consumed
+     * cannot be saved: the method fails explicitly rather than producing an empty file.
+     *
+     * On failure the partial file is removed, so a caller never finds a truncated
+     * artifact left behind by a call that threw.
+     *
      * @param string $path File path where to save the content
      * @return bool True on success
      * @throws SecurityException If path validation fails
      * @throws FileOperationException If file operations fail
-     * @throws StreamingException If streaming fails
+     * @throws StreamingException If the stream was consumed or the content is truncated
      */
     public function saveToFile(string $path): bool
     {
         $this->validatePath($path);
 
         $safePath = $this->buildSafePath($path);
+        $stream = $this->response->getBody();
+
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        } elseif ($stream->eof()) {
+            throw StreamingException::readFailure(
+                'the response stream is not seekable and has already been consumed; '
+                . 'call saveToFile() before reading the response'
+            );
+        }
 
         $handle = @fopen($safePath, 'wb');
         if ($handle === false) {
@@ -146,7 +151,6 @@ final class SwottoResponse
         }
 
         try {
-            $stream = $this->response->getBody();
             $bytesWritten = 0;
 
             while (!$stream->eof()) {
@@ -155,18 +159,55 @@ final class SwottoResponse
                     break;
                 }
 
-                $written = @fwrite($handle, $chunk);
-                if ($written === false) {
-                    throw StreamingException::writeFailure('fwrite returned false');
-                }
-
-                $bytesWritten += $written;
+                $bytesWritten += $this->writeChunk($handle, $chunk);
             }
 
-            return true;
-        } finally {
-            @fclose($handle);
+            $expectedLength = $this->getContentLength();
+            if ($expectedLength !== null && $expectedLength !== $bytesWritten) {
+                throw StreamingException::unexpectedEndOfStream($expectedLength, $bytesWritten);
+            }
+        } catch (\Throwable $exception) {
+            fclose($handle);
+            @unlink($safePath);
+
+            throw $exception;
         }
+
+        fclose($handle);
+
+        return true;
+    }
+
+    /**
+     * Write a full chunk to the file handle, looping over partial writes.
+     *
+     * `fwrite()` may write fewer bytes than requested without failing; returning early
+     * on the first call would silently drop the remainder of the chunk.
+     *
+     * @param resource $handle Open file handle
+     * @param string $chunk Chunk to write
+     * @return int Bytes written (always the full chunk length)
+     * @throws StreamingException If the handle stops accepting bytes
+     */
+    private function writeChunk($handle, string $chunk): int
+    {
+        $length = strlen($chunk);
+        $written = 0;
+
+        while ($written < $length) {
+            $result = @fwrite($handle, substr($chunk, $written));
+
+            if ($result === false || $result === 0) {
+                throw StreamingException::writeFailure(
+                    'fwrite stopped accepting data before the chunk was complete',
+                    $written
+                );
+            }
+
+            $written += $result;
+        }
+
+        return $written;
     }
 
     /**
@@ -237,13 +278,20 @@ final class SwottoResponse
     /**
      * Get response content length.
      *
-     * @return int|null Content length in bytes, null if not available
+     * A missing, non-numeric or negative header yields null: an unusable value must not
+     * be silently coerced to 0, which downstream checks would read as a real length.
+     *
+     * @return int|null Content length in bytes, null if not available or not usable
      */
     public function getContentLength(): ?int
     {
-        $contentLength = $this->response->getHeaderLine('Content-Length');
+        $contentLength = trim($this->response->getHeaderLine('Content-Length'));
 
-        return $contentLength !== '' ? (int) $contentLength : null;
+        if ($contentLength === '' || preg_match('/^\d+$/', $contentLength) !== 1) {
+            return null;
+        }
+
+        return (int) $contentLength;
     }
 
     /**
@@ -345,6 +393,12 @@ final class SwottoResponse
     private function streamToString(): string
     {
         $stream = $this->response->getBody();
+
+        // Rewind when possible so a previous read does not silently yield an empty string.
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+
         $content = '';
         $totalRead = 0;
 
@@ -390,7 +444,21 @@ final class SwottoResponse
             );
         }
 
-        return $decoded ?? [];
+        if ($decoded === null) {
+            return [];
+        }
+
+        // Syntactically valid but scalar JSON (`42`, `"text"`, `true`) cannot satisfy the
+        // array contract. Raising a domain exception beats letting a TypeError escape.
+        if (!is_array($decoded)) {
+            throw new StreamingException(
+                sprintf('Expected a JSON object or array, %s given', get_debug_type($decoded)),
+                ['decoded_type' => get_debug_type($decoded)],
+                400
+            );
+        }
+
+        return $decoded;
     }
 
     /**

@@ -550,7 +550,16 @@ Use `downloadToFile()` for memory-safe streaming to disk:
 $client->downloadToFile('exports/huge-dataset.csv', '/path/to/file.csv');
 ```
 
-Automatic streaming: < 10MB in-memory, > 10MB streamed, > 50MB throws `MemoryException`.
+`downloadToFile()` streams straight to disk and never buffers the whole body.
+
+`asString()` and `asArray()` read the body in 8 KB chunks and count the bytes actually
+received, throwing `MemoryException` past 50 MB. The limit applies whether or not the
+response carries a `Content-Length` header, so a chunked response cannot bypass it.
+
+`saveToFile()` rewinds the stream when it can, so saving after inspecting the response
+still writes the full content. A non-seekable stream that has already been consumed
+raises `StreamingException` instead of writing an empty file, and a body shorter than the
+advertised `Content-Length` is rejected rather than saved truncated.
 
 ## Support
 

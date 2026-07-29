@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Swotto\Tests\Response;
 
+use GuzzleHttp\Psr7\NoSeekStream;
+use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -23,10 +25,7 @@ class SwottoResponseAdvancedTest extends TestCase
         string $content,
         array $headers = []
     ): ResponseInterface {
-        $stream = $this->createStub(StreamInterface::class);
-        $stream->method('getContents')->willReturn($content);
-        $stream->method('__toString')->willReturn($content);
-        $stream->method('isSeekable')->willReturn(true);
+        $stream = Utils::streamFor($content);
 
         $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
@@ -502,13 +501,14 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test response caching - asString called twice returns cached result.
+     *
+     * The stream is deliberately non-seekable: without the cache the second call would
+     * find it exhausted and return an empty string, so equality proves the cache.
      */
     public function testAsStringCachesResult(): void
     {
         $content = 'test content';
-        $stream = $this->createMock(StreamInterface::class);
-        $stream->expects($this->once())->method('getContents')->willReturn($content);
-        $stream->method('isSeekable')->willReturn(true);
+        $stream = new NoSeekStream(Utils::streamFor($content));
 
         $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
@@ -529,9 +529,7 @@ class SwottoResponseAdvancedTest extends TestCase
     public function testAsArrayCachesResult(): void
     {
         $jsonData = ['cached' => true];
-        $stream = $this->createMock(StreamInterface::class);
-        $stream->expects($this->once())->method('getContents')->willReturn(json_encode($jsonData));
-        $stream->method('isSeekable')->willReturn(true);
+        $stream = new NoSeekStream(Utils::streamFor((string) json_encode($jsonData)));
 
         $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);

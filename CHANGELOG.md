@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-07-29
+
+Correctness fixes for response handling and retry pacing. No public API changes: every
+behaviour corrected here was either wrong or unspecified.
+
+### Fixed
+
+- **`saveToFile()` no longer writes an empty file and reports success.** The stream is
+  rewound when seekable, so saving after `asString()` or `asArray()` writes the full
+  content. A non-seekable stream that was already consumed now raises `StreamingException`
+  instead of silently producing a 0-byte file.
+- **`saveToFile()` handles partial writes.** `fwrite()` may accept fewer bytes than
+  requested; the remainder of the chunk was previously lost without any error.
+- **`saveToFile()` verifies the downloaded size** against `Content-Length` when the header
+  is present, raising `StreamingException` on a truncated body. A failed save no longer
+  leaves a partial file on disk.
+- **The 50 MB memory ceiling now applies to the bytes actually received.** It previously
+  depended entirely on `Content-Length`, so a chunked response — or any response where a
+  proxy dropped the header — bypassed it completely.
+- **`Retry-After` is capped at `retry_max_delay_ms`.** A legitimate `Retry-After: 86400`
+  previously parked the worker for 24 hours on a single response.
+- **`Retry-After` accepts the HTTP-date form** allowed by RFC 9110, which was cast to 0 and
+  discarded. An unparsable or past value still falls back to the exponential backoff.
+- **Scalar JSON raises `StreamingException` instead of a `TypeError`.** A valid but
+  non-array payload (`42`, `"text"`, `true`) used to escape as a PHP error. JSON `null`
+  still yields an empty array.
+- **`getContentLength()` returns null for a non-numeric or negative header** rather than
+  coercing it to 0, which downstream checks read as a real length.
+
+### Added
+
+- `ext-mbstring` declared in `composer.json`. `isBinaryString()` calls `mb_check_encoding()`,
+  which previously worked only because a dev-only polyfill happened to be installed — a
+  `--no-dev` install on a minimal PHP image would have hit a fatal error.
+
+### Build
+
+- `composer cs` now passes `--allow-risky=yes`, matching `cs-fix`. The style check exited 16
+  on every run because the ruleset uses `declare_strict_types`, so the verification half of
+  the quality gate had never been runnable.
+
+---
+
 ## [2.2.0] - 2026-02-06
 
 ### Breaking Changes

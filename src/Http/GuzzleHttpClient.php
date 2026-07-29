@@ -31,7 +31,7 @@ final class GuzzleHttpClient implements HttpClientInterface
     /**
      * @var string SDK version
      */
-    private const VERSION = '2.2.0';
+    private const VERSION = '2.2.1';
 
     /**
      * @var int Default request timeout
@@ -401,11 +401,42 @@ final class GuzzleHttpClient implements HttpClientInterface
             case 404:
                 throw new NotFoundException($message ?? 'Not Found', $body, $code);
             case 429:
-                $retryAfter = (int) ($response->getHeader('Retry-After')[0] ?? 0);
+                $retryAfter = $this->parseRetryAfter($response->getHeader('Retry-After')[0] ?? '');
                 throw new RateLimitException($message ?? 'Too Many Requests', $body, $retryAfter);
             default:
                 throw new ApiException($message ?? $exception->getMessage(), $body, $code);
         }
+    }
+
+    /**
+     * Parse a Retry-After header value into seconds.
+     *
+     * RFC 9110 allows two forms: delay-seconds and an HTTP-date. Casting the date form
+     * with (int) yields 0, so it is parsed explicitly and converted to a delay relative
+     * to now. Anything unparsable or in the past yields 0, which lets the retry policy
+     * fall back to its exponential backoff.
+     *
+     * @param string $value Raw header value
+     * @return int Seconds to wait, 0 if unknown
+     */
+    private function parseRetryAfter(string $value): int
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return 0;
+        }
+
+        if (preg_match('/^\d+$/', $value) === 1) {
+            return (int) $value;
+        }
+
+        $timestamp = strtotime($value);
+        if ($timestamp === false) {
+            return 0;
+        }
+
+        return max(0, $timestamp - time());
     }
 
     /**

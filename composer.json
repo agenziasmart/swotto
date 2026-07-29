@@ -16,6 +16,7 @@
   ],
   "require": {
     "php": ">=8.3",
+    "ext-mbstring": "*",
     "guzzlehttp/guzzle": "^7.5",
     "psr/log": "^3.0",
     "psr/http-message": "^1.0 || ^2.0",
@@ -39,9 +40,9 @@
   },
   "scripts": {
     "test": "phpunit",
-    "cs": "php-cs-fixer fix --dry-run --diff",
+    "cs": "php-cs-fixer fix --dry-run --diff --allow-risky=yes",
     "cs-fix": "php-cs-fixer fix --diff --allow-risky=yes",
-    "cs-dry": "php-cs-fixer fix --dry-run --diff",
+    "cs-dry": "php-cs-fixer fix --dry-run --diff --allow-risky=yes",
     "phpstan": "phpstan analyse --configuration=phpstan.neon",
     "analyze": "phpstan analyse --configuration=phpstan.neon"
   },

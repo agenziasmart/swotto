@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Swotto\Tests;
 
+use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamInterface;
 use Swotto\Exception\SecurityException;
 use Swotto\Response\SwottoResponse;
 
@@ -46,13 +46,12 @@ class SecurityTest extends TestCase
 
     private function createMockResponseWithStream(string $content): SwottoResponse
     {
-        $stream = $this->createStub(StreamInterface::class);
-        $stream->method('eof')->willReturnOnConsecutiveCalls(false, true);
-        $stream->method('read')->willReturn($content);
-
         $response = $this->createStub(ResponseInterface::class);
-        $response->method('getBody')->willReturn($stream);
-        $response->method('getHeaderLine')->willReturn('application/octet-stream');
+        $response->method('getBody')->willReturn(Utils::streamFor($content));
+        $response->method('getHeaderLine')
+            ->willReturnCallback(function ($header) {
+                return $header === 'Content-Type' ? 'application/octet-stream' : '';
+            });
 
         return new SwottoResponse($response);
     }

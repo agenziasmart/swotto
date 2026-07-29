@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Swotto\Tests;
 
+use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Response\SwottoResponse;
@@ -54,8 +54,7 @@ class SwottoClientMethodsTest extends TestCase
 
     public function testGetResponseReturnsSwottoResponse(): void
     {
-        $mockStream = $this->createStub(StreamInterface::class);
-        $mockStream->method('getContents')->willReturn('{"data": "test"}');
+        $mockStream = Utils::streamFor('{"data": "test"}');
 
         $mockResponse = $this->createStub(ResponseInterface::class);
         $mockResponse->method('getBody')->willReturn($mockStream);
@@ -73,9 +72,8 @@ class SwottoClientMethodsTest extends TestCase
 
     public function testGetResponseWithOptions(): void
     {
-        $mockStream = $this->createStub(StreamInterface::class);
         $mockResponse = $this->createStub(ResponseInterface::class);
-        $mockResponse->method('getBody')->willReturn($mockStream);
+        $mockResponse->method('getBody')->willReturn(Utils::streamFor(''));
         $mockResponse->method('getHeaderLine')->willReturn('application/pdf');
 
         $options = ['timeout' => 60];
@@ -95,9 +93,7 @@ class SwottoClientMethodsTest extends TestCase
         $content = 'PDF file content here';
         $filePath = $this->tempDir . '/downloaded.pdf';
 
-        $mockStream = $this->createStub(StreamInterface::class);
-        $mockStream->method('eof')->willReturnOnConsecutiveCalls(false, true);
-        $mockStream->method('read')->willReturn($content);
+        $mockStream = Utils::streamFor($content);
 
         $mockResponse = $this->createStub(ResponseInterface::class);
         $mockResponse->method('getBody')->willReturn($mockStream);
@@ -121,9 +117,7 @@ class SwottoClientMethodsTest extends TestCase
         $filePath = $this->tempDir . '/file.txt';
         $options = ['headers' => ['Accept' => 'application/octet-stream']];
 
-        $mockStream = $this->createStub(StreamInterface::class);
-        $mockStream->method('eof')->willReturnOnConsecutiveCalls(false, true);
-        $mockStream->method('read')->willReturn($content);
+        $mockStream = Utils::streamFor($content);
 
         $mockResponse = $this->createStub(ResponseInterface::class);
         $mockResponse->method('getBody')->willReturn($mockStream);
@@ -141,9 +135,8 @@ class SwottoClientMethodsTest extends TestCase
 
     public function testDownloadToFileThrowsOnInvalidPath(): void
     {
-        $mockStream = $this->createStub(StreamInterface::class);
         $mockResponse = $this->createStub(ResponseInterface::class);
-        $mockResponse->method('getBody')->willReturn($mockStream);
+        $mockResponse->method('getBody')->willReturn(Utils::streamFor(''));
         $mockResponse->method('getHeaderLine')->willReturn('application/pdf');
 
         $this->mockHttpClient->expects($this->once())

@@ -194,6 +194,58 @@ class GuzzleHttpClientTest extends TestCase
         }
     }
 
+    /**
+     * RFC 9110 allows Retry-After as an HTTP-date. Casting that form with (int) yielded 0,
+     * silently discarding the server's instruction.
+     */
+    public function testRateLimitParsesHttpDateRetryAfter(): void
+    {
+        $retryAt = gmdate('D, d M Y H:i:s \G\M\T', time() + 120);
+        $response = new Response(429, ['Retry-After' => [$retryAt]], '{}');
+        $request = new Request('GET', 'test');
+        $exception = new RequestException('Too Many Requests', $request, $response);
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willThrowException($exception);
+
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->request('GET', 'test');
+            $this->fail('Expected RateLimitException');
+        } catch (RateLimitException $e) {
+            // Allow a second of slack for clock movement during the test.
+            $this->assertGreaterThanOrEqual(118, $e->getRetryAfter());
+            $this->assertLessThanOrEqual(120, $e->getRetryAfter());
+        }
+    }
+
+    /**
+     * An unparsable or past Retry-After yields 0, letting the backoff take over.
+     */
+    public function testRateLimitIgnoresUnusableRetryAfter(): void
+    {
+        $response = new Response(429, ['Retry-After' => ['not-a-date']], '{}');
+        $request = new Request('GET', 'test');
+        $exception = new RequestException('Too Many Requests', $request, $response);
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willThrowException($exception);
+
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->request('GET', 'test');
+            $this->fail('Expected RateLimitException');
+        } catch (RateLimitException $e) {
+            $this->assertSame(0, $e->getRetryAfter());
+        }
+    }
+
     public function testConnectException(): void
     {
         $request = new Request('GET', 'test');

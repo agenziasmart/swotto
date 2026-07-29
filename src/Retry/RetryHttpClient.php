@@ -165,8 +165,11 @@ final class RetryHttpClient implements HttpClientInterface
      */
     private function calculateDelay(\Exception $e, int $attempt): int
     {
+        // A server-supplied Retry-After is honoured, but never beyond the configured cap:
+        // an unbounded value (Retry-After: 86400 is legitimate) would park the worker for
+        // a day on a single response.
         if ($e instanceof RateLimitException && $e->getRetryAfter() > 0) {
-            return $e->getRetryAfter() * 1000;
+            return min($e->getRetryAfter() * 1000, $this->maxDelayMs);
         }
 
         $delay = (int) ($this->initialDelayMs * pow($this->multiplier, $attempt - 1));
