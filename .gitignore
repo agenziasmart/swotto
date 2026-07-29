@@ -32,11 +32,11 @@ Thumbs.db
 !.editorconfig
 !.gitattributes
 
-# Claude Code files and directories
-CLAUDE.md
+# Claude Code working directory — stays out of a public repo: it holds internal
+# brainstorming, task notes and local permissions. CLAUDE.md itself is tracked:
+# it is technical documentation of the SDK, and AGENTS.md points at it.
 .claude/
 .claude*
-**/CLAUDE.md
 
 # Security - Prevent sensitive data commits
 # Build and cache files (may contain sensitive data)
