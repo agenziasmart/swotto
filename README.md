@@ -20,7 +20,7 @@ Swotto simplifies API integration with built-in authentication, error handling, 
 - **Immutable** - Fully stateless, worker-safe (FrankenPHP/Swoole)
 - **Flexible** - Dual authentication (DevApp + Bearer tokens)
 - **Smart responses** - Auto-detect JSON, CSV, PDF formats
-- **Tested** - 297 tests, 886 assertions
+- **Tested** - 302 tests, 895 assertions
 
 ## Table of Contents
 

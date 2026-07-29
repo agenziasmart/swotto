@@ -213,6 +213,75 @@ class ContractRegressionTest extends TestCase
         $this->assertSame(['a' => '1', 'b' => '2', 'c' => ''], $response->asArray()[0]);
     }
 
+    /**
+     * The SW4 API exports with a semicolon, the convention Excel expects in most of Europe.
+     * Assuming a comma parsed every record as one column keyed by the whole header line —
+     * silently, since nothing about it looks like a failure.
+     */
+    public function testCsvDetectsSemicolonDelimiter(): void
+    {
+        $csv = "\"Nome Cliente\";\"Partita IVA\";Email\nACME Srl;IT12345678901;info@example.com\n";
+        $response = new SwottoResponse(new Response(200, ['Content-Type' => 'text/csv'], $csv));
+
+        $rows = $response->asArray();
+
+        $this->assertCount(1, $rows);
+        $this->assertSame(
+            ['Nome Cliente' => 'ACME Srl', 'Partita IVA' => 'IT12345678901', 'Email' => 'info@example.com'],
+            $rows[0]
+        );
+    }
+
+    public function testCsvDetectsTabDelimiter(): void
+    {
+        $csv = "a\tb\tc\n1\t2\t3\n";
+        $response = new SwottoResponse(new Response(200, ['Content-Type' => 'text/csv'], $csv));
+
+        $this->assertSame(['a' => '1', 'b' => '2', 'c' => '3'], $response->asArray()[0]);
+    }
+
+    /**
+     * A separator inside a quoted field must not win the vote.
+     */
+    public function testCsvDelimiterDetectionIgnoresQuotedSeparators(): void
+    {
+        $csv = "name;notes\n\"ACME\";\"Bolt, hex, 8mm, zinc\"\n";
+        $response = new SwottoResponse(new Response(200, ['Content-Type' => 'text/csv'], $csv));
+
+        $rows = $response->asArray();
+
+        $this->assertSame(['name' => 'ACME', 'notes' => 'Bolt, hex, 8mm, zinc'], $rows[0]);
+    }
+
+    /**
+     * A single-column CSV has no separator to detect; the comma fallback must still work.
+     */
+    public function testCsvSingleColumnStillParses(): void
+    {
+        $csv = "email\nuno@example.com\ndue@example.com\n";
+        $response = new SwottoResponse(new Response(200, ['Content-Type' => 'text/csv'], $csv));
+
+        $rows = $response->asArray();
+
+        $this->assertCount(2, $rows);
+        $this->assertSame(['email' => 'uno@example.com'], $rows[0]);
+    }
+
+    /**
+     * A UTF-8 BOM precedes the header in exports meant for Excel.
+     */
+    public function testCsvHandlesUtf8BomBeforeHeader(): void
+    {
+        $csv = "\xEF\xBB\xBFname;city\nACME;Milano\n";
+        $response = new SwottoResponse(new Response(200, ['Content-Type' => 'text/csv'], $csv));
+
+        $rows = $response->asArray();
+
+        $this->assertCount(1, $rows);
+        $this->assertSame('ACME', reset($rows[0]));
+        $this->assertSame('Milano', $rows[0]['city']);
+    }
+
     // ========== BINARY DETECTION ==========
 
     /**

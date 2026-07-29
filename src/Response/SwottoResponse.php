@@ -519,7 +519,9 @@ final class SwottoResponse
             fwrite($handle, $content);
             rewind($handle);
 
-            $headers = fgetcsv($handle, 0, ',', '"', '\\');
+            $delimiter = $this->detectCsvDelimiter($content);
+
+            $headers = fgetcsv($handle, 0, $delimiter, '"', '\\');
             if (!is_array($headers)) {
                 return [];
             }
@@ -532,7 +534,7 @@ final class SwottoResponse
             $columnCount = count($safeHeaders);
             $data = [];
 
-            while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
+            while (($row = fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
                 if ($row === [null]) {
                     // A blank line yields [null]; skip it rather than emit an empty record.
                     continue;
@@ -548,6 +550,46 @@ final class SwottoResponse
         } finally {
             fclose($handle);
         }
+    }
+
+    /**
+     * Detect the delimiter used by a CSV payload, from its header line.
+     *
+     * Assuming a comma is wrong often enough to matter: the SW4 API exports with a
+     * semicolon, the convention Excel expects in most of Europe. Getting it wrong is not a
+     * loud failure — every record parses as a single column whose key is the whole header
+     * line — so the payload is inspected rather than assumed.
+     *
+     * Each candidate is counted with a quote-aware parse, so separators inside quoted
+     * fields do not vote. The comma stays the fallback when nothing wins.
+     *
+     * @param string $content Full CSV payload
+     * @return string Detected delimiter
+     */
+    private function detectCsvDelimiter(string $content): string
+    {
+        // strtok() on an empty subject returns false, which covers a payload made only of a
+        // BOM and whitespace.
+        $headerLine = strtok(ltrim($content, "\xEF\xBB\xBF \t\r\n"), "\n");
+        if ($headerLine === false) {
+            return ',';
+        }
+
+        $headerLine = rtrim($headerLine, "\r");
+
+        $delimiter = ',';
+        $bestFieldCount = 1;
+
+        foreach ([',', ';', "\t", '|'] as $candidate) {
+            $fieldCount = count(str_getcsv($headerLine, $candidate, '"', '\\'));
+
+            if ($fieldCount > $bestFieldCount) {
+                $bestFieldCount = $fieldCount;
+                $delimiter = $candidate;
+            }
+        }
+
+        return $delimiter;
     }
 
     /**

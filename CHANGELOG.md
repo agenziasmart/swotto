@@ -46,6 +46,14 @@ requests that cannot be replayed safely.
   field name, since the value lives under `contents` while the name lives under `name`.
 - **CSV parsing no longer tears quoted multi-line fields apart.** Records were split on
   `\n` before parsing, so a quoted field containing a line break became two rows.
+- **The CSV delimiter is detected instead of assumed.** The comma was hardcoded, but the SW4
+  API exports with a semicolon — the convention Excel expects in most of Europe — so
+  `asArray()` on a real export returned one unusable column per record, keyed by the entire
+  header line, without anything looking like a failure. Comma, semicolon, tab and pipe are
+  now detected from the header with a quote-aware count, and a UTF-8 BOM no longer confuses
+  the first column name. Verified against a live export: 262 records went from 1 column to
+  10. A test previously asserted the broken behaviour as if it were a design decision; it
+  now asserts the correct one.
 - **`isBinary()` recognises the formats an ERP exports**: `application/octet-stream`,
   archives, and the Office and OpenDocument families. A spreadsheet download was previously
   reported as non-binary.
