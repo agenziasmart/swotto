@@ -33,6 +33,21 @@ requests that cannot be replayed safely.
   commercial and personal data; the info-level line keeps method and path, with the query
   string stripped since tokens travel there often enough to matter.
 
+- **Minimum dependency versions raised to releases with no open advisories**:
+  `guzzlehttp/guzzle` to `^7.15.1` and `guzzlehttp/psr7`, previously only transitive, now
+  required explicitly at `^2.12.3`. The old `^7.5` floor allowed a resolution with known
+  host-confusion and CRLF-injection issues in the component that carries both tokens.
+
+### Documentation
+
+- **README examples use endpoints that exist.** `auth/login`, `customers`,
+  `account/profile`, `documents` and the rest were invented; SW4 names resources in the
+  singular and the routes are `auth`, `customer`, `me`, `product/{uuid}/documents`. Login
+  takes `username`, not `email`, and returns `data.access_token`, not `data.token`. Upload
+  examples now name the field each endpoint expects — `logo`, `document`, `file` — which is
+  not guessed from the filename. Every endpoint in the README was verified against a running
+  SW4 API.
+
 ### Fixed
 
 - **Application headers no longer follow a cross-origin redirect.** Guzzle strips

@@ -70,7 +70,7 @@ $client = new SwottoClient([
 ]);
 
 // Make your first API call
-$customers = $client->get('customers');
+$customers = $client->get('customer');
 print_r($customers);
 ```
 
@@ -110,7 +110,7 @@ $client = new SwottoClient([
 ]);
 
 // Option B: Per-call (overrides default for this request)
-$orders = $client->get('orders', [
+$orders = $client->get('salesorder', [
     'bearer_token' => $userBearerToken,
 ]);
 ```
@@ -127,24 +127,30 @@ $client = new SwottoClient([
 ]);
 
 // 2. User login
-$loginResponse = $client->post('auth/login', [
-    'email' => 'user@example.com',
-    'password' => 'password',
+$loginResponse = $client->post('auth', [
+    'username' => 'user@example.com',
+    'password' => 'YOUR_PASSWORD',
 ]);
 
 // 3. Create authenticated client with Bearer token
 $authClient = new SwottoClient([
     'url' => 'https://api.sw4.it',
     'key' => 'YOUR_DEVAPP_TOKEN',
-    'bearer_token' => $loginResponse['data']['token'],
+    'bearer_token' => $loginResponse['data']['access_token'],
     'client_ip' => $_SERVER['REMOTE_ADDR'],
     'client_user_agent' => $_SERVER['HTTP_USER_AGENT'],
 ]);
 
 // 4. All requests are now authenticated
-$profile = $authClient->get('account/profile');
-$customers = $authClient->get('customers');
+$profile = $authClient->get('me');
+$customers = $authClient->get('customer');
+
+// 5. End the session
+$authClient->post('auth/logout');
 ```
+
+The login response carries `data.access_token` and `data.expires_at`; the token is what
+`bearer_token` expects.
 
 **For FrankenPHP/Swoole workers**, use per-call options instead:
 
@@ -155,7 +161,7 @@ $client = new SwottoClient([
 ]);
 
 // Each request carries its own context - no state leakage
-$profile = $client->get('account/profile', [
+$profile = $client->get('me', [
     'bearer_token' => $userToken,
     'client_ip' => $_SERVER['REMOTE_ADDR'],
     'client_user_agent' => $_SERVER['HTTP_USER_AGENT'],
@@ -172,35 +178,40 @@ $profile = $client->get('account/profile', [
 
 ### HTTP Methods
 
+SW4 resources are named in the singular, and records are addressed by UUID:
+
 ```php
 // GET request
-$data = $client->get('customers');
-$data = $client->get('customers', ['query' => ['limit' => 10]]);
+$data = $client->get('customer');
+$data = $client->get('customer', ['query' => ['limit' => 10]]);
 
 // POST request
-$result = $client->post('customers', [
-    'name' => 'John Doe',
-    'email' => 'john@example.com',
+$result = $client->post('customer', [
+    'name' => 'ACME Srl',
+    'business_code' => 'ACME01',
+    'tax_code' => 'CMEXXX00X00X000X',
 ]);
 
 // PUT request (full update)
-$result = $client->put('customers/123', [
-    'name' => 'Jane Doe',
+$result = $client->put("customer/{$uuid}", [
+    'name' => 'ACME Holding Srl',
 ]);
 
 // PATCH request (partial update)
-$result = $client->patch('customers/123', [
-    'email' => 'jane@example.com',
+$result = $client->patch("customer/{$uuid}", [
+    'email' => 'info@example.com',
 ]);
 
 // DELETE request
-$result = $client->delete('customers/123');
+$result = $client->delete("customer/{$uuid}");
 ```
 
 ### Pagination
 
+Every list endpoint answers with `data` plus a `meta.pagination` block:
+
 ```php
-$response = $client->get('customers', ['query' => ['page' => 1, 'limit' => 50]]);
+$response = $client->get('customer', ['query' => ['page' => 1, 'limit' => 50]]);
 
 $customers = $response['data'];
 $pagination = $response['meta']['pagination'];
@@ -217,20 +228,25 @@ Handle JSON, CSV, PDF, and binary content:
 
 ```php
 // Get smart response wrapper
-$response = $client->getResponse('reports/monthly');
+$response = $client->getResponse('customer/export/csv');
 
 // Content type detection
 if ($response->isJson()) {
     $data = $response->asArray();
 } elseif ($response->isCsv()) {
-    $csv = $response->asString();
-} elseif ($response->isPdf()) {
+    $rows = $response->asArray();   // one entry per record, keyed by header
+    $csv = $response->asString();   // or the raw payload
+} elseif ($response->isPdf() || $response->isBinary()) {
     $response->saveToFile('/path/to/report.pdf');
 }
 
 // Direct file download
-$client->downloadToFile('exports/large-dataset.csv', '/path/to/data.csv');
+$client->downloadToFile('customer/export/csv', '/path/to/customers.csv');
 ```
+
+Most SW4 collections expose `{resource}/export/csv` — `customer`, `product`, `supplier`,
+`salesorder`, `purchaseorder`, `invoice`, `ddt` and others. The delimiter is detected from
+the payload, so a semicolon-separated export parses correctly without configuration.
 
 ### Retry with Exponential Backoff
 
@@ -265,10 +281,11 @@ $client = new SwottoClient([
 Only safe and idempotent methods are retried automatically: `GET`, `HEAD`, `PUT`, `DELETE`,
 `OPTIONS`, `TRACE`. A network error is ambiguous — the request may well have reached the
 server — so replaying a `POST` or `PATCH` could duplicate an order, a document or an upload.
-Accept that risk per request when the endpoint is safe to repeat:
+Accept that risk per request when the endpoint is safe to repeat — cancelling an already
+cancelled batch, for instance, changes nothing the second time:
 
 ```php
-$client->post('webhooks/ping', $payload, ['retry_non_idempotent' => true]);
+$client->post("batch/{$uuid}/cancel", [], ['retry_non_idempotent' => true]);
 ```
 
 ### Per-Call Options
@@ -282,14 +299,14 @@ $client = new SwottoClient([
 ]);
 
 // Each request carries its own context
-$ordersA = $client->get('orders', [
+$ordersA = $client->get('salesorder', [
     'bearer_token' => $userAToken,
     'client_ip' => $requestA->getClientIp(),
     'language' => 'it',
 ]);
 
 // No state leakage between requests
-$ordersB = $client->get('orders', [
+$ordersB = $client->get('salesorder', [
     'bearer_token' => $userBToken,
     'client_ip' => $requestB->getClientIp(),
     'language' => 'en',
@@ -319,41 +336,48 @@ $client = new SwottoClient([
 ]);
 
 // Uses defaults: bearer_token=default-token, language=it
-$data = $client->get('customers');
+$data = $client->get('customer');
 
 // Override language for this request only
-$data = $client->get('customers', ['language' => 'en']);
+$data = $client->get('customer', ['language' => 'en']);
 
 // Next request uses default 'it' again (immutable)
-$other = $client->get('products');
+$other = $client->get('product');
 ```
 
 ## File Uploads
 
+Each SW4 upload endpoint expects a specific field name — `logo` for a customer logo,
+`document` for a product attachment, `file` for a batch import. Pass it as the third
+argument; it is not guessed from the filename.
+
 ```php
-// Upload single file
-$fileHandle = fopen('/path/to/document.pdf', 'r');
-$result = $client->postFile('documents', $fileHandle, 'document', [
-    'title' => 'Important Document',
-    'category' => 'contracts',
+// Customer logo — field name "logo"
+$fileHandle = fopen('/path/to/logo.png', 'r');
+$result = $client->postFile("customer/{$uuid}/logo", $fileHandle, 'logo');
+
+// Product attachment — field name "document", with metadata
+$fileHandle = fopen('/path/to/datasheet.pdf', 'r');
+$result = $client->postFile("product/{$uuid}/documents", $fileHandle, 'document', [
+    'title' => 'Technical datasheet',
 ]);
 
-// Upload multiple files
+// CSV batch import — field name "file"
+$fileHandle = fopen('/path/to/customers.csv', 'r');
+$result = $client->postFile('customer/batch', $fileHandle, 'file');
+
+// Several files in one request
 $files = [
-    'attachment1' => fopen('/path/to/file1.pdf', 'r'),
-    'attachment2' => fopen('/path/to/file2.jpg', 'r'),
+    'document' => fopen('/path/to/first.pdf', 'r'),
+    'attachment' => fopen('/path/to/second.jpg', 'r'),
 ];
-$result = $client->postFiles('documents/batch', $files, [
-    'batch_name' => 'Monthly Reports',
+$result = $client->postFiles("product/{$uuid}/documents", $files, [
+    'title' => 'Product pack',
 ]);
 
-// Update with file (PUT)
-$fileHandle = fopen('/path/to/updated.pdf', 'r');
-$result = $client->putFile('documents/123', $fileHandle);
-
-// Patch with file
-$fileHandle = fopen('/path/to/partial.pdf', 'r');
-$result = $client->patchFile('documents/123', $fileHandle);
+// Replace or amend an existing record with a file
+$result = $client->putFile("customer/{$uuid}/logo", fopen('/path/to/new-logo.png', 'r'), 'logo');
+$result = $client->patchFile("product/{$uuid}/documents/{$docUuid}", $fileHandle, 'document');
 ```
 
 ## Error Handling
@@ -390,11 +414,12 @@ use Swotto\Exception\{
 };
 
 try {
-    $result = $client->post('customers', $data);
+    $result = $client->post('customer', $data);
 
 } catch (ValidationException $e) {
     // Handle validation errors (400 and 422)
-    $errors = $e->getErrorData();
+    // SW4 reports the offending fields under error.details, keyed by field name
+    $details = $e->getErrorData()['error']['details'] ?? [];
 
 } catch (AuthenticationException $e) {
     // Token expired or invalid (401)
@@ -559,7 +584,7 @@ Use `downloadToFile()` for memory-safe streaming to disk:
 
 ```php
 // Direct download to disk (memory-safe)
-$client->downloadToFile('exports/huge-dataset.csv', '/path/to/file.csv');
+$client->downloadToFile('product/export/csv', '/path/to/products.csv');
 ```
 
 `downloadToFile()` streams straight to disk and never buffers the whole body.
