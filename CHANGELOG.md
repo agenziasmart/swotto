@@ -5,10 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.3.0] - 2026-07-29
+## [2.3.0] - 2026-08-08
 
 Aligns the public contract with the API the SDK actually talks to, and stops replaying
 requests that cannot be replayed safely.
+
+> Includes everything listed under 2.2.1 below. That entry was written on 2026-07-29 and
+> never got a tag of its own, so its fixes reach consumers here — there is no `v2.2.1` to
+> install and there will not be one.
 
 ### Changed
 
@@ -79,6 +83,8 @@ requests that cannot be replayed safely.
 ---
 
 ## [2.2.1] - 2026-07-29
+
+> Never released under its own tag. These fixes ship as part of 2.3.0 — install that.
 
 Correctness fixes for response handling and retry pacing. No public API changes: every
 behaviour corrected here was either wrong or unspecified.
