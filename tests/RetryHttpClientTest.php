@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Swotto\Tests;
 
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -218,6 +219,143 @@ class RetryHttpClientTest extends TestCase
         $response = $this->retryClient->request('GET', '/test', []);
 
         $this->assertEquals($expectedResponse, $response);
+    }
+
+    /**
+     * A server-supplied Retry-After must never exceed retry_max_delay_ms.
+     *
+     * Without the cap, `Retry-After: 86400` — a legitimate value — parked the worker for
+     * a full day on a single response.
+     */
+    public function testRetryAfterIsCappedByMaxDelay(): void
+    {
+        $expectedResponse = ['data' => 'success'];
+
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with('GET', '/test', [])
+            ->andThrow(new RateLimitException('Too Many Requests', [], 86400)); // 24 hours
+
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with('GET', '/test', [])
+            ->andReturn($expectedResponse);
+
+        $startedAt = microtime(true);
+        $response = $this->retryClient->request('GET', '/test', []);
+        $elapsedMs = (microtime(true) - $startedAt) * 1000;
+
+        $this->assertEquals($expectedResponse, $response);
+        $this->assertLessThan(
+            1000,
+            $elapsedMs,
+            'Retry-After must be capped at retry_max_delay_ms (100 ms in this configuration)'
+        );
+    }
+
+    // ========== NON-IDEMPOTENT METHODS ==========
+
+    /**
+     * A network error is ambiguous: the POST may already have been applied. Replaying it
+     * can duplicate an order or an upload, so it is not retried by default.
+     */
+    public function testPostIsNotRetriedByDefault(): void
+    {
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with('POST', '/orders', [])
+            ->andThrow(new NetworkException('Connection reset'));
+
+        $this->expectException(NetworkException::class);
+
+        $this->retryClient->request('POST', '/orders', []);
+    }
+
+    public function testPatchIsNotRetriedByDefault(): void
+    {
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with('PATCH', '/orders/1', [])
+            ->andThrow(new ApiException('Server error', [], 503));
+
+        $this->expectException(ApiException::class);
+
+        $this->retryClient->request('PATCH', '/orders/1', []);
+    }
+
+    /**
+     * The caller can accept the duplication risk explicitly, per request.
+     */
+    public function testPostIsRetriedWithExplicitOptIn(): void
+    {
+        $expectedResponse = ['id' => 42];
+
+        // The opt-in flag is consumed by the decorator and must not reach the transport.
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with('POST', '/orders', [])
+            ->andThrow(new NetworkException('Connection reset'));
+
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with('POST', '/orders', [])
+            ->andReturn($expectedResponse);
+
+        $response = $this->retryClient->request('POST', '/orders', ['retry_non_idempotent' => true]);
+
+        $this->assertEquals($expectedResponse, $response);
+    }
+
+    /**
+     * PUT and DELETE are idempotent by definition and keep retrying without opt-in.
+     */
+    #[DataProvider('idempotentMethodProvider')]
+    public function testIdempotentMethodsAreRetried(string $method): void
+    {
+        $expectedResponse = ['ok' => true];
+
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with($method, '/resource', [])
+            ->andThrow(new NetworkException('Connection reset'));
+
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with($method, '/resource', [])
+            ->andReturn($expectedResponse);
+
+        $response = $this->retryClient->request($method, '/resource', []);
+
+        $this->assertEquals($expectedResponse, $response);
+    }
+
+    /**
+     * @return array<int, array<int, string>>
+     */
+    public static function idempotentMethodProvider(): array
+    {
+        return [['GET'], ['HEAD'], ['PUT'], ['DELETE'], ['OPTIONS']];
+    }
+
+    public function testRequestRawHonoursTheSameMethodPolicy(): void
+    {
+        $this->mockClient
+            ->shouldReceive('requestRaw')
+            ->once()
+            ->with('POST', '/upload', [])
+            ->andThrow(new NetworkException('Connection reset'));
+
+        $this->expectException(NetworkException::class);
+
+        $this->retryClient->requestRaw('POST', '/upload', []);
     }
 
     // ========== NO RETRY ON 4XX CLIENT ERRORS ==========

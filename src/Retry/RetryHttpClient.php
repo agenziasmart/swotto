@@ -20,6 +20,23 @@ use Swotto\Exception\RateLimitException;
  */
 final class RetryHttpClient implements HttpClientInterface
 {
+    /**
+     * HTTP methods that can be replayed safely.
+     *
+     * A network error is ambiguous by definition: the request may well have reached the
+     * server. Replaying a POST on that basis can duplicate an order, a document or an
+     * upload, so only methods defined as safe or idempotent by RFC 9110 are retried
+     * automatically. Everything else needs the caller to opt in per request.
+     *
+     * @var array<int, string>
+     */
+    private const IDEMPOTENT_METHODS = ['GET', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE'];
+
+    /**
+     * Per-call option that opts a non-idempotent request into retrying.
+     */
+    private const OPT_IN_OPTION = 'retry_non_idempotent';
+
     private readonly HttpClientInterface $decoratedClient;
 
     private readonly int $maxAttempts;
@@ -60,10 +77,14 @@ final class RetryHttpClient implements HttpClientInterface
      */
     public function request(string $method, string $uri, array $options = []): array
     {
+        $retryable = $this->mayRetry($method, $options);
+        unset($options[self::OPT_IN_OPTION]);
+
         return $this->executeWithRetry(
             fn () => $this->decoratedClient->request($method, $uri, $options),
             $method,
-            $uri
+            $uri,
+            $retryable
         );
     }
 
@@ -72,11 +93,31 @@ final class RetryHttpClient implements HttpClientInterface
      */
     public function requestRaw(string $method, string $uri, array $options = []): ResponseInterface
     {
+        $retryable = $this->mayRetry($method, $options);
+        unset($options[self::OPT_IN_OPTION]);
+
         return $this->executeWithRetry(
             fn () => $this->decoratedClient->requestRaw($method, $uri, $options),
             $method,
-            $uri
+            $uri,
+            $retryable
         );
+    }
+
+    /**
+     * Decide whether this request may be replayed at all.
+     *
+     * @param string $method HTTP method
+     * @param array<string, mixed> $options Request options
+     * @return bool True if the request is safe to retry
+     */
+    private function mayRetry(string $method, array $options): bool
+    {
+        if (in_array(strtoupper($method), self::IDEMPOTENT_METHODS, true)) {
+            return true;
+        }
+
+        return ($options[self::OPT_IN_OPTION] ?? false) === true;
     }
 
     /**
@@ -86,12 +127,17 @@ final class RetryHttpClient implements HttpClientInterface
      * @param callable(): T $operation The operation to execute
      * @param string $method HTTP method for logging
      * @param string $uri URI for logging
+     * @param bool $retryable Whether this request may be replayed at all
      * @return T Operation result
      *
      * @throws \Exception The last exception if all retries fail
      */
-    private function executeWithRetry(callable $operation, string $method, string $uri): mixed
-    {
+    private function executeWithRetry(
+        callable $operation,
+        string $method,
+        string $uri,
+        bool $retryable = true
+    ): mixed {
         $lastException = null;
 
         for ($attempt = 1; $attempt <= $this->maxAttempts; $attempt++) {
@@ -110,7 +156,7 @@ final class RetryHttpClient implements HttpClientInterface
             } catch (\Exception $e) {
                 $lastException = $e;
 
-                if (!$this->isRetryable($e) || $attempt >= $this->maxAttempts) {
+                if (!$retryable || !$this->isRetryable($e) || $attempt >= $this->maxAttempts) {
                     throw $e;
                 }
 
@@ -165,8 +211,11 @@ final class RetryHttpClient implements HttpClientInterface
      */
     private function calculateDelay(\Exception $e, int $attempt): int
     {
+        // A server-supplied Retry-After is honoured, but never beyond the configured cap:
+        // an unbounded value (Retry-After: 86400 is legitimate) would park the worker for
+        // a day on a single response.
         if ($e instanceof RateLimitException && $e->getRetryAfter() > 0) {
-            return $e->getRetryAfter() * 1000;
+            return min($e->getRetryAfter() * 1000, $this->maxDelayMs);
         }
 
         $delay = (int) ($this->initialDelayMs * pow($this->multiplier, $attempt - 1));

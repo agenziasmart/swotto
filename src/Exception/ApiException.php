@@ -15,7 +15,7 @@ class ApiException extends SwottoException implements SwottoExceptionInterface
      * Constructor.
      *
      * @param string $message Error message
-     * @param array $errorData Error data from the API response
+     * @param array<string, mixed> $errorData Error data from the API response
      * @param int $code HTTP status code
      */
     public function __construct(string $message, array $errorData = [], int $code = 0)

@@ -16,13 +16,15 @@
   ],
   "require": {
     "php": ">=8.3",
-    "guzzlehttp/guzzle": "^7.5",
+    "ext-mbstring": "*",
+    "guzzlehttp/guzzle": "^7.15.1",
+    "guzzlehttp/psr7": "^2.12.3",
     "psr/log": "^3.0",
     "psr/http-message": "^1.0 || ^2.0",
     "psr/http-client": "^1.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^11.0",
+    "phpunit/phpunit": "^12.0",
     "mockery/mockery": "^1.6",
     "friendsofphp/php-cs-fixer": "^3.0",
     "phpstan/phpstan": "^2.0"
@@ -39,9 +41,9 @@
   },
   "scripts": {
     "test": "phpunit",
-    "cs": "php-cs-fixer fix --dry-run --diff",
+    "cs": "php-cs-fixer fix --dry-run --diff --allow-risky=yes",
     "cs-fix": "php-cs-fixer fix --diff --allow-risky=yes",
-    "cs-dry": "php-cs-fixer fix --dry-run --diff",
+    "cs-dry": "php-cs-fixer fix --dry-run --diff --allow-risky=yes",
     "phpstan": "phpstan analyse --configuration=phpstan.neon",
     "analyze": "phpstan analyse --configuration=phpstan.neon"
   },

@@ -88,6 +88,8 @@ final class Configuration
             }
         }
 
+        $this->validateUrl($config['url']);
+
         // Validate specific options
         if (isset($config['verify_ssl']) && !is_bool($config['verify_ssl'])) {
             throw new ConfigurationException('verify_ssl must be boolean');
@@ -141,6 +143,40 @@ final class Configuration
     }
 
     /**
+     * Validate the base URL.
+     *
+     * `http` is accepted alongside `https`: the documented Docker development setup talks
+     * to the API over `http://host.docker.internal:8081`, and rejecting it here would break
+     * every local environment for no gain — TLS is enforced where it belongs, in deployment.
+     *
+     * @param mixed $url Configured URL
+     * @return void
+     *
+     * @throws ConfigurationException When the URL is unusable
+     */
+    private function validateUrl(mixed $url): void
+    {
+        if (!is_string($url) || trim($url) === '') {
+            throw new ConfigurationException(
+                sprintf('url must be a non-empty string, %s given', get_debug_type($url))
+            );
+        }
+
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if ($scheme === false || $host === false || $host === null || $host === '') {
+            throw new ConfigurationException(sprintf('url is not a valid absolute URL: %s', $url));
+        }
+
+        if (!in_array(strtolower((string) $scheme), ['http', 'https'], true)) {
+            throw new ConfigurationException(
+                sprintf('url scheme must be http or https, "%s" given', (string) $scheme)
+            );
+        }
+    }
+
+    /**
      * Get all configuration values as array.
      *
      * @return array<string, mixed> Configuration values
@@ -169,7 +205,7 @@ final class Configuration
      */
     public function getBaseUrl(): string
     {
-        return rtrim($this->get('url'), '/');
+        return rtrim((string) $this->get('url'), '/');
     }
 
     /**

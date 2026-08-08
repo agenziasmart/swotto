@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Swotto\Tests;
 
 use GuzzleHttp\Psr7\Stream;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
@@ -27,7 +28,7 @@ class SwottoClientFileUploadTest extends TestCase
     protected function setUp(): void
     {
         $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
-        $this->mockLogger = $this->createMock(LoggerInterface::class);
+        $this->mockLogger = $this->createStub(LoggerInterface::class);
 
         $this->client = new SwottoClient(
             ['url' => 'https://api.example.com'],
@@ -541,6 +542,7 @@ class SwottoClientFileUploadTest extends TestCase
     /**
      * Test postFile throws InvalidArgumentException for invalid file type.
      */
+    #[AllowMockObjectsWithoutExpectations]
     public function testPostFileThrowsExceptionForInvalidType(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -554,6 +556,7 @@ class SwottoClientFileUploadTest extends TestCase
     /**
      * Test putFile throws InvalidArgumentException for invalid file type.
      */
+    #[AllowMockObjectsWithoutExpectations]
     public function testPutFileThrowsExceptionForInvalidType(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -567,6 +570,7 @@ class SwottoClientFileUploadTest extends TestCase
     /**
      * Test patchFile throws InvalidArgumentException for invalid file type.
      */
+    #[AllowMockObjectsWithoutExpectations]
     public function testPatchFileThrowsExceptionForInvalidType(): void
     {
         $this->expectException(\InvalidArgumentException::class);

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Swotto\Tests\Response;
 
+use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamInterface;
 use Swotto\Response\SwottoResponse;
 
 /**
@@ -16,13 +16,17 @@ use Swotto\Response\SwottoResponse;
  */
 class SwottoResponseBasicTest extends TestCase
 {
+    /**
+     * Build a response over a real PSR-7 stream.
+     *
+     * A hand-rolled StreamInterface stub only answers the methods it was told about, so it
+     * cannot show whether reading, rewinding and eof() actually behave. A real stream can.
+     */
     private function createMockResponse(string $contentType, string $content): ResponseInterface
     {
-        $stream = $this->createMock(StreamInterface::class);
-        $stream->method('getContents')->willReturn($content);
-        $stream->method('__toString')->willReturn($content);
+        $stream = Utils::streamFor($content);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
         $response->method('getHeaderLine')
             ->willReturnCallback(function ($header) use ($contentType) {

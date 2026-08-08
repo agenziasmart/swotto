@@ -27,17 +27,33 @@ final class SwottoResponse
     private const MAX_MEMORY_SIZE = 50 * 1024 * 1024; // 50MB
 
     /**
-     * Threshold (in bytes) above which streaming is used even for in-memory operations.
-     */
-    private const STREAMING_THRESHOLD = 10 * 1024 * 1024; // 10MB
-
-    /**
      * Chunk size for streaming operations.
      */
     private const CHUNK_SIZE = 8192; // 8KB
 
     /**
+     * Exact content types treated as binary, beyond the image/video/audio/font families.
+     *
+     * @var array<int, string>
+     */
+    private const BINARY_CONTENT_TYPES = [
+        'application/octet-stream',
+        'application/zip',
+        'application/x-zip-compressed',
+        'application/gzip',
+        'application/x-tar',
+        'application/x-7z-compressed',
+        'application/x-rar-compressed',
+        'application/msword',
+        'application/vnd.ms-excel',
+        'application/vnd.ms-powerpoint',
+        'application/rtf',
+    ];
+
+    /**
      * Cached parsed array data.
+     *
+     * @var array<array-key, mixed>|null
      */
     private ?array $cachedArray = null;
 
@@ -59,7 +75,9 @@ final class SwottoResponse
     /**
      * Get response content as array (for JSON or CSV).
      *
-     * @return array Parsed response data
+     * JSON keeps whatever shape the payload has; CSV yields a list of rows keyed by header.
+     *
+     * @return array<array-key, mixed> Parsed response data
      * @throws MemoryException If response is too large for memory
      * @throws StreamingException If JSON parsing fails
      */
@@ -105,22 +123,15 @@ final class SwottoResponse
 
         $contentLength = $this->getContentLength();
 
-        // Check memory limit
+        // Content-Length, when present, lets us reject an oversized response before
+        // reading a single byte. It is an optimisation, never the only safeguard:
+        // chunked responses and proxies that drop the header would slip past it.
         if ($contentLength !== null && $contentLength > self::MAX_MEMORY_SIZE) {
             throw MemoryException::responseTooLarge($contentLength, self::MAX_MEMORY_SIZE);
         }
 
-        // Use streaming for large responses
-        if ($contentLength !== null && $contentLength > self::STREAMING_THRESHOLD) {
-            $this->cachedString = $this->streamToString();
-        } else {
-            $stream = $this->response->getBody();
-            // Rewind stream if possible to ensure we read from the beginning
-            if ($stream->isSeekable()) {
-                $stream->rewind();
-            }
-            $this->cachedString = $stream->getContents();
-        }
+        // Always read in chunks so the limit applies to the bytes actually received.
+        $this->cachedString = $this->streamToString();
 
         return $this->cachedString;
     }
@@ -128,17 +139,34 @@ final class SwottoResponse
     /**
      * Save response content to file with security validations.
      *
+     * The stream is rewound when seekable, so saving after `asString()` or `asArray()`
+     * still writes the full content. A non-seekable stream that has already been consumed
+     * cannot be saved: the method fails explicitly rather than producing an empty file.
+     *
+     * On failure the partial file is removed, so a caller never finds a truncated
+     * artifact left behind by a call that threw.
+     *
      * @param string $path File path where to save the content
      * @return bool True on success
      * @throws SecurityException If path validation fails
      * @throws FileOperationException If file operations fail
-     * @throws StreamingException If streaming fails
+     * @throws StreamingException If the stream was consumed or the content is truncated
      */
     public function saveToFile(string $path): bool
     {
         $this->validatePath($path);
 
         $safePath = $this->buildSafePath($path);
+        $stream = $this->response->getBody();
+
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        } elseif ($stream->eof()) {
+            throw StreamingException::readFailure(
+                'the response stream is not seekable and has already been consumed; '
+                . 'call saveToFile() before reading the response'
+            );
+        }
 
         $handle = @fopen($safePath, 'wb');
         if ($handle === false) {
@@ -146,7 +174,6 @@ final class SwottoResponse
         }
 
         try {
-            $stream = $this->response->getBody();
             $bytesWritten = 0;
 
             while (!$stream->eof()) {
@@ -155,18 +182,55 @@ final class SwottoResponse
                     break;
                 }
 
-                $written = @fwrite($handle, $chunk);
-                if ($written === false) {
-                    throw StreamingException::writeFailure('fwrite returned false');
-                }
-
-                $bytesWritten += $written;
+                $bytesWritten += $this->writeChunk($handle, $chunk);
             }
 
-            return true;
-        } finally {
-            @fclose($handle);
+            $expectedLength = $this->getContentLength();
+            if ($expectedLength !== null && $expectedLength !== $bytesWritten) {
+                throw StreamingException::unexpectedEndOfStream($expectedLength, $bytesWritten);
+            }
+        } catch (\Throwable $exception) {
+            fclose($handle);
+            @unlink($safePath);
+
+            throw $exception;
         }
+
+        fclose($handle);
+
+        return true;
+    }
+
+    /**
+     * Write a full chunk to the file handle, looping over partial writes.
+     *
+     * `fwrite()` may write fewer bytes than requested without failing; returning early
+     * on the first call would silently drop the remainder of the chunk.
+     *
+     * @param resource $handle Open file handle
+     * @param string $chunk Chunk to write
+     * @return int Bytes written (always the full chunk length)
+     * @throws StreamingException If the handle stops accepting bytes
+     */
+    private function writeChunk($handle, string $chunk): int
+    {
+        $length = strlen($chunk);
+        $written = 0;
+
+        while ($written < $length) {
+            $result = @fwrite($handle, substr($chunk, $written));
+
+            if ($result === false || $result === 0) {
+                throw StreamingException::writeFailure(
+                    'fwrite stopped accepting data before the chunk was complete',
+                    $written
+                );
+            }
+
+            $written += $result;
+        }
+
+        return $written;
     }
 
     /**
@@ -218,10 +282,21 @@ final class SwottoResponse
     {
         $contentType = $this->normalizeContentType($this->getContentType());
 
-        return in_array($contentType, ['pdf'], true) ||
-               str_starts_with($contentType, 'image/') ||
-               str_starts_with($contentType, 'video/') ||
-               str_starts_with($contentType, 'audio/');
+        if (in_array($contentType, ['pdf'], true)) {
+            return true;
+        }
+
+        foreach (['image/', 'video/', 'audio/', 'font/'] as $prefix) {
+            if (str_starts_with($contentType, $prefix)) {
+                return true;
+            }
+        }
+
+        // The generic binary type plus the archive and Office families an ERP actually
+        // exports: without these, a spreadsheet download was reported as non-binary.
+        return in_array($contentType, self::BINARY_CONTENT_TYPES, true)
+            || str_starts_with($contentType, 'application/vnd.openxmlformats-officedocument.')
+            || str_starts_with($contentType, 'application/vnd.oasis.opendocument.');
     }
 
     /**
@@ -237,13 +312,20 @@ final class SwottoResponse
     /**
      * Get response content length.
      *
-     * @return int|null Content length in bytes, null if not available
+     * A missing, non-numeric or negative header yields null: an unusable value must not
+     * be silently coerced to 0, which downstream checks would read as a real length.
+     *
+     * @return int|null Content length in bytes, null if not available or not usable
      */
     public function getContentLength(): ?int
     {
-        $contentLength = $this->response->getHeaderLine('Content-Length');
+        $contentLength = trim($this->response->getHeaderLine('Content-Length'));
 
-        return $contentLength !== '' ? (int) $contentLength : null;
+        if ($contentLength === '' || preg_match('/^\d+$/', $contentLength) !== 1) {
+            return null;
+        }
+
+        return (int) $contentLength;
     }
 
     /**
@@ -345,6 +427,12 @@ final class SwottoResponse
     private function streamToString(): string
     {
         $stream = $this->response->getBody();
+
+        // Rewind when possible so a previous read does not silently yield an empty string.
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+
         $content = '';
         $totalRead = 0;
 
@@ -370,7 +458,7 @@ final class SwottoResponse
      * Parse JSON content safely.
      *
      * @param string $content JSON string
-     * @return array Parsed JSON data
+     * @return array<array-key, mixed> Parsed JSON data
      * @throws StreamingException If JSON parsing fails
      */
     private function parseJsonContent(string $content): array
@@ -390,54 +478,118 @@ final class SwottoResponse
             );
         }
 
-        return $decoded ?? [];
+        if ($decoded === null) {
+            return [];
+        }
+
+        // Syntactically valid but scalar JSON (`42`, `"text"`, `true`) cannot satisfy the
+        // array contract. Raising a domain exception beats letting a TypeError escape.
+        if (!is_array($decoded)) {
+            throw new StreamingException(
+                sprintf('Expected a JSON object or array, %s given', get_debug_type($decoded)),
+                ['decoded_type' => get_debug_type($decoded)],
+                400
+            );
+        }
+
+        return $decoded;
     }
 
     /**
      * Parse CSV content to array.
      *
      * @param string $content CSV string
-     * @return array Parsed CSV data
+     * @return list<array<string, string>> One entry per record, keyed by header
      */
     private function parseCsvContent(string $content): array
     {
-        $lines = explode("\n", trim($content));
-        $firstLine = array_shift($lines);
-        if ($firstLine === '') {
+        if (trim($content) === '') {
             return [];
         }
 
-        $headers = str_getcsv($firstLine);
-        // str_getcsv always returns non-empty array in PHP 8.0+
-        // Check if result contains only empty strings (invalid CSV header)
-        $nonEmptyHeaders = array_filter($headers, fn ($h) => $h !== null && $h !== '');
-        if ($nonEmptyHeaders === []) {
+        // Splitting on "\n" before parsing would tear apart a quoted field containing a
+        // line break — valid CSV that an ERP export produces routinely. fgetcsv understands
+        // quoting, so the record boundaries are found by the parser, not by us.
+        $handle = fopen('php://temp', 'r+');
+        if ($handle === false) {
             return [];
         }
 
-        $data = [];
+        try {
+            fwrite($handle, $content);
+            rewind($handle);
 
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if ($line === '') {
-                continue;
+            $delimiter = $this->detectCsvDelimiter($content);
+
+            $headers = fgetcsv($handle, 0, $delimiter, '"', '\\');
+            if (!is_array($headers)) {
+                return [];
             }
 
-            $row = str_getcsv($line);
+            $safeHeaders = array_map(static fn ($h) => (string) ($h ?? ''), $headers);
+            if (array_filter($safeHeaders, static fn (string $h): bool => $h !== '') === []) {
+                return [];
+            }
 
-            // Pad or trim row to match headers count
-            $row = array_pad($row, count($headers), '');
-            $row = array_slice($row, 0, count($headers));
+            $columnCount = count($safeHeaders);
+            $data = [];
 
-            // Ensure we have valid keys for array_combine
-            $safeHeaders = array_map(fn ($h) => (string) ($h ?? ''), $headers);
-            $combinedRow = array_combine($safeHeaders, $row);
-            if ($combinedRow !== false) {
-                $data[] = $combinedRow;
+            while (($row = fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
+                if ($row === [null]) {
+                    // A blank line yields [null]; skip it rather than emit an empty record.
+                    continue;
+                }
+
+                $row = array_map(static fn ($value) => (string) ($value ?? ''), $row);
+                $row = array_slice(array_pad($row, $columnCount, ''), 0, $columnCount);
+
+                $data[] = array_combine($safeHeaders, $row);
+            }
+
+            return $data;
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * Detect the delimiter used by a CSV payload, from its header line.
+     *
+     * Assuming a comma is wrong often enough to matter: the SW4 API exports with a
+     * semicolon, the convention Excel expects in most of Europe. Getting it wrong is not a
+     * loud failure — every record parses as a single column whose key is the whole header
+     * line — so the payload is inspected rather than assumed.
+     *
+     * Each candidate is counted with a quote-aware parse, so separators inside quoted
+     * fields do not vote. The comma stays the fallback when nothing wins.
+     *
+     * @param string $content Full CSV payload
+     * @return string Detected delimiter
+     */
+    private function detectCsvDelimiter(string $content): string
+    {
+        // strtok() on an empty subject returns false, which covers a payload made only of a
+        // BOM and whitespace.
+        $headerLine = strtok(ltrim($content, "\xEF\xBB\xBF \t\r\n"), "\n");
+        if ($headerLine === false) {
+            return ',';
+        }
+
+        $headerLine = rtrim($headerLine, "\r");
+
+        $delimiter = ',';
+        $bestFieldCount = 1;
+
+        foreach ([',', ';', "\t", '|'] as $candidate) {
+            $fieldCount = count(str_getcsv($headerLine, $candidate, '"', '\\'));
+
+            if ($fieldCount > $bestFieldCount) {
+                $bestFieldCount = $fieldCount;
+                $delimiter = $candidate;
             }
         }
 
-        return $data;
+        return $delimiter;
     }
 
     /**

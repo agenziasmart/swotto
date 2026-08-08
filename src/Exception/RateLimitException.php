@@ -17,7 +17,7 @@ class RateLimitException extends ApiException
      * Constructor.
      *
      * @param string $message Error message
-     * @param array $errorData Error data from the API response
+     * @param array<string, mixed> $errorData Error data from the API response
      * @param int $retryAfter Seconds to wait before retrying
      */
     public function __construct(string $message = 'Too Many Requests', array $errorData = [], int $retryAfter = 0)

@@ -30,8 +30,7 @@ class EdgeCasesTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
-        $this->mockLogger = $this->createMock(LoggerInterface::class);
+        $this->mockLogger = $this->createStub(LoggerInterface::class);
     }
 
     // ========== Response Edge Cases ==========
@@ -48,6 +47,7 @@ class EdgeCasesTest extends TestCase
             'arabic' => 'hello',
         ];
 
+        $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
         $this->mockHttpClient->expects($this->once())
             ->method('request')
             ->willReturn(['data' => $unicodeData]);
@@ -87,9 +87,14 @@ class EdgeCasesTest extends TestCase
     }
 
     /**
-     * Test CSV with semicolon is treated as single field (no custom delimiter support).
+     * Test CSV with semicolon is parsed with the right delimiter.
+     *
+     * This test used to assert the opposite — that the whole line became one field keyed by
+     * "name;age;city" — and so pinned a defect in place as if it were a design decision.
+     * The SW4 API exports with semicolons, so `asArray()` on a real export returned one
+     * unusable column per record.
      */
-    public function testCsvWithSemicolonTreatedAsSingleField(): void
+    public function testCsvWithSemicolonIsParsedWithDetectedDelimiter(): void
     {
         $csvContent = "name;age;city\nJohn;30;Rome";
 
@@ -103,7 +108,7 @@ class EdgeCasesTest extends TestCase
         $result = $swottoResponse->asArray();
 
         $this->assertCount(1, $result);
-        $this->assertArrayHasKey('name;age;city', $result[0]);
+        $this->assertSame(['name' => 'John', 'age' => '30', 'city' => 'Rome'], $result[0]);
     }
 
     // ========== Network Edge Cases ==========
@@ -287,6 +292,7 @@ class EdgeCasesTest extends TestCase
     {
         $longPath = str_repeat('a', 2000);
 
+        $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
         $this->mockHttpClient->expects($this->once())
             ->method('request')
             ->with('GET', $longPath, $this->anything())
@@ -310,6 +316,7 @@ class EdgeCasesTest extends TestCase
     {
         $specialPath = 'test/path with spaces/file%20name';
 
+        $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
         $this->mockHttpClient->expects($this->once())
             ->method('request')
             ->with('GET', $specialPath, $this->anything())

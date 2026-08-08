@@ -12,6 +12,7 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Swotto\Config\Configuration;
+use Swotto\Exception\ApiException;
 use Swotto\Exception\AuthenticationException;
 use Swotto\Exception\ConnectionException;
 use Swotto\Exception\ForbiddenException;
@@ -32,7 +33,7 @@ class GuzzleHttpClientTest extends TestCase
     protected function setUp(): void
     {
         $this->config = new Configuration(['url' => 'https://api.example.com']);
-        $this->mockLogger = $this->createMock(LoggerInterface::class);
+        $this->mockLogger = $this->createStub(LoggerInterface::class);
         $this->httpClient = new GuzzleHttpClient($this->config, $this->mockLogger);
     }
 
@@ -87,6 +88,112 @@ class GuzzleHttpClientTest extends TestCase
         $result = $this->httpClient->request('GET', 'test');
 
         $this->assertEquals([], $result);
+    }
+
+    /**
+     * The Swotto API answers 422 for validation errors, not 400. It used to surface as a
+     * generic ApiException, contradicting both the README and the API it talks to.
+     */
+    public function testUnprocessableEntityBecomesValidationException(): void
+    {
+        $body = [
+            'success' => false,
+            'error' => [
+                'type' => 'VALIDATION_ERROR',
+                'message' => 'Quantità non disponibile a magazzino',
+                'status' => 422,
+                'details' => ['quantity' => [['code' => 'stock.insufficient', 'message' => 'Too high']]],
+            ],
+        ];
+        $response = new Response(422, [], (string) json_encode($body));
+        $request = new Request('POST', 'test');
+        $exception = new RequestException('Unprocessable Entity', $request, $response);
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willThrowException($exception);
+
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->request('POST', 'test');
+            $this->fail('Expected ValidationException');
+        } catch (ValidationException $e) {
+            $this->assertSame(422, $e->getStatusCode());
+            $this->assertSame('Quantità non disponibile a magazzino', $e->getMessage());
+            $this->assertSame($body['error']['details'], $e->getErrorData()['error']['details']);
+        }
+    }
+
+    /**
+     * ValidationException extends ApiException, so existing catch blocks keep working.
+     */
+    public function testValidationExceptionRemainsCatchableAsApiException(): void
+    {
+        $response = new Response(422, [], (string) json_encode(['error' => ['message' => 'nope']]));
+        $request = new Request('POST', 'test');
+        $exception = new RequestException('Unprocessable Entity', $request, $response);
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willThrowException($exception);
+
+        $this->injectMockGuzzle($mockGuzzle);
+
+        $this->expectException(ApiException::class);
+
+        $this->httpClient->request('POST', 'test');
+    }
+
+    /**
+     * The API nests the message under `error.message`; reading only a flat `message` meant
+     * every exception carried a generic hardcoded fallback.
+     */
+    public function testErrorMessageIsReadFromNestedEnvelope(): void
+    {
+        $response = new Response(404, [], (string) json_encode([
+            'success' => false,
+            'error' => ['type' => 'NOT_FOUND', 'message' => 'Ordine inesistente', 'status' => 404],
+        ]));
+        $request = new Request('GET', 'test');
+        $exception = new RequestException('Not Found', $request, $response);
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willThrowException($exception);
+
+        $this->injectMockGuzzle($mockGuzzle);
+
+        $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage('Ordine inesistente');
+
+        $this->httpClient->request('GET', 'test');
+    }
+
+    /**
+     * A non-string message must fall back to the default instead of raising a TypeError
+     * that would hide the HTTP response.
+     */
+    public function testNonStringErrorMessageFallsBackToDefault(): void
+    {
+        $response = new Response(403, [], (string) json_encode(['message' => ['nested', 'structure']]));
+        $request = new Request('GET', 'test');
+        $exception = new RequestException('Forbidden', $request, $response);
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willThrowException($exception);
+
+        $this->injectMockGuzzle($mockGuzzle);
+
+        $this->expectException(ForbiddenException::class);
+        $this->expectExceptionMessage('Forbidden');
+
+        $this->httpClient->request('GET', 'test');
     }
 
     public function testValidationException(): void
@@ -191,6 +298,58 @@ class GuzzleHttpClientTest extends TestCase
         } catch (RateLimitException $e) {
             $this->assertEquals(60, $e->getRetryAfter());
             throw $e;
+        }
+    }
+
+    /**
+     * RFC 9110 allows Retry-After as an HTTP-date. Casting that form with (int) yielded 0,
+     * silently discarding the server's instruction.
+     */
+    public function testRateLimitParsesHttpDateRetryAfter(): void
+    {
+        $retryAt = gmdate('D, d M Y H:i:s \G\M\T', time() + 120);
+        $response = new Response(429, ['Retry-After' => [$retryAt]], '{}');
+        $request = new Request('GET', 'test');
+        $exception = new RequestException('Too Many Requests', $request, $response);
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willThrowException($exception);
+
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->request('GET', 'test');
+            $this->fail('Expected RateLimitException');
+        } catch (RateLimitException $e) {
+            // Allow a second of slack for clock movement during the test.
+            $this->assertGreaterThanOrEqual(118, $e->getRetryAfter());
+            $this->assertLessThanOrEqual(120, $e->getRetryAfter());
+        }
+    }
+
+    /**
+     * An unparsable or past Retry-After yields 0, letting the backoff take over.
+     */
+    public function testRateLimitIgnoresUnusableRetryAfter(): void
+    {
+        $response = new Response(429, ['Retry-After' => ['not-a-date']], '{}');
+        $request = new Request('GET', 'test');
+        $exception = new RequestException('Too Many Requests', $request, $response);
+
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())
+            ->method('request')
+            ->willThrowException($exception);
+
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->request('GET', 'test');
+            $this->fail('Expected RateLimitException');
+        } catch (RateLimitException $e) {
+            $this->assertSame(0, $e->getRetryAfter());
         }
     }
 

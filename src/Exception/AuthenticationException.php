@@ -12,7 +12,7 @@ class AuthenticationException extends ApiException
      * Constructor.
      *
      * @param string $message Error message
-     * @param array $errorData Error data from the API response
+     * @param array<string, mixed> $errorData Error data from the API response
      * @param int $code HTTP status code
      */
     public function __construct(string $message = 'Unauthorized', array $errorData = [], int $code = 401)

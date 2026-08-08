@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Swotto\Tests\Response;
 
+use GuzzleHttp\Psr7\NoSeekStream;
+use GuzzleHttp\Psr7\Utils;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -22,12 +25,9 @@ class SwottoResponseAdvancedTest extends TestCase
         string $content,
         array $headers = []
     ): ResponseInterface {
-        $stream = $this->createMock(StreamInterface::class);
-        $stream->method('getContents')->willReturn($content);
-        $stream->method('__toString')->willReturn($content);
-        $stream->method('isSeekable')->willReturn(true);
+        $stream = Utils::streamFor($content);
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
         $response->method('getStatusCode')->willReturn($headers['statusCode'] ?? 200);
         $response->method('getHeaders')->willReturn($headers['headers'] ?? []);
@@ -63,9 +63,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test isBinary for image content types.
-     *
-     * @dataProvider imageContentTypesProvider
      */
+    #[DataProvider('imageContentTypesProvider')]
     public function testIsBinaryForImages(string $contentType): void
     {
         $mockResponse = $this->createMockResponse($contentType, 'binary image data');
@@ -92,9 +91,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test isBinary for video content types.
-     *
-     * @dataProvider videoContentTypesProvider
      */
+    #[DataProvider('videoContentTypesProvider')]
     public function testIsBinaryForVideos(string $contentType): void
     {
         $mockResponse = $this->createMockResponse($contentType, 'binary video data');
@@ -119,9 +117,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test isBinary for audio content types.
-     *
-     * @dataProvider audioContentTypesProvider
      */
+    #[DataProvider('audioContentTypesProvider')]
     public function testIsBinaryForAudio(string $contentType): void
     {
         $mockResponse = $this->createMockResponse($contentType, 'binary audio data');
@@ -395,9 +392,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test JSON parsing with various content type variations.
-     *
-     * @dataProvider jsonContentTypesProvider
      */
+    #[DataProvider('jsonContentTypesProvider')]
     public function testJsonContentTypeVariations(string $contentType): void
     {
         $jsonData = ['test' => 'value'];
@@ -425,9 +421,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test CSV content type variations.
-     *
-     * @dataProvider csvContentTypesProvider
      */
+    #[DataProvider('csvContentTypesProvider')]
     public function testCsvContentTypeVariations(string $contentType): void
     {
         $csvContent = "col1,col2\nval1,val2";
@@ -453,9 +448,8 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test PDF content type variations.
-     *
-     * @dataProvider pdfContentTypesProvider
      */
+    #[DataProvider('pdfContentTypesProvider')]
     public function testPdfContentTypeVariations(string $contentType): void
     {
         $mockResponse = $this->createMockResponse($contentType, 'PDF content');
@@ -507,15 +501,16 @@ class SwottoResponseAdvancedTest extends TestCase
 
     /**
      * Test response caching - asString called twice returns cached result.
+     *
+     * The stream is deliberately non-seekable: without the cache the second call would
+     * find it exhausted and return an empty string, so equality proves the cache.
      */
     public function testAsStringCachesResult(): void
     {
         $content = 'test content';
-        $stream = $this->createMock(StreamInterface::class);
-        $stream->expects($this->once())->method('getContents')->willReturn($content);
-        $stream->method('isSeekable')->willReturn(true);
+        $stream = new NoSeekStream(Utils::streamFor($content));
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
         $response->method('getHeaderLine')->willReturn('');
 
@@ -534,11 +529,9 @@ class SwottoResponseAdvancedTest extends TestCase
     public function testAsArrayCachesResult(): void
     {
         $jsonData = ['cached' => true];
-        $stream = $this->createMock(StreamInterface::class);
-        $stream->expects($this->once())->method('getContents')->willReturn(json_encode($jsonData));
-        $stream->method('isSeekable')->willReturn(true);
+        $stream = new NoSeekStream(Utils::streamFor((string) json_encode($jsonData)));
 
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('getBody')->willReturn($stream);
         $response->method('getHeaderLine')
             ->willReturnCallback(function ($header) {

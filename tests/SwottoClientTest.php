@@ -22,7 +22,7 @@ class SwottoClientTest extends TestCase
     protected function setUp(): void
     {
         $this->mockHttpClient = $this->createMock(HttpClientInterface::class);
-        $this->mockLogger = $this->createMock(LoggerInterface::class);
+        $this->mockLogger = $this->createStub(LoggerInterface::class);
 
         $this->client = new SwottoClient(
             ['url' => 'https://api.example.com'],

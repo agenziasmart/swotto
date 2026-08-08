@@ -5,6 +5,128 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-08-08
+
+Aligns the public contract with the API the SDK actually talks to, and stops replaying
+requests that cannot be replayed safely.
+
+> Includes everything listed under 2.2.1 below. That entry was written on 2026-07-29 and
+> never got a tag of its own, so its fixes reach consumers here — there is no `v2.2.1` to
+> install and there will not be one.
+
+### Changed
+
+- **HTTP 422 now raises `ValidationException`.** The SW4 API answers 422 for validation
+  errors, not 400, so every validation failure used to surface as a generic `ApiException` —
+  contradicting both the README and the API. `ValidationException` extends `ApiException`,
+  so code that catches `ApiException` keeps working unchanged. 400 still maps there too.
+- **Exception messages are read from the API's error envelope.** The SDK looked for a
+  top-level `message`, while the API nests it under `error.message`. Every exception
+  therefore carried a hardcoded English fallback or the raw Guzzle message. A `message` that
+  is not a non-empty string now falls back to the default instead of raising a `TypeError`.
+- **Only idempotent methods are retried automatically** — `GET`, `HEAD`, `PUT`, `DELETE`,
+  `OPTIONS`, `TRACE`. A network error is ambiguous, so replaying a `POST` could duplicate an
+  order or an upload. Pass `['retry_non_idempotent' => true]` per request to accept that
+  risk. Retry is opt-in and no consumer had it enabled, so nothing in production changes.
+- **`post()`, `put()` and `patch()` honour their `mixed $data` signature.** A string, stream,
+  resource or scalar becomes a raw request body; previously anything that was not a non-empty
+  array was discarded without a word, so `post($uri, 'raw-payload')` sent nothing. An array
+  still becomes a JSON body, an empty array still sends no body, and an explicit body option
+  still wins. An unsupported type now raises `InvalidArgumentException`.
+- **Request bodies are logged at debug level, not info.** In an ERP that body is full of
+  commercial and personal data; the info-level line keeps method and path, with the query
+  string stripped since tokens travel there often enough to matter.
+
+- **Minimum dependency versions raised to releases with no open advisories**:
+  `guzzlehttp/guzzle` to `^7.15.1` and `guzzlehttp/psr7`, previously only transitive, now
+  required explicitly at `^2.12.3`. The old `^7.5` floor allowed a resolution with known
+  host-confusion and CRLF-injection issues in the component that carries both tokens.
+
+### Documentation
+
+- **README examples use endpoints that exist.** `auth/login`, `customers`,
+  `account/profile`, `documents` and the rest were invented; SW4 names resources in the
+  singular and the routes are `auth`, `customer`, `me`, `product/{uuid}/documents`. Login
+  takes `username`, not `email`, and returns `data.access_token`, not `data.token`. Upload
+  examples now name the field each endpoint expects — `logo`, `document`, `file` — which is
+  not guessed from the filename. Every endpoint in the README was verified against a running
+  SW4 API.
+
+### Fixed
+
+- **Application headers no longer follow a cross-origin redirect.** Guzzle strips
+  `Authorization` and `Cookie` on its own but knows nothing about `x-devapp`,
+  `X-Swotto-Client-Info` and `x-sid`, which used to travel to whatever host a redirect
+  pointed at. Redirects are also capped at 5 and, for an `https` base URL, refused over
+  cleartext.
+- **Log redaction is recursive and case-insensitive.** Only the first level of `json` and
+  `form_params` was checked and `query` was not checked at all, so a secret one level deeper
+  — or in a query string — reached the logger in the clear. Multipart parts are matched by
+  field name, since the value lives under `contents` while the name lives under `name`.
+- **CSV parsing no longer tears quoted multi-line fields apart.** Records were split on
+  `\n` before parsing, so a quoted field containing a line break became two rows.
+- **The CSV delimiter is detected instead of assumed.** The comma was hardcoded, but the SW4
+  API exports with a semicolon — the convention Excel expects in most of Europe — so
+  `asArray()` on a real export returned one unusable column per record, keyed by the entire
+  header line, without anything looking like a failure. Comma, semicolon, tab and pipe are
+  now detected from the header with a quote-aware count, and a UTF-8 BOM no longer confuses
+  the first column name. Verified against a live export: 262 records went from 1 column to
+  10. A test previously asserted the broken behaviour as if it were a design decision; it
+  now asserts the correct one.
+- **`isBinary()` recognises the formats an ERP exports**: `application/octet-stream`,
+  archives, and the Office and OpenDocument families. A spreadsheet download was previously
+  reported as non-binary.
+- **Configuration validates `url`.** A non-string, empty, relative or non-HTTP URL raises
+  `ConfigurationException` instead of a `TypeError` deep inside `rtrim()`. `http` remains
+  valid — the documented Docker setup reaches the API over `http://host.docker.internal:8081`.
+
+---
+
+## [2.2.1] - 2026-07-29
+
+> Never released under its own tag. These fixes ship as part of 2.3.0 — install that.
+
+Correctness fixes for response handling and retry pacing. No public API changes: every
+behaviour corrected here was either wrong or unspecified.
+
+### Fixed
+
+- **`saveToFile()` no longer writes an empty file and reports success.** The stream is
+  rewound when seekable, so saving after `asString()` or `asArray()` writes the full
+  content. A non-seekable stream that was already consumed now raises `StreamingException`
+  instead of silently producing a 0-byte file.
+- **`saveToFile()` handles partial writes.** `fwrite()` may accept fewer bytes than
+  requested; the remainder of the chunk was previously lost without any error.
+- **`saveToFile()` verifies the downloaded size** against `Content-Length` when the header
+  is present, raising `StreamingException` on a truncated body. A failed save no longer
+  leaves a partial file on disk.
+- **The 50 MB memory ceiling now applies to the bytes actually received.** It previously
+  depended entirely on `Content-Length`, so a chunked response — or any response where a
+  proxy dropped the header — bypassed it completely.
+- **`Retry-After` is capped at `retry_max_delay_ms`.** A legitimate `Retry-After: 86400`
+  previously parked the worker for 24 hours on a single response.
+- **`Retry-After` accepts the HTTP-date form** allowed by RFC 9110, which was cast to 0 and
+  discarded. An unparsable or past value still falls back to the exponential backoff.
+- **Scalar JSON raises `StreamingException` instead of a `TypeError`.** A valid but
+  non-array payload (`42`, `"text"`, `true`) used to escape as a PHP error. JSON `null`
+  still yields an empty array.
+- **`getContentLength()` returns null for a non-numeric or negative header** rather than
+  coercing it to 0, which downstream checks read as a real length.
+
+### Added
+
+- `ext-mbstring` declared in `composer.json`. `isBinaryString()` calls `mb_check_encoding()`,
+  which previously worked only because a dev-only polyfill happened to be installed — a
+  `--no-dev` install on a minimal PHP image would have hit a fatal error.
+
+### Build
+
+- `composer cs` now passes `--allow-risky=yes`, matching `cs-fix`. The style check exited 16
+  on every run because the ruleset uses `declare_strict_types`, so the verification half of
+  the quality gate had never been runnable.
+
+---
+
 ## [2.2.0] - 2026-02-06
 
 ### Breaking Changes

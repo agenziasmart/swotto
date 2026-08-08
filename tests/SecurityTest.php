@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Swotto\Tests;
 
+use GuzzleHttp\Psr7\Utils;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamInterface;
 use Swotto\Exception\SecurityException;
 use Swotto\Response\SwottoResponse;
 
@@ -45,13 +46,12 @@ class SecurityTest extends TestCase
 
     private function createMockResponseWithStream(string $content): SwottoResponse
     {
-        $stream = $this->createMock(StreamInterface::class);
-        $stream->method('eof')->willReturnOnConsecutiveCalls(false, true);
-        $stream->method('read')->willReturn($content);
-
-        $response = $this->createMock(ResponseInterface::class);
-        $response->method('getBody')->willReturn($stream);
-        $response->method('getHeaderLine')->willReturn('application/octet-stream');
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('getBody')->willReturn(Utils::streamFor($content));
+        $response->method('getHeaderLine')
+            ->willReturnCallback(function ($header) {
+                return $header === 'Content-Type' ? 'application/octet-stream' : '';
+            });
 
         return new SwottoResponse($response);
     }
@@ -129,9 +129,8 @@ class SecurityTest extends TestCase
 
     /**
      * Test invalid characters < > : " | ? * are blocked.
-     *
-     * @dataProvider invalidFilenameCharactersProvider
      */
+    #[DataProvider('invalidFilenameCharactersProvider')]
     public function testSaveToFileBlocksInvalidCharacters(string $char): void
     {
         $swottoResponse = $this->createMockResponseWithStream('malicious content');
@@ -162,9 +161,8 @@ class SecurityTest extends TestCase
 
     /**
      * Test control characters are blocked.
-     *
-     * @dataProvider controlCharactersProvider
      */
+    #[DataProvider('controlCharactersProvider')]
     public function testSaveToFileBlocksControlCharacters(string $char, string $description): void
     {
         $swottoResponse = $this->createMockResponseWithStream('malicious content');
