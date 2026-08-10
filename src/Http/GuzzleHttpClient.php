@@ -62,6 +62,15 @@ final class GuzzleHttpClient implements HttpClientInterface
     private const REDACTED = '****';
 
     /**
+     * Tetto del corpo di risposta riportato nel contesto del log.
+     *
+     * Serve a stare largo rispetto ai 120 caratteri del riassunto di Guzzle — che tagliava
+     * via il campo fallito di un 422 — senza per questo versare risposte da megabyte in ogni
+     * riga di log. Un errore di validazione dell'API sta in poche centinaia di byte.
+     */
+    private const MAX_LOGGED_BODY_LENGTH = 4000;
+
+    /**
      * Header names whose value must never be logged. Matched loosely — see isSensitiveKey().
      *
      * @var array<int, string>
@@ -424,13 +433,63 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private function logException(\Exception $exception, string $uri): void
     {
-        $is401 = $exception instanceof RequestException && $exception->getCode() === 401;
-        $is404 = $exception instanceof RequestException && $exception->getCode() === 404;
-        if ($is401 || $is404) {
-            $this->logger->debug("HTTP {$exception->getCode()} for {$uri}");
-        } else {
-            $this->logger->error("Error while requesting {$uri}: {$exception->getMessage()}");
+        $status = $exception instanceof RequestException ? $exception->getCode() : 0;
+        $context = $this->responseBodyContext($exception);
+
+        // Un 4xx e' l'esito di una richiesta, non un guasto: il chiamante lo riceve come
+        // eccezione e lo registra con la severita' che gli compete (in APP.SW4
+        // ErrorCatcherMiddleware legge getLogLevel() dell'eccezione mappata). Loggarlo qui a
+        // `error` significava due righe per lo stesso evento, una nel canale sbagliato: sul
+        // log di produzione del 08-08, 565 ERROR in 40 ore per un solo guasto vero.
+        if ($status >= 400 && $status < 500) {
+            $this->logger->debug("HTTP {$status} for {$uri}", $context);
+
+            return;
         }
+
+        $this->logger->error("Error while requesting {$uri}: {$exception->getMessage()}", $context);
+    }
+
+    /**
+     * Corpo della risposta d'errore, per il contesto del log.
+     *
+     * NON si usa `$exception->getMessage()`: per Guzzle e' un riassunto tagliato a 120
+     * caratteri, e su un 422 la riga si fermava a `"error": {"type": "VALID…`, cioe' prima
+     * del campo che aveva fallito.
+     *
+     * Lo stream viene riavvolto DOPO la lettura, e non e' un dettaglio: questo metodo gira
+     * prima di `throwMappedException()`, che legge lo stesso body con `getContents()`. Senza
+     * rewind a valle resterebbe una stringa vuota e l'eccezione arriverebbe al chiamante
+     * senza i dati d'errore — nessun errore, nessun log, solo un 422 muto.
+     *
+     * @return array<string, mixed>
+     */
+    private function responseBodyContext(\Exception $exception): array
+    {
+        if (!$exception instanceof RequestException || !$exception->hasResponse()) {
+            return [];
+        }
+
+        $response = $exception->getResponse();
+        if ($response === null) {
+            return [];
+        }
+
+        $body = $response->getBody();
+        if (!$body->isSeekable()) {
+            // Non rileggibile: leggerlo qui lo consumerebbe per chi viene dopo.
+            return [];
+        }
+
+        $body->rewind();
+        $contents = $body->getContents();
+        $body->rewind();
+
+        if ($contents === '') {
+            return [];
+        }
+
+        return ['response_body' => mb_substr($contents, 0, self::MAX_LOGGED_BODY_LENGTH)];
     }
 
     /**
