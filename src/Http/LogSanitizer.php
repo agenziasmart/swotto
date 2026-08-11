@@ -47,11 +47,19 @@ final class LogSanitizer
     public static function uri(string $uri): string
     {
         $uri = substr($uri, 0, strcspn($uri, '?#'));
-        // Strip authority user-info while the URI is still the caller's raw byte string.
+        // Strip credentials while the URI is still the caller's raw byte string. In particular,
         // mb_scrub() honours the process-wide mb_substitute_character(); if that character
-        // is '/', repairing an invalid byte first can manufacture a slash and make the
-        // authority regex preserve credentials.
-        $uri = preg_replace('#^([a-z][a-z0-9+.-]*://|//)[^/]*@#i', '$1', $uri) ?? '';
+        // is '/', repairing an invalid byte first can manufacture an authority delimiter.
+        // Treat every raw '@' conservatively: malformed URIs are logged before the transport
+        // rejects them, so preserving a questionable path is less important than redaction.
+        $userInfoDelimiter = strrpos($uri, '@');
+        if (false !== $userInfoDelimiter) {
+            $authorityDelimiter = strpos($uri, '//');
+            $safePrefix = false !== $authorityDelimiter && $authorityDelimiter < $userInfoDelimiter
+                ? substr($uri, 0, $authorityDelimiter + 2)
+                : '';
+            $uri = $safePrefix . substr($uri, $userInfoDelimiter + 1);
+        }
         $uri = mb_scrub($uri, 'UTF-8');
         $uri = preg_replace('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', '', $uri) ?? '';
 

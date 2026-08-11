@@ -609,7 +609,7 @@ class LogSanitizationTest extends TestCase
     {
         $lines = [];
         $method = "GET\r\nSENTINEL_METHOD";
-        $uri = "https://user:SENTINEL_BEFORE\xFFSENTINEL_AFTER@api.example.com/safe"
+        $uri = "ht\xFFtps://user:SENTINEL_BEFORE\xFESENTINEL_AFTER@api.example.com/safe"
             . "\r\n\x00\u{200B}\u{2028}\u{2029}\xC3\x28"
             . str_repeat('à', 300)
             . '?token=SENTINEL_QUERY#SENTINEL_FRAGMENT';
@@ -632,7 +632,8 @@ class LogSanitizationTest extends TestCase
         }
 
         self::assertCount(1, $lines);
-        self::assertStringStartsWith('Requesting UNKNOWN https://api.example.com/safe', $lines[0]);
+        self::assertStringStartsWith('Requesting UNKNOWN ', $lines[0]);
+        self::assertStringContainsString('api.example.com/safe', $lines[0]);
         self::assertStringNotContainsString('SENTINEL_', $lines[0]);
         self::assertTrue(mb_check_encoding($lines[0], 'UTF-8'));
         self::assertDoesNotMatchRegularExpression('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', $lines[0]);

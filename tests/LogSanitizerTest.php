@@ -69,4 +69,32 @@ final class LogSanitizerTest extends TestCase
         yield 'slash' => [47];
         yield 'question mark' => [63];
     }
+
+    #[DataProvider('utf8SubstituteProvider')]
+    public function testMalformedSchemeOrDelimiterCannotPreserveUserInfo(int $substitute): void
+    {
+        $previousSubstitute = mb_substitute_character();
+        mb_substitute_character($substitute);
+        $safeUris = [];
+
+        try {
+            foreach ([
+                "ht\xFFtps://user:SENTINEL_SCHEME@api.example.com/auth?token=SENTINEL_QUERY",
+                "https\xFF://user:SENTINEL_BEFORE_DELIMITER@api.example.com/auth",
+                "https:\xFF//user:SENTINEL_IN_DELIMITER@api.example.com/auth",
+                "https:/\xFFuser:SENTINEL_MANUFACTURED_AUTHORITY@api.example.com/auth",
+            ] as $uri) {
+                $safeUris[] = LogSanitizer::uri($uri);
+            }
+        } finally {
+            mb_substitute_character($previousSubstitute);
+        }
+
+        foreach ($safeUris as $safeUri) {
+            self::assertStringNotContainsString('SENTINEL_', $safeUri);
+            self::assertStringContainsString('api.example.com/auth', $safeUri);
+            self::assertTrue(mb_check_encoding($safeUri, 'UTF-8'));
+        }
+        self::assertSame($previousSubstitute, mb_substitute_character());
+    }
 }

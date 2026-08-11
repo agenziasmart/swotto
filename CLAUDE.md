@@ -231,7 +231,10 @@ was fixed.
 URI user-info is removed from the raw byte string before `mb_scrub()`: the latter honours the
 process-wide `mb_substitute_character()`, and a caller that selected `/` could otherwise make an
 invalid user-info byte become a path separator and bypass credential stripping. Tests that
-mutate this global setting must save it and restore it in `finally`.
+mutate this global setting must save it and restore it in `finally`. User-info redaction is
+deliberately conservative, byte-safe and does not require an already-valid scheme or delimiter:
+malformed UTF-8 in the scheme or where `//` would appear must not preserve user-info in the log
+line, even when UTF-8 repair itself manufactures that delimiter.
 
 ### Failure logging lesson
 

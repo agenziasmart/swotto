@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unbounded URI exposure in retry warnings as well as ordinary request lines. User-info is
   stripped from raw bytes before UTF-8 repair, so a process-wide
   `mb_substitute_character('/')` cannot manufacture a path separator that preserves URL
-  credentials.
+  credentials. Conservative raw-byte redaction also covers malformed scheme/delimiter bytes,
+  before the transport has a chance to reject the URI or UTF-8 repair can create `//`.
 - **Transport and non-business HTTP exception messages are now constant.** Network,
   connection, unexpected transport, `401`, `403`, `404`, `429`, `5xx` and default HTTP
   failures no longer expose the Guzzle message, URL or upstream error text through
