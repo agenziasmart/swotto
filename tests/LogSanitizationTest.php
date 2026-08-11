@@ -75,20 +75,7 @@ class LogSanitizationTest extends TestCase
             ->method('debug')
             ->with(
                 'Requesting POST /upload options',
-                $this->callback(function ($loggedOptions) {
-                    // Verify multipart is present
-                    $this->assertArrayHasKey('multipart', $loggedOptions);
-
-                    // Verify file contents are sanitized
-                    $this->assertIsString($loggedOptions['multipart'][0]['contents']);
-                    $this->assertStringContainsString('<binary data:', $loggedOptions['multipart'][0]['contents']);
-                    $this->assertStringContainsString('bytes>', $loggedOptions['multipart'][0]['contents']);
-
-                    // Verify non-binary data is preserved
-                    $this->assertEquals('User profile picture', $loggedOptions['multipart'][1]['contents']);
-
-                    return true;
-                })
+                ['payload_type' => 'multipart', 'payload_parts' => 2]
             );
 
         // Mock Guzzle client
@@ -120,24 +107,12 @@ class LogSanitizationTest extends TestCase
             ],
         ];
 
-        // Expect logger to mask sensitive headers but preserve non-sensitive ones
+        // Header values are never diagnostic metadata, even when a name looks harmless.
         $this->useMockLogger()->expects($this->once())
             ->method('debug')
             ->with(
                 'Requesting GET /user options',
-                $this->callback(function ($loggedOptions) {
-                    $this->assertArrayHasKey('headers', $loggedOptions);
-
-                    // Verify sensitive headers are masked
-                    $this->assertEquals('****', $loggedOptions['headers']['Authorization']);
-                    $this->assertEquals('****', $loggedOptions['headers']['Cookie']);
-                    $this->assertEquals('****', $loggedOptions['headers']['X-Api-Key']);
-
-                    // Verify non-sensitive headers are preserved
-                    $this->assertEquals('application/json', $loggedOptions['headers']['Content-Type']);
-
-                    return true;
-                })
+                []
             );
 
         $mockGuzzle = $this->createMock(GuzzleClient::class);
@@ -166,24 +141,12 @@ class LogSanitizationTest extends TestCase
             ],
         ];
 
-        // Expect logger to mask password and token but preserve other fields
+        // Payload values are omitted wholesale; key-name redaction cannot be complete.
         $this->useMockLogger()->expects($this->once())
             ->method('debug')
             ->with(
                 'Requesting POST /login options',
-                $this->callback(function ($loggedOptions) {
-                    $this->assertArrayHasKey('form_params', $loggedOptions);
-
-                    // Verify sensitive fields are masked
-                    $this->assertEquals('****', $loggedOptions['form_params']['password']);
-                    $this->assertEquals('****', $loggedOptions['form_params']['token']);
-
-                    // Verify non-sensitive fields are preserved
-                    $this->assertEquals('john_doe', $loggedOptions['form_params']['username']);
-                    $this->assertEquals('john@example.com', $loggedOptions['form_params']['email']);
-
-                    return true;
-                })
+                ['payload_type' => 'form']
             );
 
         $mockGuzzle = $this->createMock(GuzzleClient::class);
@@ -212,24 +175,12 @@ class LogSanitizationTest extends TestCase
             ],
         ];
 
-        // Expect logger to mask password and api_key in JSON body
+        // Only the payload kind is useful and safe to log.
         $this->useMockLogger()->expects($this->once())
             ->method('debug')
             ->with(
                 'Requesting POST /api/register options',
-                $this->callback(function ($loggedOptions) {
-                    $this->assertArrayHasKey('json', $loggedOptions);
-
-                    // Verify sensitive fields are masked
-                    $this->assertEquals('****', $loggedOptions['json']['password']);
-                    $this->assertEquals('****', $loggedOptions['json']['api_key']);
-
-                    // Verify non-sensitive fields are preserved
-                    $this->assertEquals('jane_doe', $loggedOptions['json']['username']);
-                    $this->assertEquals(['name' => 'Jane', 'age' => 30], $loggedOptions['json']['profile']);
-
-                    return true;
-                })
+                ['payload_type' => 'json']
             );
 
         $mockGuzzle = $this->createMock(GuzzleClient::class);
@@ -260,21 +211,12 @@ class LogSanitizationTest extends TestCase
             'body' => $stream,
         ];
 
-        // Expect logger to replace stream with size indicator
+        // Neither stream content nor filesystem metadata reaches the log.
         $this->useMockLogger()->expects($this->once())
             ->method('debug')
             ->with(
                 'Requesting PUT /document options',
-                $this->callback(function ($loggedOptions) {
-                    $this->assertArrayHasKey('body', $loggedOptions);
-
-                    // Verify stream is sanitized
-                    $this->assertIsString($loggedOptions['body']);
-                    $this->assertStringContainsString('<stream:', $loggedOptions['body']);
-                    $this->assertStringContainsString('bytes>', $loggedOptions['body']);
-
-                    return true;
-                })
+                ['payload_type' => 'body']
             );
 
         $mockGuzzle = $this->createMock(GuzzleClient::class);
@@ -303,22 +245,12 @@ class LogSanitizationTest extends TestCase
             ],
         ];
 
-        // Expect logger to mask X-Devapp header (SW4-specific)
+        // Omitting all header values avoids leaks through new or application-specific names.
         $this->useMockLogger()->expects($this->once())
             ->method('debug')
             ->with(
                 'Requesting GET /organizations options',
-                $this->callback(function ($loggedOptions) {
-                    $this->assertArrayHasKey('headers', $loggedOptions);
-
-                    // Verify X-Devapp is masked
-                    $this->assertEquals('****', $loggedOptions['headers']['X-Devapp']);
-
-                    // Verify non-sensitive headers are preserved
-                    $this->assertEquals('application/json', $loggedOptions['headers']['Content-Type']);
-
-                    return true;
-                })
+                []
             );
 
         $mockGuzzle = $this->createMock(GuzzleClient::class);
@@ -349,11 +281,7 @@ class LogSanitizationTest extends TestCase
             ->method('debug')
             ->with(
                 'Raw request GET /raw options',
-                $this->callback(function ($loggedOptions) {
-                    $this->assertEquals('****', $loggedOptions['headers']['Authorization']);
-
-                    return true;
-                })
+                []
             );
 
         $mockGuzzle = $this->createMock(GuzzleClient::class);
@@ -367,6 +295,48 @@ class LogSanitizationTest extends TestCase
         $clientProperty->setValue($this->httpClient, $mockGuzzle);
 
         $this->httpClient->requestRaw('GET', '/raw', $optionsWithSensitiveData);
+    }
+
+    /**
+     * Logging request options by subtraction is unsafe: Guzzle accepts credentials in many
+     * top-level options and can add more in future releases. The diagnostic contract is an
+     * allowlist of scalar transport metadata, never a sanitized copy of caller data.
+     */
+    public function testRequestOptionLogUsesAnAllowlistAndNeverCopiesCallerValues(): void
+    {
+        $sentinel = 'SENTINEL_OPTION_SECRET';
+        $logged = $this->captureLoggedOptions('POST', '/auth', [
+            'body' => "plain text {$sentinel}",
+            'json' => ['innocent_name' => $sentinel],
+            'form_params' => ['innocent_name' => $sentinel],
+            'multipart' => [['name' => 'description', 'contents' => $sentinel]],
+            'query' => "access_token={$sentinel}",
+            'auth' => ['user', $sentinel],
+            'proxy' => "https://user:{$sentinel}@proxy.example.com?token={$sentinel}",
+            'cookies' => ['session' => $sentinel],
+            'cert' => ['/run/secrets/client.pem', $sentinel],
+            'ssl_key' => ['/run/secrets/client.key', $sentinel],
+            'headers' => ['X-Unclassified' => $sentinel],
+            'curl' => [10036 => $sentinel],
+            'timeout' => 7.5,
+            'connect_timeout' => 2,
+            'read_timeout' => 3,
+            'verify' => '/run/secrets/ca.pem',
+            'http_errors' => true,
+            'stream' => false,
+        ]);
+
+        $this->assertStringNotContainsString($sentinel, serialize($logged));
+        $this->assertSame([
+            'payload_type' => 'multipart',
+            'payload_parts' => 1,
+            'timeout' => 7.5,
+            'connect_timeout' => 2.0,
+            'read_timeout' => 3.0,
+            'verify_ssl' => true,
+            'http_errors' => true,
+            'stream' => false,
+        ], $logged);
     }
 
     /**
@@ -402,34 +372,12 @@ class LogSanitizationTest extends TestCase
             ],
         ];
 
-        // Expect logger to receive sanitized binary string
+        // Binary and text part values are both omitted; only the part count remains.
         $this->useMockLogger()->expects($this->once())
             ->method('debug')
             ->with(
                 'Requesting POST /upload options',
-                $this->callback(function ($loggedOptions) {
-                    // Verify multipart array exists
-                    $this->assertArrayHasKey('multipart', $loggedOptions);
-
-                    // Verify binary STRING is sanitized (THE FIX)
-                    $this->assertIsString($loggedOptions['multipart'][0]['contents']);
-                    $this->assertMatchesRegularExpression(
-                        '/^<binary data: \d+ bytes>$/',
-                        $loggedOptions['multipart'][0]['contents'],
-                        'Binary string should be sanitized to "<binary data: X bytes>" format'
-                    );
-                    $this->assertStringContainsString('1008 bytes', $loggedOptions['multipart'][0]['contents']);
-
-                    // Verify NO binary content leaked
-                    $this->assertStringNotContainsString("\x00", $loggedOptions['multipart'][0]['contents']);
-                    $this->assertStringNotContainsString("\xFF", $loggedOptions['multipart'][0]['contents']);
-                    $this->assertStringNotContainsString('PNG', $loggedOptions['multipart'][0]['contents']);
-
-                    // Verify text metadata is preserved (not sanitized)
-                    $this->assertEquals('User profile picture', $loggedOptions['multipart'][1]['contents']);
-
-                    return true;
-                })
+                ['payload_type' => 'multipart', 'payload_parts' => 2]
             );
 
         // Mock Guzzle client
@@ -469,18 +417,12 @@ class LogSanitizationTest extends TestCase
             ],
         ];
 
-        // Expect UTF-8 text to be preserved completely
+        // Valid text can still contain personal data, so it is omitted like binary data.
         $this->useMockLogger()->expects($this->once())
             ->method('debug')
             ->with(
                 'Requesting POST /upload options',
-                $this->callback(function ($loggedOptions) use ($utf8Text) {
-                    // Verify UTF-8 text is preserved exactly
-                    $this->assertEquals($utf8Text, $loggedOptions['multipart'][0]['contents']);
-                    $this->assertStringNotContainsString('<binary data:', $loggedOptions['multipart'][0]['contents']);
-
-                    return true;
-                })
+                ['payload_type' => 'multipart', 'payload_parts' => 1]
             );
 
         $mockGuzzle = $this->createMock(GuzzleClient::class);
@@ -573,10 +515,8 @@ class LogSanitizationTest extends TestCase
             ],
         ]);
 
-        $this->assertSame('ERP connector', $logged['json']['name']);
-        $this->assertSame('operator', $logged['json']['connection']['username']);
-        $this->assertSame('****', $logged['json']['connection']['password']);
-        $this->assertSame('****', $logged['json']['connection']['oauth']['refresh_token']);
+        $this->assertSame(['payload_type' => 'json'], $logged);
+        $this->assertStringNotContainsString('PLACEHOLDER', serialize($logged));
     }
 
     /**
@@ -592,8 +532,8 @@ class LogSanitizationTest extends TestCase
             ],
         ]);
 
-        $this->assertSame('ERP connector', $logged['json']['name']);
-        $this->assertSame('****', $logged['json']['credentials']);
+        $this->assertSame(['payload_type' => 'json'], $logged);
+        $this->assertStringNotContainsString('PLACEHOLDER', serialize($logged));
     }
 
     /**
@@ -608,8 +548,7 @@ class LogSanitizationTest extends TestCase
             ],
         ]);
 
-        $this->assertSame('2026-01-01', $logged['query']['from']);
-        $this->assertSame('****', $logged['query']['access_token']);
+        $this->assertSame([], $logged);
     }
 
     /**
@@ -626,10 +565,7 @@ class LogSanitizationTest extends TestCase
             ],
         ]);
 
-        $this->assertSame('****', $logged['json']['ApiKey']);
-        $this->assertSame('****', $logged['json']['api-key']);
-        $this->assertSame('****', $logged['json']['CLIENT_SECRET']);
-        $this->assertSame('kept', $logged['json']['label']);
+        $this->assertSame(['payload_type' => 'json'], $logged);
     }
 
     /**
@@ -645,8 +581,7 @@ class LogSanitizationTest extends TestCase
             ],
         ]);
 
-        $this->assertSame('operator', $logged['multipart'][0]['contents']);
-        $this->assertSame('****', $logged['multipart'][1]['contents']);
+        $this->assertSame(['payload_type' => 'multipart', 'payload_parts' => 2], $logged);
     }
 
     /**

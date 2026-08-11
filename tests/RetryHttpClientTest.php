@@ -153,6 +153,34 @@ class RetryHttpClientTest extends TestCase
         $this->assertSame('https://api.example.com/auth/session', $logger->entries[1]['context']['uri']);
     }
 
+    public function testExhaustedRetriesDoNotLogRawExceptionAndPreserveTheException(): void
+    {
+        $sentinel = 'SENTINEL_EXHAUSTED_RETRY';
+        $logger = new RetryCapturingLogger();
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'retry_max_attempts' => 2,
+            'retry_initial_delay_ms' => 1,
+            'retry_max_delay_ms' => 1,
+            'retry_jitter' => false,
+        ]);
+        $retryClient = new RetryHttpClient($this->mockClient, $config, $logger); // @phpstan-ignore-line
+        $exception = new NetworkException($sentinel);
+        $this->mockClient->shouldReceive('request')->twice()->andThrow($exception);
+
+        try {
+            $retryClient->request('HEAD', '/auth?token=SENTINEL_EXHAUSTED_QUERY');
+            self::fail('Expected the final retry exception.');
+        } catch (NetworkException $actual) {
+            self::assertSame($exception, $actual);
+        }
+
+        $serialized = serialize($logger->entries);
+        self::assertStringNotContainsString($sentinel, $serialized);
+        self::assertStringNotContainsString('SENTINEL_EXHAUSTED_QUERY', $serialized);
+        self::assertCount(1, $logger->entries);
+    }
+
     public function testRetryOnConnectionException(): void
     {
         $expectedResponse = ['data' => 'success'];

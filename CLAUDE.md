@@ -218,33 +218,44 @@ list the verification commands, and state backward compatibility; update `README
 Never log tokens or credentials — the default logger is a `NullLogger`, and a real one is
 injected. DevApp tokens come from the environment and are never hardcoded.
 
-Redaction in `sanitizeOptionsForLogging()` is **recursive** over `json`, `form_params` and
-`query`, matching key names without regard to case or separators, and matches multipart parts
-by their `name` because the value sits under `contents`. Request options, the body included,
-are logged at **debug**; the info line keeps only method and path, with the query string
-stripped — tokens travel there often enough to matter.
+`sanitizeOptionsForLogging()` is a strict **allowlist**, not a redacted copy. It emits only
+payload kind, multipart part count, numeric timeouts, boolean TLS state, `http_errors` and
+`stream`. It never emits body/JSON/form/multipart values, headers, query, `auth`, proxy,
+cookies, `cert`, `ssl_key`, cURL options, callbacks or unknown future Guzzle options. The
+info line keeps only method and a bounded path; URL user-info, query, fragment and control
+characters are stripped.
 
 ### Failure logging lesson
 
 The observed symptom was that an HTTP/network failure copied the Guzzle exception message,
 response body and URI credentials/query into the consumer's PSR-3 log; the retry decorator
-independently copied the mapped exception message and raw URI. The root cause was treating
-upstream-controlled text as diagnostic metadata: request-option redaction cannot protect a
-string interpolated into the log message, and bounding a body limits volume but does not make
-it safe. Sentinel tests proved all three values reached the captured logs.
+independently copied the mapped exception message and raw URI. A second review found the same
+boundary remained open outside the failure logger: plain request bodies, top-level Guzzle
+`auth`/proxy/cookies/certificate options, unknown future options, transport exception
+messages, raw `previous` chains and byte-truncated request IDs could still cross into a
+consumer. The root cause was treating key-name redaction and truncation as data
+classification. A secret under an innocent key is still a secret, and a bounded body is still
+a body. Sentinel mutants for each carrier provided direct evidence.
 
 The impact is highest on authentication/session requests, whose failures can carry
 credentials, provider details or internal error envelopes. Failure logs therefore follow a
 strict allowlist: constant messages plus bounded failure type, exception class, HTTP status
-and `X-Request-ID` (control characters removed, maximum 128 characters). Never log the
-exception message/object, response body/object, URL credentials or query. This changes
-logging only; the public exception still carries its existing response data.
+and `X-Request-ID` (valid UTF-8, controls removed, maximum 128 bytes). Network, connection,
+unexpected transport, auth, authorization, lookup, rate-limit, server and default HTTP
+exceptions also use constant messages and no raw `previous`. The response remains available
+in `getErrorData()` because that is an application-facing API, not a logging API. Only `400`,
+`402`, `409` and `422` keep an API message for UX/business handling. Public to the application
+never implies safe to log.
 
-Prevent recurrence with distinct sentinels for exception message, response body and query in
-both `GuzzleHttpClientLoggingTest` and `RetryHttpClientTest`. Roll out the SDK patch first,
-then regenerate the consumer lockfile. Verify the released tag and installed consumer version,
-exercise synthetic 401, 5xx and network failures without real credentials, and confirm that
-logs contain type/status/request ID but none of the sentinels.
+Prevent recurrence with distinct sentinels for exception message/previous, raw response,
+request/option carriers, exhausted retries, control/invalid UTF-8 request IDs and both decoded
+and `requestRaw()` flows. Roll out the SDK patch first, then the bridge classification patch,
+then regenerate and test each consumer lockfile. Verify the released tags and exact installed
+versions, exercise synthetic `401`, public `422`, `5xx`, malformed response and network
+failures without real credentials, and confirm both SDK and consumer logs contain only
+type/status/request ID—not any sentinel. Roll back the consumer lock before either shared
+package; reverting only the SDK while leaving the bridge/consumer assumes the safe boundary
+still exists and reopens the leak.
 
 The DevApp token is bound to the configured origin: a middleware at the bottom of the Guzzle
 handler stack removes `x-devapp`, `X-Swotto-Client-Info` and `x-sid` whenever the host

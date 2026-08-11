@@ -1,5 +1,21 @@
 # Upgrade Guide
 
+## Upgrading from v2.3.0 to the next patch
+
+This security patch keeps exception classes, HTTP status codes and `getErrorData()` intact,
+but intentionally narrows exception messages. API-provided messages remain public for `400`,
+`402`, `409` and `422`; `401`, `403`, `404`, `429`, `5xx`, default HTTP, network, connection
+and unexpected transport failures now use constants and have no raw previous exception.
+
+If application code matches message text, switch it to `getStatusCode()` and the exception
+class. If it displays validation/business feedback, keep reading the message for the four
+public statuses or structured fields from `getErrorData()`. Never send `getErrorData()` or
+public messages to logs wholesale.
+
+Request-option debug logs also changed from a redacted copy to a strict metadata allowlist.
+This removes payload/header visibility intentionally; correlate the SDK status/request ID with
+the API-side log when deeper diagnosis is required.
+
 ## Upgrading from v2.2.x to v2.3.0
 
 No breaking API changes: no class was renamed, no signature narrowed, no exception moved in

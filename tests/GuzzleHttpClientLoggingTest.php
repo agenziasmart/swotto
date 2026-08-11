@@ -9,7 +9,9 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Log\AbstractLogger;
 use Stringable;
 use Swotto\Config\Configuration;
@@ -207,6 +209,151 @@ class GuzzleHttpClientLoggingTest extends TestCase
         $requestId = $this->lastContext()['request_id'] ?? null;
         $this->assertIsString($requestId);
         $this->assertSame(128, strlen($requestId));
+    }
+
+    /** @param class-string<SwottoException> $expectedClass */
+    #[DataProvider('safeExceptionMessageProvider')]
+    public function testOnlyBusinessValidationStatusesExposeUpstreamMessages(
+        int $status,
+        string $expectedClass,
+        string $expectedMessage
+    ): void {
+        $sentinel = 'SENTINEL_PUBLIC_EXCEPTION_MESSAGE';
+        $caught = $this->requestFailingWith($status, (string) json_encode([
+            'error' => ['message' => $sentinel, 'details' => ['sentinel' => $sentinel]],
+        ]));
+
+        self::assertInstanceOf($expectedClass, $caught);
+        self::assertSame($expectedMessage === '@public' ? $sentinel : $expectedMessage, $caught->getMessage());
+        self::assertSame($sentinel, $caught->getErrorData()['error']['details']['sentinel'] ?? null);
+        self::assertNull($caught->getPrevious());
+    }
+
+    /** @return iterable<string, array{int, class-string<SwottoException>, string}> */
+    public static function safeExceptionMessageProvider(): iterable
+    {
+        yield '400 validation is public' => [400, \Swotto\Exception\ValidationException::class, '@public'];
+        yield '402 business is public' => [402, \Swotto\Exception\ApiException::class, '@public'];
+        yield '409 business is public' => [409, \Swotto\Exception\ApiException::class, '@public'];
+        yield '422 validation is public' => [422, \Swotto\Exception\ValidationException::class, '@public'];
+        yield '401 authentication is constant' => [401, \Swotto\Exception\AuthenticationException::class, 'Unauthorized'];
+        yield '403 authorization is constant' => [403, \Swotto\Exception\ForbiddenException::class, 'Forbidden'];
+        yield '404 lookup is constant' => [404, \Swotto\Exception\NotFoundException::class, 'Not Found'];
+        yield '418 default client error is constant' => [418, \Swotto\Exception\ApiException::class, 'HTTP request rejected.'];
+        yield '429 throttling is constant' => [429, \Swotto\Exception\RateLimitException::class, 'Too Many Requests'];
+        yield '500 upstream failure is constant' => [500, \Swotto\Exception\ApiException::class, 'Upstream service error.'];
+    }
+
+    public function testNetworkAndConnectionExceptionsHaveConstantPublicDiagnostics(): void
+    {
+        $sentinel = 'SENTINEL_TRANSPORT_EXCEPTION';
+        $secret = 'SENTINEL_URI_SECRET';
+        $uri = "https://user:{$secret}@api.example.com/auth?token={$secret}";
+
+        $networkGuzzle = $this->createMock(GuzzleClient::class);
+        $networkGuzzle->expects($this->once())->method('request')->willThrowException(
+            new RequestException($sentinel, new Request('HEAD', $uri), null, null, ['errno' => 7])
+        );
+        $this->injectMockGuzzle($networkGuzzle);
+
+        try {
+            $this->httpClient->request('HEAD', $uri);
+            self::fail('Expected NetworkException.');
+        } catch (\Swotto\Exception\NetworkException $exception) {
+            self::assertSame('Network request failed.', $exception->getMessage());
+            self::assertSame(['message' => 'Network request failed.', 'code' => 0], $exception->getErrorData());
+            self::assertNull($exception->getPrevious());
+            self::assertStringNotContainsString($sentinel, serialize($exception->getErrorData()));
+            self::assertStringNotContainsString($secret, serialize($exception->getErrorData()));
+        }
+
+        $connectionGuzzle = $this->createMock(GuzzleClient::class);
+        $connectionGuzzle->expects($this->once())->method('request')->willThrowException(
+            new ConnectException($sentinel, new Request('HEAD', $uri), null, ['errno' => 7])
+        );
+        $this->injectMockGuzzle($connectionGuzzle);
+
+        try {
+            $this->httpClient->request('HEAD', $uri);
+            self::fail('Expected ConnectionException.');
+        } catch (\Swotto\Exception\ConnectionException $exception) {
+            self::assertSame('Connection failed.', $exception->getMessage());
+            self::assertSame('https://api.example.com', $exception->getUrl());
+            self::assertSame([], $exception->getTraceDetails());
+            self::assertNull($exception->getPrevious());
+            self::assertStringNotContainsString($sentinel, serialize($exception->getErrorData()));
+            self::assertStringNotContainsString($secret, serialize($exception->getErrorData()));
+        }
+    }
+
+    public function testRequestRawKeepsErrorDataButNeverUsesItAsExceptionOrLogText(): void
+    {
+        $sentinel = 'SENTINEL_RAW_RESPONSE_BODY';
+        $response = new Response(500, ['X-Request-ID' => 'req-raw'], $sentinel);
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())->method('request')->willThrowException(
+            new RequestException($sentinel, new Request('GET', '/raw'), $response)
+        );
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->requestRaw('GET', '/raw');
+            self::fail('Expected ApiException.');
+        } catch (\Swotto\Exception\ApiException $exception) {
+            self::assertSame('Upstream service error.', $exception->getMessage());
+            self::assertSame(['raw_body' => $sentinel], $exception->getErrorData());
+            self::assertNull($exception->getPrevious());
+            self::assertStringNotContainsString($sentinel, serialize($this->logs->entries));
+        }
+    }
+
+    public function testUnexpectedTransportExceptionIsReplacedWithoutPreviousOrRawText(): void
+    {
+        $sentinel = 'SENTINEL_UNEXPECTED_TRANSPORT_FAILURE';
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())->method('request')->willThrowException(
+            new \RuntimeException($sentinel, 77, new \LogicException("previous-{$sentinel}"))
+        );
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->request('GET', '/auth');
+            self::fail('Expected NetworkException.');
+        } catch (\Swotto\Exception\NetworkException $exception) {
+            self::assertSame('Network request failed.', $exception->getMessage());
+            self::assertSame(77, $exception->getStatusCode());
+            self::assertNull($exception->getPrevious());
+            self::assertStringNotContainsString($sentinel, serialize($this->logs->entries));
+            self::assertStringNotContainsString($sentinel, serialize($exception->getErrorData()));
+        }
+    }
+
+    public function testRequestIdIsControlSafeValidUtf8AndByteBounded(): void
+    {
+        $requestId = "safe\r\n\x00-invalid-\xC3\x28-prefix-" . str_repeat('à', 100);
+        $response = $this->createStub(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(503);
+        $response->method('getHeaderLine')->willReturnCallback(
+            static fn (string $name): string => $name === 'X-Request-ID' ? $requestId : ''
+        );
+        $response->method('getBody')->willReturn(\GuzzleHttp\Psr7\Utils::streamFor('{}'));
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())->method('request')->willThrowException(
+            new RequestException('failure', new Request('HEAD', 'me'), $response)
+        );
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->request('HEAD', 'me');
+        } catch (\Throwable) {
+            // expected
+        }
+
+        $logged = $this->lastContext()['request_id'] ?? null;
+        self::assertIsString($logged);
+        self::assertTrue(mb_check_encoding($logged, 'UTF-8'));
+        self::assertLessThanOrEqual(128, strlen($logged));
+        self::assertDoesNotMatchRegularExpression('/[\x00-\x1F\x7F]/', $logged);
     }
 
     private function requestFailingWith(int $status, string $body): ?SwottoException

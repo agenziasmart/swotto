@@ -56,38 +56,14 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private const ORIGIN_BOUND_HEADERS = ['x-devapp', 'x-swotto-client-info', 'x-sid'];
 
-    /**
-     * Placeholder written in place of a redacted value.
-     */
-    private const REDACTED = '****';
-
     /** Maximum length of an upstream request identifier written to logs. */
     private const MAX_LOGGED_REQUEST_ID_LENGTH = 128;
 
-    /**
-     * Header names whose value must never be logged. Matched loosely — see isSensitiveKey().
-     *
-     * @var array<int, string>
-     */
-    private const SENSITIVE_HEADERS = ['authorization', 'cookie', 'apikey', 'authtoken', 'devapp', 'xsid'];
+    /** Maximum length of a request path written to logs. */
+    private const MAX_LOGGED_URI_LENGTH = 512;
 
-    /**
-     * Payload keys whose value must never be logged, at any depth.
-     *
-     * @var array<int, string>
-     */
-    private const SENSITIVE_FIELDS = [
-        'password',
-        'passwd',
-        'token',
-        'secret',
-        'apikey',
-        'credential',
-        'authorization',
-        'cookie',
-        'signature',
-        'privatekey',
-    ];
+    /** HTTP statuses whose API message is part of the public business/validation contract. */
+    private const PUBLIC_MESSAGE_STATUSES = [400, 402, 409, 422];
 
     /**
      * @var bool Verify SSL by default
@@ -160,10 +136,10 @@ final class GuzzleHttpClient implements HttpClientInterface
 
         try {
             $this->client = new GuzzleClient($httpConfig);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             throw new ConnectionException(
-                $e->getMessage(),
-                $this->config->getBaseUrl()
+                'Connection failed.',
+                $this->sanitizeUriForLogging($this->config->getBaseUrl())
             );
         }
     }
@@ -226,7 +202,7 @@ final class GuzzleHttpClient implements HttpClientInterface
 
             return $decoded;
         } catch (\Exception $exception) {
-            return $this->handleException($exception, $uri);
+            return $this->handleException($exception);
         }
     }
 
@@ -242,7 +218,7 @@ final class GuzzleHttpClient implements HttpClientInterface
         try {
             return $this->client->request($method, $uri, $options);
         } catch (\Exception $exception) {
-            $this->handleRawException($exception, $uri);
+            $this->handleRawException($exception);
         }
     }
 
@@ -280,11 +256,15 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private function sanitizeUriForLogging(string $uri): string
     {
+        $uri = mb_scrub($uri, 'UTF-8');
+        $uri = preg_replace('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', '', $uri) ?? '';
         $withoutFragment = strtok($uri, '#');
         $withoutQuery = strtok($withoutFragment === false ? $uri : $withoutFragment, '?');
         $sanitized = $withoutQuery === false ? $uri : $withoutQuery;
 
-        return preg_replace('#^([a-z][a-z0-9+.-]*://|//)[^/]*@#i', '$1', $sanitized) ?? '';
+        $sanitized = preg_replace('#^([a-z][a-z0-9+.-]*://|//)[^/]*@#i', '$1', $sanitized) ?? '';
+
+        return mb_strcut($sanitized, 0, self::MAX_LOGGED_URI_LENGTH, 'UTF-8');
     }
 
     /**
@@ -396,30 +376,28 @@ final class GuzzleHttpClient implements HttpClientInterface
      * Handle exceptions that might occur during API requests.
      *
      * @param \Exception $exception The caught exception
-     * @param string $uri The requested URI
      * @return array<string, mixed> Never returns, always throws
      *
      * @throws ApiException|ConnectionException|NetworkException|\Exception
      */
-    private function handleException(\Exception $exception, string $uri): array
+    private function handleException(\Exception $exception): array
     {
         $this->logException($exception);
-        $this->throwMappedException($exception, $uri, false);
+        $this->throwMappedException($exception, false);
     }
 
     /**
      * Handle exceptions for raw requests.
      *
      * @param \Exception $exception The caught exception
-     * @param string $uri The requested URI
      * @return never Always throws
      *
      * @throws ApiException|ConnectionException|NetworkException|\Exception
      */
-    private function handleRawException(\Exception $exception, string $uri): never
+    private function handleRawException(\Exception $exception): never
     {
         $this->logException($exception);
-        $this->throwMappedException($exception, $uri, true);
+        $this->throwMappedException($exception, true);
     }
 
     /**
@@ -476,13 +454,9 @@ final class GuzzleHttpClient implements HttpClientInterface
         $context['failure_type'] = 'http';
         $context['status'] = $response->getStatusCode();
 
-        $requestId = trim($response->getHeaderLine('X-Request-ID'));
+        $requestId = $this->sanitizeRequestId($response->getHeaderLine('X-Request-ID'));
         if ($requestId !== '') {
-            $requestId = preg_replace('/[\x00-\x1F\x7F]/', '', $requestId) ?? '';
-            $requestId = substr($requestId, 0, self::MAX_LOGGED_REQUEST_ID_LENGTH);
-            if ($requestId !== '') {
-                $context['request_id'] = $requestId;
-            }
+            $context['request_id'] = $requestId;
         }
 
         return $context;
@@ -492,13 +466,12 @@ final class GuzzleHttpClient implements HttpClientInterface
      * Map exception to appropriate Swotto exception and throw it.
      *
      * @param \Exception $exception The original exception
-     * @param string $uri The requested URI
      * @param bool $preserveRawBody Whether to preserve raw body
      * @return never Always throws
      *
      * @throws ApiException|ConnectionException|NetworkException|\Exception
      */
-    private function throwMappedException(\Exception $exception, string $uri, bool $preserveRawBody): never
+    private function throwMappedException(\Exception $exception, bool $preserveRawBody): never
     {
         if ($exception instanceof RequestException) {
             $code = $exception->getCode();
@@ -506,13 +479,14 @@ final class GuzzleHttpClient implements HttpClientInterface
             if ($exception->hasResponse()) {
                 $response = $exception->getResponse();
                 if ($response !== null) {
+                    $code = $response->getStatusCode();
                     $body = $this->parseResponseBody($response, $preserveRawBody);
-                    $this->throwHttpException($code, $body, $response, $exception);
+                    $this->throwHttpException($code, $body, $response);
                 }
             }
 
             throw new NetworkException(
-                "Network error while requesting {$uri}: {$exception->getMessage()}",
+                'Network request failed.',
                 [],
                 $code
             );
@@ -520,14 +494,14 @@ final class GuzzleHttpClient implements HttpClientInterface
 
         if ($exception instanceof \GuzzleHttp\Exception\ConnectException) {
             throw new ConnectionException(
-                $exception->getMessage(),
-                $this->config->getBaseUrl(),
-                array_slice(explode("\n", $exception->getTraceAsString()), 0, 10),
+                'Connection failed.',
+                $this->sanitizeUriForLogging($this->config->getBaseUrl()),
+                [],
                 $exception->getCode()
             );
         }
 
-        throw $exception;
+        throw new NetworkException('Network request failed.', [], $exception->getCode());
     }
 
     /**
@@ -561,7 +535,6 @@ final class GuzzleHttpClient implements HttpClientInterface
      * @param int $code HTTP status code
      * @param array<string, mixed> $body Parsed response body
      * @param ResponseInterface $response Original response
-     * @param RequestException $exception Original exception
      * @return never Always throws
      *
      * @throws ValidationException|AuthenticationException|ForbiddenException
@@ -570,27 +543,47 @@ final class GuzzleHttpClient implements HttpClientInterface
     private function throwHttpException(
         int $code,
         array $body,
-        ResponseInterface $response,
-        RequestException $exception
+        ResponseInterface $response
     ): never {
         $message = $this->extractErrorMessage($body);
+        $publicMessage = in_array($code, self::PUBLIC_MESSAGE_STATUSES, true) ? $message : null;
 
         switch ($code) {
             case 400:
             case 422:
-                throw new ValidationException($message ?? 'Invalid field', $body, $code);
+                throw new ValidationException($publicMessage ?? 'Invalid field', $body, $code);
             case 401:
-                throw new AuthenticationException($message ?? 'Unauthorized', $body, $code);
+                throw new AuthenticationException('Unauthorized', $body, $code);
             case 403:
-                throw new ForbiddenException($message ?? 'Forbidden', $body, $code);
+                throw new ForbiddenException('Forbidden', $body, $code);
             case 404:
-                throw new NotFoundException($message ?? 'Not Found', $body, $code);
+                throw new NotFoundException('Not Found', $body, $code);
             case 429:
                 $retryAfter = $this->parseRetryAfter($response->getHeader('Retry-After')[0] ?? '');
-                throw new RateLimitException($message ?? 'Too Many Requests', $body, $retryAfter);
+                throw new RateLimitException('Too Many Requests', $body, $retryAfter);
             default:
-                throw new ApiException($message ?? $exception->getMessage(), $body, $code);
+                if ($code >= 500) {
+                    throw new ApiException('Upstream service error.', $body, $code);
+                }
+
+                throw new ApiException($publicMessage ?? 'HTTP request rejected.', $body, $code);
         }
+    }
+
+    /**
+     * Normalize an upstream request identifier before it enters structured logs.
+     *
+     * Header values are upstream-controlled. Remove control/format characters (including
+     * CR/LF log-forging bytes), repair malformed UTF-8 and truncate without splitting a
+     * multibyte code point.
+     */
+    private function sanitizeRequestId(string $requestId): string
+    {
+        $requestId = mb_scrub(trim($requestId), 'UTF-8');
+        $requestId = preg_replace('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', '', $requestId) ?? '';
+        $requestId = trim($requestId);
+
+        return mb_strcut($requestId, 0, self::MAX_LOGGED_REQUEST_ID_LENGTH, 'UTF-8');
     }
 
     /**
@@ -664,158 +657,39 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private function sanitizeOptionsForLogging(array $options): array
     {
-        $sanitized = $options;
+        $sanitized = [];
 
-        // 1. Sanitize multipart parts. The value lives under 'contents' while the field
-        //    name lives under 'name', so a generic key walk would miss a part literally
-        //    named "password".
-        if (isset($sanitized['multipart']) && is_array($sanitized['multipart'])) {
-            foreach ($sanitized['multipart'] as &$part) {
-                if (!is_array($part) || !isset($part['contents'])) {
-                    continue;
-                }
-
-                $name = $part['name'] ?? null;
-                if (is_string($name) && $this->isSensitiveKey($name, self::SENSITIVE_FIELDS)) {
-                    $part['contents'] = self::REDACTED;
-
-                    continue;
-                }
-
-                if (!is_string($part['contents'])) {
-                    $size = $this->getContentSize($part['contents']);
-                    $part['contents'] = sprintf('<binary data: %d bytes>', $size);
-
-                    continue;
-                }
-
-                if ($this->isBinaryString($part['contents'])) {
-                    $size = strlen($part['contents']);
-                    $part['contents'] = sprintf('<binary data: %d bytes>', $size);
-                }
-            }
-            unset($part);
+        // Body, JSON, form, multipart, query, auth, proxy, cookies, cert, ssl_key,
+        // headers, callbacks and cURL options are deliberately absent. Their values are
+        // application data or credentials by construction. New Guzzle options are also
+        // absent by default: this is an allowlist, not an ever-incomplete denylist.
+        if (isset($options['multipart']) && is_array($options['multipart'])) {
+            $sanitized['payload_type'] = 'multipart';
+            $sanitized['payload_parts'] = count($options['multipart']);
+        } elseif (array_key_exists('json', $options)) {
+            $sanitized['payload_type'] = 'json';
+        } elseif (array_key_exists('form_params', $options)) {
+            $sanitized['payload_type'] = 'form';
+        } elseif (array_key_exists('body', $options)) {
+            $sanitized['payload_type'] = 'body';
         }
 
-        // 2. Sanitize body streams/resources and binary strings
-        if (isset($sanitized['body'])) {
-            if (is_resource($sanitized['body']) || $sanitized['body'] instanceof \Psr\Http\Message\StreamInterface) {
-                $size = $this->getContentSize($sanitized['body']);
-                $sanitized['body'] = sprintf('<stream: %d bytes>', $size);
-            } elseif (is_string($sanitized['body']) && $this->isBinaryString($sanitized['body'])) {
-                $sanitized['body'] = sprintf('<body: %d bytes>', strlen($sanitized['body']));
+        foreach (['timeout', 'connect_timeout', 'read_timeout'] as $key) {
+            if (isset($options[$key]) && is_numeric($options[$key])) {
+                $sanitized[$key] = (float) $options[$key];
             }
         }
 
-        // 3. Sanitize sensitive headers
-        if (isset($sanitized['headers']) && is_array($sanitized['headers'])) {
-            foreach (array_keys($sanitized['headers']) as $key) {
-                if (is_string($key) && $this->isSensitiveKey($key, self::SENSITIVE_HEADERS)) {
-                    $sanitized['headers'][$key] = self::REDACTED;
-                }
-            }
+        if (array_key_exists('verify', $options)) {
+            $sanitized['verify_ssl'] = $options['verify'] !== false;
         }
 
-        // 4. Sanitize payload containers at any depth. A secret nested three levels down
-        //    in a JSON body, or sitting in the query string, used to reach the logger in
-        //    the clear because only the first level of a couple of containers was checked.
-        foreach (['form_params', 'json', 'query'] as $container) {
-            if (isset($sanitized[$container]) && is_array($sanitized[$container])) {
-                $sanitized[$container] = $this->redactSensitiveValues($sanitized[$container]);
+        foreach (['http_errors', 'stream'] as $key) {
+            if (isset($options[$key]) && is_bool($options[$key])) {
+                $sanitized[$key] = $options[$key];
             }
         }
 
         return $sanitized;
-    }
-
-    /**
-     * Walk an arbitrarily nested structure and redact values held under sensitive keys.
-     *
-     * @param array<array-key, mixed> $data Structure to redact
-     * @return array<array-key, mixed> Redacted copy
-     */
-    private function redactSensitiveValues(array $data): array
-    {
-        foreach ($data as $key => $value) {
-            if (is_string($key) && $this->isSensitiveKey($key, self::SENSITIVE_FIELDS)) {
-                $data[$key] = self::REDACTED;
-
-                continue;
-            }
-
-            if (is_array($value)) {
-                $data[$key] = $this->redactSensitiveValues($value);
-            }
-        }
-
-        return $data;
-    }
-
-    /**
-     * Match a key against a list of sensitive names, ignoring case, separators and any
-     * surrounding prefix (`x-api-key`, `apiKey` and `customer_api_key` all match).
-     *
-     * @param string $key Key to test
-     * @param array<int, string> $needles Sensitive names, lowercase and separator-free
-     * @return bool True if the key must be redacted
-     */
-    private function isSensitiveKey(string $key, array $needles): bool
-    {
-        $normalized = strtolower(str_replace(['-', '_', '.', ' '], '', $key));
-
-        foreach ($needles as $needle) {
-            if (str_contains($normalized, $needle)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Get size of content.
-     *
-     * @param mixed $content Content to measure
-     * @return int Size in bytes
-     */
-    private function getContentSize(mixed $content): int
-    {
-        if (is_string($content)) {
-            return strlen($content);
-        }
-
-        if (is_resource($content)) {
-            $stat = fstat($content);
-
-            return $stat['size'] ?? 0;
-        }
-
-        if ($content instanceof \Psr\Http\Message\StreamInterface) {
-            return $content->getSize() ?? 0;
-        }
-
-        return 0;
-    }
-
-    /**
-     * Detect if string content is binary data.
-     *
-     * @param string $content Content to check
-     * @return bool True if content appears to be binary
-     */
-    private function isBinaryString(string $content): bool
-    {
-        if (strlen($content) === 0) {
-            return false;
-        }
-
-        $quickSample = substr($content, 0, 512);
-        if (strpos($quickSample, "\0") !== false) {
-            return true;
-        }
-
-        $sample = substr($content, 0, 1024);
-
-        return !mb_check_encoding($sample, 'UTF-8');
     }
 }
