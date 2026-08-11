@@ -42,4 +42,31 @@ final class LogSanitizerTest extends TestCase
         self::assertLessThanOrEqual(512, strlen($safe));
         self::assertDoesNotMatchRegularExpression('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', $safe);
     }
+
+    #[DataProvider('utf8SubstituteProvider')]
+    public function testUserInfoIsRemovedBeforeGlobalUtf8SubstitutionCanChangeParsing(int $substitute): void
+    {
+        $previousSubstitute = mb_substitute_character();
+        mb_substitute_character($substitute);
+
+        try {
+            $safe = LogSanitizer::uri(
+                "https://user:SENTINEL_BEFORE\xFFSENTINEL_AFTER@api.example.com/auth"
+                . '?token=SENTINEL_QUERY'
+            );
+        } finally {
+            mb_substitute_character($previousSubstitute);
+        }
+
+        self::assertSame('https://api.example.com/auth', $safe);
+        self::assertStringNotContainsString('SENTINEL_', $safe);
+        self::assertSame($previousSubstitute, mb_substitute_character());
+    }
+
+    /** @return iterable<string, array{int}> */
+    public static function utf8SubstituteProvider(): iterable
+    {
+        yield 'slash' => [47];
+        yield 'question mark' => [63];
+    }
 }

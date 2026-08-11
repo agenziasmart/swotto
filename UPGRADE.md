@@ -2,10 +2,12 @@
 
 ## Upgrading from v2.3.0 to the next patch
 
-This security patch keeps exception classes, HTTP status codes and `getErrorData()` intact,
-but intentionally narrows exception messages. API-provided messages remain public for `400`,
-`402`, `409` and `422`; `401`, `403`, `404`, `429`, `5xx`, default HTTP, network, connection
-and unexpected transport failures now use constants and have no raw previous exception.
+For failures already mapped to Swotto exceptions, this security patch keeps their classes,
+HTTP status codes and `getErrorData()` intact, but intentionally narrows exception messages.
+API-provided messages remain public for `400`, `402`, `409` and `422`; `401`, `403`, `404`,
+`429`, `5xx`, default HTTP, network, connection and unexpected transport failures now use
+constants and have no raw previous exception. The previously unmapped `RuntimeException` case
+is the explicit class change described below.
 
 If application code matches message text, switch it to `getStatusCode()` and the exception
 class. If it displays validation/business feedback, keep reading the message for the four

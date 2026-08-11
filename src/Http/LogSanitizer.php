@@ -47,9 +47,13 @@ final class LogSanitizer
     public static function uri(string $uri): string
     {
         $uri = substr($uri, 0, strcspn($uri, '?#'));
+        // Strip authority user-info while the URI is still the caller's raw byte string.
+        // mb_scrub() honours the process-wide mb_substitute_character(); if that character
+        // is '/', repairing an invalid byte first can manufacture a slash and make the
+        // authority regex preserve credentials.
+        $uri = preg_replace('#^([a-z][a-z0-9+.-]*://|//)[^/]*@#i', '$1', $uri) ?? '';
         $uri = mb_scrub($uri, 'UTF-8');
         $uri = preg_replace('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', '', $uri) ?? '';
-        $uri = preg_replace('#^([a-z][a-z0-9+.-]*://|//)[^/]*@#i', '$1', $uri) ?? '';
 
         return mb_strcut($uri, 0, self::MAX_URI_LENGTH, 'UTF-8');
     }

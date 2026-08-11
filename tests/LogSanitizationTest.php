@@ -609,21 +609,27 @@ class LogSanitizationTest extends TestCase
     {
         $lines = [];
         $method = "GET\r\nSENTINEL_METHOD";
-        $uri = 'https://user:SENTINEL_USERINFO@api.example.com/safe'
+        $uri = "https://user:SENTINEL_BEFORE\xFFSENTINEL_AFTER@api.example.com/safe"
             . "\r\n\x00\u{200B}\u{2028}\u{2029}\xC3\x28"
             . str_repeat('à', 300)
             . '?token=SENTINEL_QUERY#SENTINEL_FRAGMENT';
+        $previousSubstitute = mb_substitute_character();
+        mb_substitute_character(47);
 
-        $this->runWithRecordingLogger(
-            function (string $level, string $message) use (&$lines): void {
-                if ($level === 'info') {
-                    $lines[] = $message;
-                }
-            },
-            $method,
-            $uri,
-            []
-        );
+        try {
+            $this->runWithRecordingLogger(
+                function (string $level, string $message) use (&$lines): void {
+                    if ($level === 'info') {
+                        $lines[] = $message;
+                    }
+                },
+                $method,
+                $uri,
+                []
+            );
+        } finally {
+            mb_substitute_character($previousSubstitute);
+        }
 
         self::assertCount(1, $lines);
         self::assertStringStartsWith('Requesting UNKNOWN https://api.example.com/safe', $lines[0]);

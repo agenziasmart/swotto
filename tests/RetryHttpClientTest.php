@@ -156,7 +156,7 @@ class RetryHttpClientTest extends TestCase
     public function testRetryLogsUseBoundedUriAndSafeMethodMetadata(): void
     {
         $method = "GET\r\nSENTINEL_METHOD";
-        $uri = 'https://user:SENTINEL_USERINFO@api.example.com/safe'
+        $uri = "https://user:SENTINEL_BEFORE\xFFSENTINEL_AFTER@api.example.com/safe"
             . "\r\n\x00\u{200B}\u{2028}\u{2029}\xC3\x28"
             . str_repeat('à', 300)
             . '?token=SENTINEL_QUERY#SENTINEL_FRAGMENT';
@@ -180,7 +180,14 @@ class RetryHttpClientTest extends TestCase
             ->with($method, $uri, [])
             ->andReturn(['success' => true]);
 
-        $result = $retryClient->request($method, $uri, ['retry_non_idempotent' => true]);
+        $previousSubstitute = mb_substitute_character();
+        mb_substitute_character(47);
+
+        try {
+            $result = $retryClient->request($method, $uri, ['retry_non_idempotent' => true]);
+        } finally {
+            mb_substitute_character($previousSubstitute);
+        }
 
         self::assertSame(['success' => true], $result);
         self::assertCount(2, $logger->entries);

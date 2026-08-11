@@ -224,9 +224,14 @@ payload kind, multipart part count, numeric timeouts, boolean TLS state, `http_e
 cookies, `cert`, `ssl_key`, cURL options, callbacks or unknown future Guzzle options. The
 info line keeps only an uppercase allowlisted method (or `UNKNOWN`) and a bounded path. Both
 the base client and retry decorator must call the shared `Http\LogSanitizer`; URL user-info,
-query, fragment, malformed UTF-8 and `Cc`/`Cf`/`Zl`/`Zp` characters are stripped, and the URI
-is capped at 512 bytes without splitting a code point. Do not create a second local sanitizer:
-that drift was how retry warnings retained an unsafe boundary after the base client was fixed.
+query, fragment and `Cc`/`Cf`/`Zl`/`Zp` characters are stripped, malformed UTF-8 is repaired,
+and the URI is capped at 512 bytes without splitting a code point. Do not create a second local
+sanitizer: that drift was how retry warnings retained an unsafe boundary after the base client
+was fixed.
+URI user-info is removed from the raw byte string before `mb_scrub()`: the latter honours the
+process-wide `mb_substitute_character()`, and a caller that selected `/` could otherwise make an
+invalid user-info byte become a path separator and bypass credential stripping. Tests that
+mutate this global setting must save it and restore it in `finally`.
 
 ### Failure logging lesson
 
