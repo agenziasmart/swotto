@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- **HTTP and network failure logs no longer copy upstream-controlled content.** Exception
+  messages, response bodies, URL user-info and query strings could contain credentials,
+  personal data or internal error details. Failure logs now use constant messages and an
+  allowlisted, bounded context: failure type, exception class, HTTP status and at most 128
+  characters of `X-Request-ID`. Retry logs follow the same rule. Exception types, messages and
+  response data exposed to SDK callers are unchanged.
+
 ## [2.3.0] - 2026-08-08
 
 Aligns the public contract with the API the SDK actually talks to, and stops replaying

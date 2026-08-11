@@ -9,7 +9,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use Psr\Log\AbstractLogger;
 use Psr\Log\NullLogger;
+use Stringable;
 use Swotto\Config\Configuration;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Exception\ApiException;
@@ -101,6 +103,54 @@ class RetryHttpClientTest extends TestCase
         $response = $this->retryClient->request('GET', '/test', []);
 
         $this->assertEquals($expectedResponse, $response);
+    }
+
+    public function testRetryLogDoesNotExposeExceptionMessageOrQuery(): void
+    {
+        $exceptionSecret = 'SENTINEL_RETRY_AUTH_SECRET';
+        $querySecret = 'SENTINEL_RETRY_QUERY_SECRET';
+        $userInfoSecret = 'SENTINEL_RETRY_USERINFO_SECRET';
+        $uri = "https://user:{$userInfoSecret}@api.example.com/auth/session?access_token={$querySecret}";
+        $logger = new RetryCapturingLogger();
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'retry_max_attempts' => 2,
+            'retry_initial_delay_ms' => 1,
+            'retry_max_delay_ms' => 1,
+            'retry_jitter' => false,
+        ]);
+        $retryClient = new RetryHttpClient(
+            $this->mockClient, // @phpstan-ignore-line
+            $config,
+            $logger
+        );
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->andThrow(new NetworkException($exceptionSecret));
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->andReturn(['success' => true]);
+
+        $result = $retryClient->request('HEAD', $uri);
+
+        $this->assertSame(['success' => true], $result);
+        $serialized = serialize($logger->entries);
+        $this->assertStringNotContainsString($exceptionSecret, $serialized);
+        $this->assertStringNotContainsString($querySecret, $serialized);
+        $this->assertStringNotContainsString($userInfoSecret, $serialized);
+        $this->assertCount(2, $logger->entries);
+        $this->assertSame([
+            'method' => 'HEAD',
+            'uri' => 'https://api.example.com/auth/session',
+            'attempt' => 1,
+            'max_attempts' => 2,
+            'delay_ms' => 1,
+            'failure_type' => 'network',
+            'exception_type' => NetworkException::class,
+        ], $logger->entries[0]['context']);
+        $this->assertSame('https://api.example.com/auth/session', $logger->entries[1]['context']['uri']);
     }
 
     public function testRetryOnConnectionException(): void
@@ -529,5 +579,21 @@ class RetryHttpClientTest extends TestCase
         $this->expectException(ApiException::class);
 
         $retryClient->request('GET', '/test', []);
+    }
+}
+
+final class RetryCapturingLogger extends AbstractLogger
+{
+    /** @var list<array{level: string, message: string, context: array<string, mixed>}> */
+    public array $entries = [];
+
+    /** @param array<string, mixed> $context */
+    public function log($level, string|Stringable $message, array $context = []): void
+    {
+        $this->entries[] = [
+            'level' => (string) $level,
+            'message' => (string) $message,
+            'context' => $context,
+        ];
     }
 }

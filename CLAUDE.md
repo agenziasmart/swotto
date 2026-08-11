@@ -178,6 +178,22 @@ Four rules that keep the suite honest:
 - Use placeholder organization IDs, and test multitenant isolation with them.
 - Never reference a real organization or customer in code, tests or examples.
 
+Run containerized tests as a non-root user. The path-security tests create a deliberately
+non-writable directory; root bypasses its mode bits and produces three false failures. A
+read-only mount plus the host UID keeps the test meaningful, for example:
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+  -v "$PWD:/app:ro" -w /app php:8.5-cli-alpine \
+  php vendor/bin/phpunit --do-not-cache-result
+```
+
+On PHP 8.5, `ReflectionProperty::setAccessible()` and
+`ReflectionMethod::setAccessible()` are deprecated because they have had no effect since PHP
+8.1. Do not add them to new test helpers. As of 2026-08-12 the full suite still emits 26
+test-only deprecations from older helpers; remove those before making deprecations a failing
+CI gate. The production sources do not trigger them.
+
 ## Code quality
 
 PSR-12 with the `@PHP83Migration` ruleset (`.php-cs-fixer.php`): **four-space indentation**,
@@ -207,6 +223,28 @@ Redaction in `sanitizeOptionsForLogging()` is **recursive** over `json`, `form_p
 by their `name` because the value sits under `contents`. Request options, the body included,
 are logged at **debug**; the info line keeps only method and path, with the query string
 stripped — tokens travel there often enough to matter.
+
+### Failure logging lesson
+
+The observed symptom was that an HTTP/network failure copied the Guzzle exception message,
+response body and URI credentials/query into the consumer's PSR-3 log; the retry decorator
+independently copied the mapped exception message and raw URI. The root cause was treating
+upstream-controlled text as diagnostic metadata: request-option redaction cannot protect a
+string interpolated into the log message, and bounding a body limits volume but does not make
+it safe. Sentinel tests proved all three values reached the captured logs.
+
+The impact is highest on authentication/session requests, whose failures can carry
+credentials, provider details or internal error envelopes. Failure logs therefore follow a
+strict allowlist: constant messages plus bounded failure type, exception class, HTTP status
+and `X-Request-ID` (control characters removed, maximum 128 characters). Never log the
+exception message/object, response body/object, URL credentials or query. This changes
+logging only; the public exception still carries its existing response data.
+
+Prevent recurrence with distinct sentinels for exception message, response body and query in
+both `GuzzleHttpClientLoggingTest` and `RetryHttpClientTest`. Roll out the SDK patch first,
+then regenerate the consumer lockfile. Verify the released tag and installed consumer version,
+exercise synthetic 401, 5xx and network failures without real credentials, and confirm that
+logs contain type/status/request ID but none of the sentinels.
 
 The DevApp token is bound to the configured origin: a middleware at the bottom of the Guzzle
 handler stack removes `x-devapp`, `X-Swotto-Client-Info` and `x-sid` whenever the host

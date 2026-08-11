@@ -61,14 +61,8 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private const REDACTED = '****';
 
-    /**
-     * Tetto del corpo di risposta riportato nel contesto del log.
-     *
-     * Serve a stare largo rispetto ai 120 caratteri del riassunto di Guzzle — che tagliava
-     * via il campo fallito di un 422 — senza per questo versare risposte da megabyte in ogni
-     * riga di log. Un errore di validazione dell'API sta in poche centinaia di byte.
-     */
-    private const MAX_LOGGED_BODY_LENGTH = 4000;
+    /** Maximum length of an upstream request identifier written to logs. */
+    private const MAX_LOGGED_REQUEST_ID_LENGTH = 128;
 
     /**
      * Header names whose value must never be logged. Matched loosely — see isSensitiveKey().
@@ -266,28 +260,31 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private function logRequest(string $label, string $method, string $uri, array $options): void
     {
-        $this->logger->info("{$label} {$method} " . $this->sanitizeUriForLogging($uri));
+        $safeUri = $this->sanitizeUriForLogging($uri);
+
+        $this->logger->info("{$label} {$method} {$safeUri}");
         $this->logger->debug(
-            "{$label} {$method} {$uri} options",
+            "{$label} {$method} {$safeUri} options",
             $this->sanitizeOptionsForLogging($options)
         );
     }
 
     /**
-     * Strip the query string from a URI before logging it.
+     * Strip user-info, query string and fragment from a URI before logging it.
      *
-     * Tokens travel in query strings often enough that logging one whole is a leak in
-     * itself; scheme, host and path are what makes a log line useful anyway.
+     * Tokens travel in URL credentials and query strings often enough that logging either
+     * is a leak in itself; scheme, host and path are what makes a log line useful anyway.
      *
      * @param string $uri Request URI, absolute or relative to the base URL
-     * @return string URI without its query string or fragment
+     * @return string URI without user-info, query string or fragment
      */
     private function sanitizeUriForLogging(string $uri): string
     {
         $withoutFragment = strtok($uri, '#');
         $withoutQuery = strtok($withoutFragment === false ? $uri : $withoutFragment, '?');
+        $sanitized = $withoutQuery === false ? $uri : $withoutQuery;
 
-        return $withoutQuery === false ? $uri : $withoutQuery;
+        return preg_replace('#^([a-z][a-z0-9+.-]*://|//)[^/]*@#i', '$1', $sanitized) ?? '';
     }
 
     /**
@@ -406,7 +403,7 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private function handleException(\Exception $exception, string $uri): array
     {
-        $this->logException($exception, $uri);
+        $this->logException($exception);
         $this->throwMappedException($exception, $uri, false);
     }
 
@@ -421,7 +418,7 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private function handleRawException(\Exception $exception, string $uri): never
     {
-        $this->logException($exception, $uri);
+        $this->logException($exception);
         $this->throwMappedException($exception, $uri, true);
     }
 
@@ -429,67 +426,66 @@ final class GuzzleHttpClient implements HttpClientInterface
      * Log exception with appropriate level.
      *
      * @param \Exception $exception The exception to log
-     * @param string $uri The requested URI
      */
-    private function logException(\Exception $exception, string $uri): void
+    private function logException(\Exception $exception): void
     {
-        $status = $exception instanceof RequestException ? $exception->getCode() : 0;
-        $context = $this->responseBodyContext($exception);
+        $context = $this->failureLogContext($exception);
+        $status = $context['status'] ?? 0;
 
-        // Un 4xx e' l'esito di una richiesta, non un guasto: il chiamante lo riceve come
-        // eccezione e lo registra con la severita' che gli compete (in APP.SW4
-        // ErrorCatcherMiddleware legge getLogLevel() dell'eccezione mappata). Loggarlo qui a
-        // `error` significava due righe per lo stesso evento, una nel canale sbagliato: sul
-        // log di produzione del 08-08, 565 ERROR in 40 ore per un solo guasto vero.
+        // A 4xx is a request outcome, not a service failure. The caller receives the mapped
+        // exception and decides its final severity; logging it here at error would duplicate
+        // the same event in the wrong channel.
         if ($status >= 400 && $status < 500) {
-            $this->logger->debug("HTTP {$status} for {$uri}", $context);
+            $this->logger->debug('Swotto HTTP request rejected', $context);
 
             return;
         }
 
-        $this->logger->error("Error while requesting {$uri}: {$exception->getMessage()}", $context);
+        $this->logger->error('Swotto request failed', $context);
     }
 
     /**
-     * Corpo della risposta d'errore, per il contesto del log.
+     * Build a bounded diagnostic context without copying upstream-controlled text.
      *
-     * NON si usa `$exception->getMessage()`: per Guzzle e' un riassunto tagliato a 120
-     * caratteri, e su un 422 la riga si fermava a `"error": {"type": "VALID…`, cioe' prima
-     * del campo che aveva fallito.
+     * Exception messages and response bodies can contain credentials, personal data or
+     * implementation details. The response status, exception class and a bounded request
+     * identifier are enough to correlate the failure with the API log.
      *
-     * Lo stream viene riavvolto DOPO la lettura, e non e' un dettaglio: questo metodo gira
-     * prima di `throwMappedException()`, che legge lo stesso body con `getContents()`. Senza
-     * rewind a valle resterebbe una stringa vuota e l'eccezione arriverebbe al chiamante
-     * senza i dati d'errore — nessun errore, nessun log, solo un 422 muto.
-     *
-     * @return array<string, mixed>
+     * @return array{failure_type: string, exception_type: class-string, status?: int, request_id?: string}
      */
-    private function responseBodyContext(\Exception $exception): array
+    private function failureLogContext(\Exception $exception): array
     {
+        $context = [
+            'failure_type' => $exception instanceof RequestException ? 'network' : 'unexpected',
+            'exception_type' => $exception::class,
+        ];
+
         if (!$exception instanceof RequestException || !$exception->hasResponse()) {
-            return [];
+            if ($exception instanceof \GuzzleHttp\Exception\ConnectException) {
+                $context['failure_type'] = 'network';
+            }
+
+            return $context;
         }
 
         $response = $exception->getResponse();
         if ($response === null) {
-            return [];
+            return $context;
         }
 
-        $body = $response->getBody();
-        if (!$body->isSeekable()) {
-            // Non rileggibile: leggerlo qui lo consumerebbe per chi viene dopo.
-            return [];
+        $context['failure_type'] = 'http';
+        $context['status'] = $response->getStatusCode();
+
+        $requestId = trim($response->getHeaderLine('X-Request-ID'));
+        if ($requestId !== '') {
+            $requestId = preg_replace('/[\x00-\x1F\x7F]/', '', $requestId) ?? '';
+            $requestId = substr($requestId, 0, self::MAX_LOGGED_REQUEST_ID_LENGTH);
+            if ($requestId !== '') {
+                $context['request_id'] = $requestId;
+            }
         }
 
-        $body->rewind();
-        $contents = $body->getContents();
-        $body->rewind();
-
-        if ($contents === '') {
-            return [];
-        }
-
-        return ['response_body' => mb_substr($contents, 0, self::MAX_LOGGED_BODY_LENGTH)];
+        return $context;
     }
 
     /**

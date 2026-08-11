@@ -16,27 +16,7 @@ use Swotto\Config\Configuration;
 use Swotto\Exception\SwottoException;
 use Swotto\Http\GuzzleHttpClient;
 
-/**
- * Due difetti nel logging degli errori HTTP, misurati sul log di produzione di app.sw4.it
- * il 2026-08-10.
- *
- * 1. **Il livello.** Solo 401 e 404 erano declassati a `debug`; tutto il resto finiva in
- *    `error`, compreso un 422 di validazione — cioè un form inviato incompleto, l'esito più
- *    ordinario che un form abbia. Il consumer logga già l'esito con la propria severità
- *    (in APP.SW4 `ErrorCatcherMiddleware` legge `getLogLevel()` dell'eccezione mappata),
- *    quindi ogni 4xx produceva DUE righe, una delle quali nel canale sbagliato.
- *
- * 2. **Il corpo troncato.** Il messaggio veniva da `$exception->getMessage()`, che per Guzzle
- *    è un riassunto tagliato a 120 caratteri: la riga di log si fermava a
- *    `"error": {"type": "VALID…` e il campo che aveva fallito non si leggeva. Per scoprirlo
- *    bisognava risalire all'access log dell'API, che però registra solo status e dimensione.
- *
- * La cura del punto 2 ha un pericolo suo, ed è il motivo per cui
- * `testIlCorpoRestaLeggibileDaChiVieneDopo` esiste: `logException()` gira PRIMA di
- * `throwMappedException()`, che legge lo stesso stream con `getContents()`. Leggere il body
- * per loggarlo senza riavvolgerlo lascerebbe a valle una stringa vuota — i dati d'errore
- * sparirebbero dall'eccezione senza alcun errore, e il consumer riceverebbe un 422 muto.
- */
+/** Failure logs must be useful for correlation without copying upstream-controlled data. */
 class GuzzleHttpClientLoggingTest extends TestCase
 {
     private CapturingLogger $logs;
@@ -62,11 +42,24 @@ class GuzzleHttpClientLoggingTest extends TestCase
         $this->assertNotSame('error', $this->lastLevel());
     }
 
-    /**
-     * Il difetto misurato: la riga di log si fermava a 120 caratteri e il campo che aveva
-     * fallito restava fuori. Qui il payload supera quella soglia di proposito.
-     */
-    public function testIlCorpoDellErroreArrivaInteroNelContesto(): void
+    public function testAuthenticationRejectionUsesSafeDebugContext(): void
+    {
+        $sentinel = 'SENTINEL_AUTH_RESPONSE_MESSAGE';
+
+        $this->requestFailingWith(401, (string) json_encode([
+            'error' => ['message' => $sentinel],
+        ]));
+
+        $this->assertSame('debug', $this->lastLevel());
+        $this->assertSame([
+            'failure_type' => 'http',
+            'exception_type' => RequestException::class,
+            'status' => 401,
+        ], $this->lastContext());
+        $this->assertStringNotContainsString($sentinel, serialize($this->logs->entries));
+    }
+
+    public function testIlCorpoDellErroreNonEntraNelContestoDelLog(): void
     {
         $body = (string) json_encode([
             'success' => false,
@@ -80,17 +73,11 @@ class GuzzleHttpClientLoggingTest extends TestCase
 
         $this->requestFailingWith(422, $body);
 
-        $logged = (string) ($this->lastContext()['response_body'] ?? '');
-
-        $this->assertStringContainsString('warehouse_uuid', $logged);
-        $this->assertStringNotContainsString('truncated', $logged);
+        $this->assertArrayNotHasKey('response_body', $this->lastContext());
+        $this->assertStringNotContainsString('warehouse_uuid', serialize($this->logs->entries));
     }
 
-    /**
-     * La guardia che conta. `logException()` legge lo stream prima di
-     * `throwMappedException()`: senza rewind, a valle resterebbe una stringa vuota e
-     * l'eccezione arriverebbe al consumer senza i dati d'errore, in silenzio.
-     */
+    /** Removing the body from logs must not remove it from the public exception contract. */
     public function testIlCorpoRestaLeggibileDaChiVieneDopo(): void
     {
         $caught = $this->requestFailingWith(422, (string) json_encode([
@@ -116,7 +103,7 @@ class GuzzleHttpClientLoggingTest extends TestCase
     public function testUnGuastoDiConnessioneRestaUnErrore(): void
     {
         $mockGuzzle = $this->createMock(GuzzleClient::class);
-        $mockGuzzle->method('request')->willThrowException(
+        $mockGuzzle->expects($this->once())->method('request')->willThrowException(
             new ConnectException('Connection refused', new Request('GET', 'test'))
         );
         $this->injectMockGuzzle($mockGuzzle);
@@ -130,22 +117,103 @@ class GuzzleHttpClientLoggingTest extends TestCase
         $this->assertSame('error', $this->lastLevel());
     }
 
-    /** Un corpo enorme non deve finire per intero in ogni riga di log. */
-    public function testUnCorpoEnormeVieneLimitato(): void
+    public function testHttpFailureLogDoesNotExposeUpstreamData(): void
     {
-        $this->requestFailingWith(422, str_repeat('x', 10000));
+        $exceptionSecret = 'SENTINEL_EXCEPTION_AUTH_SECRET';
+        $responseSecret = 'SENTINEL_RESPONSE_AUTH_SECRET';
+        $querySecret = 'SENTINEL_QUERY_AUTH_SECRET';
+        $userInfoSecret = 'SENTINEL_URL_USERINFO_SECRET';
+        $uri = "https://user:{$userInfoSecret}@api.example.com/me?access_token={$querySecret}";
+        $requestId = 'req-safe-123';
+        $response = new Response(
+            503,
+            ['X-Request-ID' => $requestId],
+            (string) json_encode(['error' => ['message' => $responseSecret]])
+        );
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())->method('request')->willThrowException(
+            new RequestException(
+                $exceptionSecret,
+                new Request('HEAD', $uri),
+                $response
+            )
+        );
+        $this->injectMockGuzzle($mockGuzzle);
 
-        $logged = (string) ($this->lastContext()['response_body'] ?? '');
+        try {
+            $this->httpClient->request('HEAD', $uri);
+        } catch (\Throwable) {
+            // atteso
+        }
 
-        $this->assertLessThan(10000, \strlen($logged));
-        $this->assertGreaterThan(1000, \strlen($logged), 'Il limite non deve riportare la troncatura di Guzzle');
+        $serializedLogs = serialize($this->logs->entries);
+        $this->assertStringNotContainsString($exceptionSecret, $serializedLogs);
+        $this->assertStringNotContainsString($responseSecret, $serializedLogs);
+        $this->assertStringNotContainsString($querySecret, $serializedLogs);
+        $this->assertStringNotContainsString($userInfoSecret, $serializedLogs);
+        $this->assertSame('error', $this->lastLevel());
+        $this->assertSame([
+            'failure_type' => 'http',
+            'exception_type' => RequestException::class,
+            'status' => 503,
+            'request_id' => $requestId,
+        ], $this->lastContext());
+    }
+
+    public function testNetworkFailureLogDoesNotExposeExceptionOrQuery(): void
+    {
+        $exceptionSecret = 'SENTINEL_NETWORK_AUTH_SECRET';
+        $querySecret = 'SENTINEL_NETWORK_QUERY_SECRET';
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())->method('request')->willThrowException(
+            new ConnectException(
+                $exceptionSecret,
+                new Request('HEAD', "me?access_token={$querySecret}")
+            )
+        );
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->request('HEAD', "me?access_token={$querySecret}");
+        } catch (\Throwable) {
+            // atteso
+        }
+
+        $serializedLogs = serialize($this->logs->entries);
+        $this->assertStringNotContainsString($exceptionSecret, $serializedLogs);
+        $this->assertStringNotContainsString($querySecret, $serializedLogs);
+        $this->assertSame('error', $this->lastLevel());
+        $this->assertSame([
+            'failure_type' => 'network',
+            'exception_type' => ConnectException::class,
+        ], $this->lastContext());
+    }
+
+    public function testRequestIdNelLogELimitato(): void
+    {
+        $response = new Response(503, ['X-Request-ID' => str_repeat('r', 300)], '{}');
+        $mockGuzzle = $this->createMock(GuzzleClient::class);
+        $mockGuzzle->expects($this->once())->method('request')->willThrowException(
+            new RequestException('failure', new Request('HEAD', 'me'), $response)
+        );
+        $this->injectMockGuzzle($mockGuzzle);
+
+        try {
+            $this->httpClient->request('HEAD', 'me');
+        } catch (\Throwable) {
+            // atteso
+        }
+
+        $requestId = $this->lastContext()['request_id'] ?? null;
+        $this->assertIsString($requestId);
+        $this->assertSame(128, strlen($requestId));
     }
 
     private function requestFailingWith(int $status, string $body): ?SwottoException
     {
         $response = new Response($status, ['Content-Type' => 'application/json'], $body);
         $mockGuzzle = $this->createMock(GuzzleClient::class);
-        $mockGuzzle->method('request')->willThrowException(
+        $mockGuzzle->expects($this->once())->method('request')->willThrowException(
             new RequestException('Client error', new Request('POST', 'whstransfer'), $response)
         );
         $this->injectMockGuzzle($mockGuzzle);
@@ -165,7 +233,6 @@ class GuzzleHttpClientLoggingTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->httpClient);
         $clientProperty = $reflection->getProperty('client');
-        $clientProperty->setAccessible(true);
         $clientProperty->setValue($this->httpClient, $mockGuzzle);
     }
 

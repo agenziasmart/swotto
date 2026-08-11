@@ -147,7 +147,7 @@ final class RetryHttpClient implements HttpClientInterface
                 if ($attempt > 1) {
                     $this->log('info', 'Request succeeded after retry', [
                         'method' => $method,
-                        'uri' => $uri,
+                        'uri' => $this->sanitizeUriForLogging($uri),
                         'attempt' => $attempt,
                     ]);
                 }
@@ -164,12 +164,11 @@ final class RetryHttpClient implements HttpClientInterface
 
                 $this->log('warning', 'Retrying request after transient error', [
                     'method' => $method,
-                    'uri' => $uri,
+                    'uri' => $this->sanitizeUriForLogging($uri),
                     'attempt' => $attempt,
                     'max_attempts' => $this->maxAttempts,
                     'delay_ms' => $delayMs,
-                    'error' => $e->getMessage(),
-                    'error_class' => get_class($e),
+                    ...$this->failureLogContext($e),
                 ]);
 
                 usleep($delayMs * 1000);
@@ -177,6 +176,35 @@ final class RetryHttpClient implements HttpClientInterface
         }
 
         throw $lastException ?? new \RuntimeException('Unexpected retry loop exit');
+    }
+
+    /**
+     * Build retry diagnostics without copying upstream-controlled exception text.
+     *
+     * @return array{failure_type: string, exception_type: class-string, status?: int}
+     */
+    private function failureLogContext(\Exception $exception): array
+    {
+        $context = [
+            'failure_type' => $exception instanceof NetworkException ? 'network' : 'http',
+            'exception_type' => $exception::class,
+        ];
+
+        if ($exception instanceof ApiException) {
+            $context['status'] = $exception->getStatusCode();
+        }
+
+        return $context;
+    }
+
+    /** Strip URL credentials, query strings and fragments before a URI reaches the logger. */
+    private function sanitizeUriForLogging(string $uri): string
+    {
+        $withoutFragment = strtok($uri, '#');
+        $withoutQuery = strtok($withoutFragment === false ? $uri : $withoutFragment, '?');
+        $sanitized = $withoutQuery === false ? $uri : $withoutQuery;
+
+        return preg_replace('#^([a-z][a-z0-9+.-]*://|//)[^/]*@#i', '$1', $sanitized) ?? '';
     }
 
     /**
