@@ -12,9 +12,20 @@ class. If it displays validation/business feedback, keep reading the message for
 public statuses or structured fields from `getErrorData()`. Never send `getErrorData()` or
 public messages to logs wholesale.
 
+Two transport details are intentionally stricter. An unexpected `RuntimeException` caught at
+the Guzzle boundary is now mapped to `NetworkException` instead of being rethrown with its raw
+message and previous chain. A `ConnectionException` created by the SDK now returns an empty
+`getTraceDetails()` array rather than copying Guzzle handler context; its class, status/code and
+sanitized base URL remain available. Code that caught `RuntimeException` specifically should
+catch `NetworkException`, and diagnostics should use API-side correlation instead of the removed
+transport trace.
+
 Request-option debug logs also changed from a redacted copy to a strict metadata allowlist.
 This removes payload/header visibility intentionally; correlate the SDK status/request ID with
-the API-side log when deeper diagnosis is required.
+the API-side log when deeper diagnosis is required. Request-line and retry metadata share one
+boundary: methods are uppercased only when allowlisted (otherwise `UNKNOWN`), while URIs lose
+userinfo, query, fragment and control/format separators, are repaired to valid UTF-8 and are
+limited to 512 bytes without splitting a code point.
 
 ## Upgrading from v2.2.x to v2.3.0
 

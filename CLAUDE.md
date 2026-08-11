@@ -222,8 +222,11 @@ injected. DevApp tokens come from the environment and are never hardcoded.
 payload kind, multipart part count, numeric timeouts, boolean TLS state, `http_errors` and
 `stream`. It never emits body/JSON/form/multipart values, headers, query, `auth`, proxy,
 cookies, `cert`, `ssl_key`, cURL options, callbacks or unknown future Guzzle options. The
-info line keeps only method and a bounded path; URL user-info, query, fragment and control
-characters are stripped.
+info line keeps only an uppercase allowlisted method (or `UNKNOWN`) and a bounded path. Both
+the base client and retry decorator must call the shared `Http\LogSanitizer`; URL user-info,
+query, fragment, malformed UTF-8 and `Cc`/`Cf`/`Zl`/`Zp` characters are stripped, and the URI
+is capped at 512 bytes without splitting a code point. Do not create a second local sanitizer:
+that drift was how retry warnings retained an unsafe boundary after the base client was fixed.
 
 ### Failure logging lesson
 
@@ -249,7 +252,10 @@ never implies safe to log.
 
 Prevent recurrence with distinct sentinels for exception message/previous, raw response,
 request/option carriers, exhausted retries, control/invalid UTF-8 request IDs and both decoded
-and `requestRaw()` flows. Roll out the SDK patch first, then the bridge classification patch,
+and `requestRaw()` flows. Exercise the shared request metadata boundary through both the base
+client and retry warnings with CRLF, control/format characters, invalid UTF-8, long multibyte
+paths, URL credentials/query/fragment and a caller-controlled method. Roll out the SDK patch
+first, then the bridge classification patch,
 then regenerate and test each consumer lockfile. Verify the released tags and exact installed
 versions, exercise synthetic `401`, public `422`, `5xx`, malformed response and network
 failures without real credentials, and confirm both SDK and consumer logs contain only

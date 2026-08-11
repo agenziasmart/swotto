@@ -11,6 +11,7 @@ use Swotto\Contract\HttpClientInterface;
 use Swotto\Exception\ApiException;
 use Swotto\Exception\NetworkException;
 use Swotto\Exception\RateLimitException;
+use Swotto\Http\LogSanitizer;
 
 /**
  * Retry HTTP Client Decorator.
@@ -146,8 +147,8 @@ final class RetryHttpClient implements HttpClientInterface
 
                 if ($attempt > 1) {
                     $this->log('info', 'Request succeeded after retry', [
-                        'method' => $method,
-                        'uri' => $this->sanitizeUriForLogging($uri),
+                        'method' => LogSanitizer::httpMethod($method),
+                        'uri' => LogSanitizer::uri($uri),
                         'attempt' => $attempt,
                     ]);
                 }
@@ -163,8 +164,8 @@ final class RetryHttpClient implements HttpClientInterface
                 $delayMs = $this->calculateDelay($e, $attempt);
 
                 $this->log('warning', 'Retrying request after transient error', [
-                    'method' => $method,
-                    'uri' => $this->sanitizeUriForLogging($uri),
+                    'method' => LogSanitizer::httpMethod($method),
+                    'uri' => LogSanitizer::uri($uri),
                     'attempt' => $attempt,
                     'max_attempts' => $this->maxAttempts,
                     'delay_ms' => $delayMs,
@@ -195,16 +196,6 @@ final class RetryHttpClient implements HttpClientInterface
         }
 
         return $context;
-    }
-
-    /** Strip URL credentials, query strings and fragments before a URI reaches the logger. */
-    private function sanitizeUriForLogging(string $uri): string
-    {
-        $withoutFragment = strtok($uri, '#');
-        $withoutQuery = strtok($withoutFragment === false ? $uri : $withoutFragment, '?');
-        $sanitized = $withoutQuery === false ? $uri : $withoutQuery;
-
-        return preg_replace('#^([a-z][a-z0-9+.-]*://|//)[^/]*@#i', '$1', $sanitized) ?? '';
     }
 
     /**

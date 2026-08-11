@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   count and scalar timeout/TLS flags: body, JSON, form, multipart values, headers, `auth`,
   proxy, cookies, certificates, query, cURL options, callbacks and unknown future Guzzle
   options are never copied into a log.
+- **Request and retry metadata now use the same sanitizer.** Logged methods are uppercase and
+  allowlisted, falling back to `UNKNOWN` for caller-controlled or malformed values. Logged URIs
+  remove user-info, query, fragment, control/format separators and malformed UTF-8, then stop at
+  512 bytes without splitting a code point. This closes CRLF/control injection and unbounded URI
+  exposure in retry warnings as well as ordinary request lines.
 - **Transport and non-business HTTP exception messages are now constant.** Network,
   connection, unexpected transport, `401`, `403`, `404`, `429`, `5xx` and default HTTP
   failures no longer expose the Guzzle message, URL or upstream error text through

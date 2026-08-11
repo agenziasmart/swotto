@@ -59,9 +59,6 @@ final class GuzzleHttpClient implements HttpClientInterface
     /** Maximum length of an upstream request identifier written to logs. */
     private const MAX_LOGGED_REQUEST_ID_LENGTH = 128;
 
-    /** Maximum length of a request path written to logs. */
-    private const MAX_LOGGED_URI_LENGTH = 512;
-
     /** HTTP statuses whose API message is part of the public business/validation contract. */
     private const PUBLIC_MESSAGE_STATUSES = [400, 402, 409, 422];
 
@@ -139,7 +136,7 @@ final class GuzzleHttpClient implements HttpClientInterface
         } catch (\Exception) {
             throw new ConnectionException(
                 'Connection failed.',
-                $this->sanitizeUriForLogging($this->config->getBaseUrl())
+                LogSanitizer::uri($this->config->getBaseUrl())
             );
         }
     }
@@ -236,35 +233,14 @@ final class GuzzleHttpClient implements HttpClientInterface
      */
     private function logRequest(string $label, string $method, string $uri, array $options): void
     {
-        $safeUri = $this->sanitizeUriForLogging($uri);
+        $safeMethod = LogSanitizer::httpMethod($method);
+        $safeUri = LogSanitizer::uri($uri);
 
-        $this->logger->info("{$label} {$method} {$safeUri}");
+        $this->logger->info("{$label} {$safeMethod} {$safeUri}");
         $this->logger->debug(
-            "{$label} {$method} {$safeUri} options",
+            "{$label} {$safeMethod} {$safeUri} options",
             $this->sanitizeOptionsForLogging($options)
         );
-    }
-
-    /**
-     * Strip user-info, query string and fragment from a URI before logging it.
-     *
-     * Tokens travel in URL credentials and query strings often enough that logging either
-     * is a leak in itself; scheme, host and path are what makes a log line useful anyway.
-     *
-     * @param string $uri Request URI, absolute or relative to the base URL
-     * @return string URI without user-info, query string or fragment
-     */
-    private function sanitizeUriForLogging(string $uri): string
-    {
-        $uri = mb_scrub($uri, 'UTF-8');
-        $uri = preg_replace('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', '', $uri) ?? '';
-        $withoutFragment = strtok($uri, '#');
-        $withoutQuery = strtok($withoutFragment === false ? $uri : $withoutFragment, '?');
-        $sanitized = $withoutQuery === false ? $uri : $withoutQuery;
-
-        $sanitized = preg_replace('#^([a-z][a-z0-9+.-]*://|//)[^/]*@#i', '$1', $sanitized) ?? '';
-
-        return mb_strcut($sanitized, 0, self::MAX_LOGGED_URI_LENGTH, 'UTF-8');
     }
 
     /**
@@ -495,7 +471,7 @@ final class GuzzleHttpClient implements HttpClientInterface
         if ($exception instanceof \GuzzleHttp\Exception\ConnectException) {
             throw new ConnectionException(
                 'Connection failed.',
-                $this->sanitizeUriForLogging($this->config->getBaseUrl()),
+                LogSanitizer::uri($this->config->getBaseUrl()),
                 [],
                 $exception->getCode()
             );

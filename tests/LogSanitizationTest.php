@@ -604,4 +604,32 @@ class LogSanitizationTest extends TestCase
 
         $this->assertSame(['Requesting GET /exports'], $lines);
     }
+
+    public function testInfoLineUsesBoundedUriAndSafeMethodMetadata(): void
+    {
+        $lines = [];
+        $method = "GET\r\nSENTINEL_METHOD";
+        $uri = 'https://user:SENTINEL_USERINFO@api.example.com/safe'
+            . "\r\n\x00\u{200B}\u{2028}\u{2029}\xC3\x28"
+            . str_repeat('à', 300)
+            . '?token=SENTINEL_QUERY#SENTINEL_FRAGMENT';
+
+        $this->runWithRecordingLogger(
+            function (string $level, string $message) use (&$lines): void {
+                if ($level === 'info') {
+                    $lines[] = $message;
+                }
+            },
+            $method,
+            $uri,
+            []
+        );
+
+        self::assertCount(1, $lines);
+        self::assertStringStartsWith('Requesting UNKNOWN https://api.example.com/safe', $lines[0]);
+        self::assertStringNotContainsString('SENTINEL_', $lines[0]);
+        self::assertTrue(mb_check_encoding($lines[0], 'UTF-8'));
+        self::assertDoesNotMatchRegularExpression('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', $lines[0]);
+        self::assertLessThanOrEqual(strlen('Requesting UNKNOWN ') + 512, strlen($lines[0]));
+    }
 }

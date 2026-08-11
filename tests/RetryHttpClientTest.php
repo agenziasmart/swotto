@@ -153,6 +153,51 @@ class RetryHttpClientTest extends TestCase
         $this->assertSame('https://api.example.com/auth/session', $logger->entries[1]['context']['uri']);
     }
 
+    public function testRetryLogsUseBoundedUriAndSafeMethodMetadata(): void
+    {
+        $method = "GET\r\nSENTINEL_METHOD";
+        $uri = 'https://user:SENTINEL_USERINFO@api.example.com/safe'
+            . "\r\n\x00\u{200B}\u{2028}\u{2029}\xC3\x28"
+            . str_repeat('à', 300)
+            . '?token=SENTINEL_QUERY#SENTINEL_FRAGMENT';
+        $logger = new RetryCapturingLogger();
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'retry_max_attempts' => 2,
+            'retry_initial_delay_ms' => 1,
+            'retry_max_delay_ms' => 1,
+            'retry_jitter' => false,
+        ]);
+        $retryClient = new RetryHttpClient($this->mockClient, $config, $logger); // @phpstan-ignore-line
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with($method, $uri, [])
+            ->andThrow(new NetworkException('SENTINEL_EXCEPTION'));
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with($method, $uri, [])
+            ->andReturn(['success' => true]);
+
+        $result = $retryClient->request($method, $uri, ['retry_non_idempotent' => true]);
+
+        self::assertSame(['success' => true], $result);
+        self::assertCount(2, $logger->entries);
+        self::assertSame('warning', $logger->entries[0]['level']);
+        self::assertSame('info', $logger->entries[1]['level']);
+        foreach ($logger->entries as $entry) {
+            self::assertSame('UNKNOWN', $entry['context']['method'] ?? null);
+            $safeUri = $entry['context']['uri'] ?? null;
+            self::assertIsString($safeUri);
+            self::assertStringStartsWith('https://api.example.com/safe', $safeUri);
+            self::assertTrue(mb_check_encoding($safeUri, 'UTF-8'));
+            self::assertLessThanOrEqual(512, strlen($safeUri));
+            self::assertDoesNotMatchRegularExpression('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', $safeUri);
+        }
+        self::assertStringNotContainsString('SENTINEL_', serialize($logger->entries));
+    }
+
     public function testExhaustedRetriesDoNotLogRawExceptionAndPreserveTheException(): void
     {
         $sentinel = 'SENTINEL_EXHAUSTED_RETRY';
