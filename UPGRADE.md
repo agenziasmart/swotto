@@ -1,5 +1,34 @@
 # Upgrade Guide
 
+## Upgrading from v2.3.0 to the next patch
+
+For failures already mapped to Swotto exceptions, this security patch keeps their classes,
+HTTP status codes and `getErrorData()` intact, but intentionally narrows exception messages.
+API-provided messages remain public for `400`, `402`, `409` and `422`; `401`, `403`, `404`,
+`429`, `5xx`, default HTTP, network, connection and unexpected transport failures now use
+constants and have no raw previous exception. The previously unmapped `RuntimeException` case
+is the explicit class change described below.
+
+If application code matches message text, switch it to `getStatusCode()` and the exception
+class. If it displays validation/business feedback, keep reading the message for the four
+public statuses or structured fields from `getErrorData()`. Never send `getErrorData()` or
+public messages to logs wholesale.
+
+Two transport details are intentionally stricter. An unexpected `RuntimeException` caught at
+the Guzzle boundary is now mapped to `NetworkException` instead of being rethrown with its raw
+message and previous chain. A `ConnectionException` created by the SDK now returns an empty
+`getTraceDetails()` array rather than copying Guzzle handler context; its class, status/code and
+sanitized base URL remain available. Code that caught `RuntimeException` specifically should
+catch `NetworkException`, and diagnostics should use API-side correlation instead of the removed
+transport trace.
+
+Request-option debug logs also changed from a redacted copy to a strict metadata allowlist.
+This removes payload/header visibility intentionally; correlate the SDK status/request ID with
+the API-side log when deeper diagnosis is required. Request-line and retry metadata share one
+boundary: methods are uppercased only when allowlisted (otherwise `UNKNOWN`), while URIs lose
+userinfo, query, fragment and control/format separators, are repaired to valid UTF-8 and are
+limited to 512 bytes without splitting a code point.
+
 ## Upgrading from v2.2.x to v2.3.0
 
 No breaking API changes: no class was renamed, no signature narrowed, no exception moved in

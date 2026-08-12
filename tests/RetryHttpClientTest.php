@@ -9,7 +9,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use Psr\Log\AbstractLogger;
 use Psr\Log\NullLogger;
+use Stringable;
 use Swotto\Config\Configuration;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Exception\ApiException;
@@ -101,6 +103,134 @@ class RetryHttpClientTest extends TestCase
         $response = $this->retryClient->request('GET', '/test', []);
 
         $this->assertEquals($expectedResponse, $response);
+    }
+
+    public function testRetryLogDoesNotExposeExceptionMessageOrQuery(): void
+    {
+        $exceptionSecret = 'SENTINEL_RETRY_AUTH_SECRET';
+        $querySecret = 'SENTINEL_RETRY_QUERY_SECRET';
+        $userInfoSecret = 'SENTINEL_RETRY_USERINFO_SECRET';
+        $uri = "https://user:{$userInfoSecret}@api.example.com/auth/session?access_token={$querySecret}";
+        $logger = new RetryCapturingLogger();
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'retry_max_attempts' => 2,
+            'retry_initial_delay_ms' => 1,
+            'retry_max_delay_ms' => 1,
+            'retry_jitter' => false,
+        ]);
+        $retryClient = new RetryHttpClient(
+            $this->mockClient, // @phpstan-ignore-line
+            $config,
+            $logger
+        );
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->andThrow(new NetworkException($exceptionSecret));
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->andReturn(['success' => true]);
+
+        $result = $retryClient->request('HEAD', $uri);
+
+        $this->assertSame(['success' => true], $result);
+        $serialized = serialize($logger->entries);
+        $this->assertStringNotContainsString($exceptionSecret, $serialized);
+        $this->assertStringNotContainsString($querySecret, $serialized);
+        $this->assertStringNotContainsString($userInfoSecret, $serialized);
+        $this->assertCount(2, $logger->entries);
+        $this->assertSame([
+            'method' => 'HEAD',
+            'uri' => 'https://api.example.com/auth/session',
+            'attempt' => 1,
+            'max_attempts' => 2,
+            'delay_ms' => 1,
+            'failure_type' => 'network',
+            'exception_type' => NetworkException::class,
+        ], $logger->entries[0]['context']);
+        $this->assertSame('https://api.example.com/auth/session', $logger->entries[1]['context']['uri']);
+    }
+
+    public function testRetryLogsUseBoundedUriAndSafeMethodMetadata(): void
+    {
+        $method = "GET\r\nSENTINEL_METHOD";
+        $uri = "ht\xFFtps://user:SENTINEL_BEFORE\xFESENTINEL_AFTER@api.example.com/safe"
+            . "\r\n\x00\u{200B}\u{2028}\u{2029}\xC3\x28"
+            . str_repeat('à', 300)
+            . '?token=SENTINEL_QUERY#SENTINEL_FRAGMENT';
+        $logger = new RetryCapturingLogger();
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'retry_max_attempts' => 2,
+            'retry_initial_delay_ms' => 1,
+            'retry_max_delay_ms' => 1,
+            'retry_jitter' => false,
+        ]);
+        $retryClient = new RetryHttpClient($this->mockClient, $config, $logger); // @phpstan-ignore-line
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with($method, $uri, [])
+            ->andThrow(new NetworkException('SENTINEL_EXCEPTION'));
+        $this->mockClient
+            ->shouldReceive('request')
+            ->once()
+            ->with($method, $uri, [])
+            ->andReturn(['success' => true]);
+
+        $previousSubstitute = mb_substitute_character();
+        mb_substitute_character(47);
+
+        try {
+            $result = $retryClient->request($method, $uri, ['retry_non_idempotent' => true]);
+        } finally {
+            mb_substitute_character($previousSubstitute);
+        }
+
+        self::assertSame(['success' => true], $result);
+        self::assertCount(2, $logger->entries);
+        self::assertSame('warning', $logger->entries[0]['level']);
+        self::assertSame('info', $logger->entries[1]['level']);
+        foreach ($logger->entries as $entry) {
+            self::assertSame('UNKNOWN', $entry['context']['method'] ?? null);
+            $safeUri = $entry['context']['uri'] ?? null;
+            self::assertIsString($safeUri);
+            self::assertStringContainsString('api.example.com/safe', $safeUri);
+            self::assertTrue(mb_check_encoding($safeUri, 'UTF-8'));
+            self::assertLessThanOrEqual(512, strlen($safeUri));
+            self::assertDoesNotMatchRegularExpression('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', $safeUri);
+        }
+        self::assertStringNotContainsString('SENTINEL_', serialize($logger->entries));
+    }
+
+    public function testExhaustedRetriesDoNotLogRawExceptionAndPreserveTheException(): void
+    {
+        $sentinel = 'SENTINEL_EXHAUSTED_RETRY';
+        $logger = new RetryCapturingLogger();
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'retry_max_attempts' => 2,
+            'retry_initial_delay_ms' => 1,
+            'retry_max_delay_ms' => 1,
+            'retry_jitter' => false,
+        ]);
+        $retryClient = new RetryHttpClient($this->mockClient, $config, $logger); // @phpstan-ignore-line
+        $exception = new NetworkException($sentinel);
+        $this->mockClient->shouldReceive('request')->twice()->andThrow($exception);
+
+        try {
+            $retryClient->request('HEAD', '/auth?token=SENTINEL_EXHAUSTED_QUERY');
+            self::fail('Expected the final retry exception.');
+        } catch (NetworkException $actual) {
+            self::assertSame($exception, $actual);
+        }
+
+        $serialized = serialize($logger->entries);
+        self::assertStringNotContainsString($sentinel, $serialized);
+        self::assertStringNotContainsString('SENTINEL_EXHAUSTED_QUERY', $serialized);
+        self::assertCount(1, $logger->entries);
     }
 
     public function testRetryOnConnectionException(): void
@@ -529,5 +659,21 @@ class RetryHttpClientTest extends TestCase
         $this->expectException(ApiException::class);
 
         $retryClient->request('GET', '/test', []);
+    }
+}
+
+final class RetryCapturingLogger extends AbstractLogger
+{
+    /** @var list<array{level: string, message: string, context: array<string, mixed>}> */
+    public array $entries = [];
+
+    /** @param array<string, mixed> $context */
+    public function log($level, string|Stringable $message, array $context = []): void
+    {
+        $this->entries[] = [
+            'level' => (string) $level,
+            'message' => (string) $message,
+            'context' => $context,
+        ];
     }
 }

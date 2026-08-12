@@ -148,14 +148,13 @@ class GuzzleHttpClientTest extends TestCase
     }
 
     /**
-     * The API nests the message under `error.message`; reading only a flat `message` meant
-     * every exception carried a generic hardcoded fallback.
+     * Business conflict messages are public; infrastructure/auth status messages are not.
      */
     public function testErrorMessageIsReadFromNestedEnvelope(): void
     {
-        $response = new Response(404, [], (string) json_encode([
+        $response = new Response(409, [], (string) json_encode([
             'success' => false,
-            'error' => ['type' => 'NOT_FOUND', 'message' => 'Ordine inesistente', 'status' => 404],
+            'error' => ['type' => 'CONFLICT', 'message' => 'Ordine già esistente', 'status' => 409],
         ]));
         $request = new Request('GET', 'test');
         $exception = new RequestException('Not Found', $request, $response);
@@ -167,8 +166,8 @@ class GuzzleHttpClientTest extends TestCase
 
         $this->injectMockGuzzle($mockGuzzle);
 
-        $this->expectException(NotFoundException::class);
-        $this->expectExceptionMessage('Ordine inesistente');
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('Ordine già esistente');
 
         $this->httpClient->request('GET', 'test');
     }
@@ -251,7 +250,7 @@ class GuzzleHttpClientTest extends TestCase
         $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(ForbiddenException::class);
-        $this->expectExceptionMessage('Access denied');
+        $this->expectExceptionMessage('Forbidden');
         $this->expectExceptionCode(403);
 
         $this->httpClient->request('GET', 'test');
@@ -271,7 +270,7 @@ class GuzzleHttpClientTest extends TestCase
         $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(NotFoundException::class);
-        $this->expectExceptionMessage('Not found');
+        $this->expectExceptionMessage('Not Found');
         $this->expectExceptionCode(404);
 
         $this->httpClient->request('GET', 'test');
@@ -291,7 +290,7 @@ class GuzzleHttpClientTest extends TestCase
         $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(RateLimitException::class);
-        $this->expectExceptionMessage('Too many requests');
+        $this->expectExceptionMessage('Too Many Requests');
 
         try {
             $this->httpClient->request('GET', 'test');
@@ -384,7 +383,7 @@ class GuzzleHttpClientTest extends TestCase
         $this->injectMockGuzzle($mockGuzzle);
 
         $this->expectException(NetworkException::class);
-        $this->expectExceptionMessage('Network error while requesting test: Network error');
+        $this->expectExceptionMessage('Network request failed.');
 
         $this->httpClient->request('GET', 'test');
     }

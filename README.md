@@ -436,9 +436,19 @@ try {
 
 } catch (SwottoException $e) {
     // Catch-all for other API errors
-    error_log("API Error: " . $e->getMessage());
+    error_log(sprintf('API failure: %s status=%d', $e::class, $e->getStatusCode()));
 }
 ```
+
+Messages returned by the API remain available for validation/business outcomes only:
+`400`, `402`, `409` and `422`. Authentication, authorization, lookup, throttling, server and
+transport failures use constant messages so upstream internals cannot cross the SDK boundary.
+The complete parsed response stays in `getErrorData()` for application handling.
+
+“Public to application code” is not the same as “safe to log”: validation text and
+`getErrorData()` can contain submitted values or personal data. Log the exception class,
+status and your own request/correlation ID; do not log exception objects, messages or response
+data wholesale.
 
 ## Configuration Reference
 
@@ -569,6 +579,10 @@ Inject a PSR-3 logger in the constructor:
 ```php
 $client = new SwottoClient($config, $yourPsr3Logger);
 ```
+
+The SDK logs bounded transport metadata only. Request bodies, headers, query/auth/proxy/cookie
+options, certificates and upstream response text are deliberately unavailable in logs; use a
+correlation ID to inspect the authoritative API-side event.
 
 ### Can I use this with Laravel/Symfony/other frameworks?
 
