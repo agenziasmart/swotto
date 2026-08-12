@@ -178,6 +178,22 @@ Four rules that keep the suite honest:
 - Use placeholder organization IDs, and test multitenant isolation with them.
 - Never reference a real organization or customer in code, tests or examples.
 
+Run containerized tests as a non-root user. The path-security tests create a deliberately
+non-writable directory; root bypasses its mode bits and produces three false failures. A
+read-only mount plus the host UID keeps the test meaningful, for example:
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+  -v "$PWD:/app:ro" -w /app php:8.5-cli-alpine \
+  php vendor/bin/phpunit --do-not-cache-result
+```
+
+On PHP 8.5, `ReflectionProperty::setAccessible()` and
+`ReflectionMethod::setAccessible()` are deprecated because they have had no effect since PHP
+8.1. Do not add them to new test helpers. As of 2026-08-12 the full suite still emits 26
+test-only deprecations from older helpers; remove those before making deprecations a failing
+CI gate. The production sources do not trigger them.
+
 ## Code quality
 
 PSR-12 with the `@PHP83Migration` ruleset (`.php-cs-fixer.php`): **four-space indentation**,
@@ -202,11 +218,58 @@ list the verification commands, and state backward compatibility; update `README
 Never log tokens or credentials — the default logger is a `NullLogger`, and a real one is
 injected. DevApp tokens come from the environment and are never hardcoded.
 
-Redaction in `sanitizeOptionsForLogging()` is **recursive** over `json`, `form_params` and
-`query`, matching key names without regard to case or separators, and matches multipart parts
-by their `name` because the value sits under `contents`. Request options, the body included,
-are logged at **debug**; the info line keeps only method and path, with the query string
-stripped — tokens travel there often enough to matter.
+`sanitizeOptionsForLogging()` is a strict **allowlist**, not a redacted copy. It emits only
+payload kind, multipart part count, numeric timeouts, boolean TLS state, `http_errors` and
+`stream`. It never emits body/JSON/form/multipart values, headers, query, `auth`, proxy,
+cookies, `cert`, `ssl_key`, cURL options, callbacks or unknown future Guzzle options. The
+info line keeps only an uppercase allowlisted method (or `UNKNOWN`) and a bounded path. Both
+the base client and retry decorator must call the shared `Http\LogSanitizer`; URL user-info,
+query, fragment and `Cc`/`Cf`/`Zl`/`Zp` characters are stripped, malformed UTF-8 is repaired,
+and the URI is capped at 512 bytes without splitting a code point. Do not create a second local
+sanitizer: that drift was how retry warnings retained an unsafe boundary after the base client
+was fixed.
+URI user-info is removed from the raw byte string before `mb_scrub()`: the latter honours the
+process-wide `mb_substitute_character()`, and a caller that selected `/` could otherwise make an
+invalid user-info byte become a path separator and bypass credential stripping. Tests that
+mutate this global setting must save it and restore it in `finally`. User-info redaction is
+deliberately conservative, byte-safe and does not require an already-valid scheme or delimiter:
+malformed UTF-8 in the scheme or where `//` would appear must not preserve user-info in the log
+line, even when UTF-8 repair itself manufactures that delimiter.
+
+### Failure logging lesson
+
+The observed symptom was that an HTTP/network failure copied the Guzzle exception message,
+response body and URI credentials/query into the consumer's PSR-3 log; the retry decorator
+independently copied the mapped exception message and raw URI. A second review found the same
+boundary remained open outside the failure logger: plain request bodies, top-level Guzzle
+`auth`/proxy/cookies/certificate options, unknown future options, transport exception
+messages, raw `previous` chains and byte-truncated request IDs could still cross into a
+consumer. The root cause was treating key-name redaction and truncation as data
+classification. A secret under an innocent key is still a secret, and a bounded body is still
+a body. Sentinel mutants for each carrier provided direct evidence.
+
+The impact is highest on authentication/session requests, whose failures can carry
+credentials, provider details or internal error envelopes. Failure logs therefore follow a
+strict allowlist: constant messages plus bounded failure type, exception class, HTTP status
+and `X-Request-ID` (valid UTF-8, controls removed, maximum 128 bytes). Network, connection,
+unexpected transport, auth, authorization, lookup, rate-limit, server and default HTTP
+exceptions also use constant messages and no raw `previous`. The response remains available
+in `getErrorData()` because that is an application-facing API, not a logging API. Only `400`,
+`402`, `409` and `422` keep an API message for UX/business handling. Public to the application
+never implies safe to log.
+
+Prevent recurrence with distinct sentinels for exception message/previous, raw response,
+request/option carriers, exhausted retries, control/invalid UTF-8 request IDs and both decoded
+and `requestRaw()` flows. Exercise the shared request metadata boundary through both the base
+client and retry warnings with CRLF, control/format characters, invalid UTF-8, long multibyte
+paths, URL credentials/query/fragment and a caller-controlled method. Roll out the SDK patch
+first, then the bridge classification patch,
+then regenerate and test each consumer lockfile. Verify the released tags and exact installed
+versions, exercise synthetic `401`, public `422`, `5xx`, malformed response and network
+failures without real credentials, and confirm both SDK and consumer logs contain only
+type/status/request ID—not any sentinel. Roll back the consumer lock before either shared
+package; reverting only the SDK while leaving the bridge/consumer assumes the safe boundary
+still exists and reopens the leak.
 
 The DevApp token is bound to the configured origin: a middleware at the bottom of the Guzzle
 handler stack removes `x-devapp`, `X-Swotto-Client-Info` and `x-sid` whenever the host

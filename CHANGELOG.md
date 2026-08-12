@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [2.3.1] - 2026-08-12
+
+### Security
+
+- **HTTP and network failure logs no longer copy upstream-controlled content.** Exception
+  messages, response bodies, URL user-info and query strings could contain credentials,
+  personal data or internal error details. Failure logs now use constant messages and an
+  allowlisted, bounded context: failure type, exception class, HTTP status and at most 128
+  bytes of valid UTF-8 from `X-Request-ID`, with control characters removed. Retry logs follow
+  the same rule. Debug request-option logs now use an allowlist of payload kind, multipart part
+  count and scalar timeout/TLS flags: body, JSON, form, multipart values, headers, `auth`,
+  proxy, cookies, certificates, query, cURL options, callbacks and unknown future Guzzle
+  options are never copied into a log.
+- **Request and retry metadata now use the same sanitizer.** Logged methods are uppercase and
+  allowlisted, falling back to `UNKNOWN` for caller-controlled or malformed values. Logged URIs
+  remove user-info, query, fragment and control/format separators, repair malformed UTF-8, then
+  stop at 512 bytes without splitting a code point. This closes CRLF/control injection and
+  unbounded URI exposure in retry warnings as well as ordinary request lines. User-info is
+  stripped from raw bytes before UTF-8 repair, so a process-wide
+  `mb_substitute_character('/')` cannot manufacture a path separator that preserves URL
+  credentials. Conservative raw-byte redaction also covers malformed scheme/delimiter bytes,
+  before the transport has a chance to reject the URI or UTF-8 repair can create `//`.
+- **Transport and non-business HTTP exception messages are now constant.** Network,
+  connection, unexpected transport, `401`, `403`, `404`, `429`, `5xx` and default HTTP
+  failures no longer expose the Guzzle message, URL or upstream error text through
+  `getMessage()`/`getPrevious()`. The exception class, status and complete response
+  `getErrorData()` contract remain available to callers. API messages remain public only for
+  the business/validation statuses `400`, `402`, `409` and `422`; “public to the caller” does
+  not mean “safe to log”.
+
 ## [2.3.0] - 2026-08-08
 
 Aligns the public contract with the API the SDK actually talks to, and stops replaying

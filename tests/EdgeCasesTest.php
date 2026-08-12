@@ -145,7 +145,7 @@ class EdgeCasesTest extends TestCase
         $clientProp->setValue($httpClient, new \GuzzleHttp\Client(['handler' => $handlerStack]));
 
         $this->expectException(ApiException::class);
-        $this->expectExceptionMessage('Internal Server Error');
+        $this->expectExceptionMessage('Upstream service error.');
 
         $httpClient->request('GET', 'test');
     }
