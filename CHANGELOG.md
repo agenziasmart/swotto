@@ -7,19 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-09-25
+
 ### Added
 
-- **`client_credentials` building blocks (RFC 6749 §4.4).** New configuration keys `client_id`,
-  `client_secret`, `scope` (space-separated string) and `token_cache` (a
-  `Swotto\Contract\TokenCacheInterface`). One authentication mode per instance: `client_id`
-  together with `key` or `bearer_token` is rejected at construction, and `client_id` requires a
-  non-empty `client_secret`. `Swotto\Auth\ClientCredentialsTokenProvider` requests the token with
-  HTTP Basic, keeps it per instance (or in the injected cache, keyed by
-  `sha256(token_url|client_id|scope)`), renews it 30 seconds before expiry and can be invalidated.
-  A 400/401 from the token endpoint raises `ConfigurationException('SW4 rejected the client
-  credentials')`; neither the token, the secret nor the token endpoint's response body reaches a
-  log or an exception message. `Swotto\Auth\InMemoryTokenCache` is the per-instance default. The
-  provider is not yet wired into `SwottoClient`.
+- **OAuth 2.0 `client_credentials` (RFC 6749 §4.4): the machine token.** New configuration keys
+  `client_id`, `client_secret`, `scope` (space-separated string) and `token_cache` (a
+  `Swotto\Contract\TokenCacheInterface`). With `client_id` the SDK requests a token from
+  `{url}/oauth/token` with HTTP Basic on the first call, keeps it per instance (or in the injected
+  cache, keyed by `sha256(token_url|client_id|scope)`), renews it 30 seconds before expiry and
+  sends `Authorization: Bearer <token>` on every call. `Swotto\Auth\ClientCredentialsTokenProvider`
+  (with `fromConfiguration()`) and `Swotto\Auth\InMemoryTokenCache`, the per-instance default, are
+  public. The token request uses its own HTTP client, outside the SDK's request logging, and does
+  not follow redirects. A 400/401 from the token endpoint raises `ConfigurationException('SW4
+  rejected the client credentials')`, an unreachable endpoint `NetworkException`; neither the
+  token, the secret nor the token endpoint's response body reaches a log or an exception message.
+- **One renewal after a Bearer challenge.** In `client_id` mode a 401 carrying `WWW-Authenticate:
+  Bearer …` (RFC 6750 §3) drops the token, requests a new one and repeats the call once with the
+  same method, URI, body, query and headers (`Idempotency-Key` included), only `Authorization`
+  replaced; seekable stream bodies are rewound, non-rewindable ones are not retried. A second 401
+  is raised as `AuthenticationException`. No renewal in `bearer_token` or `key` mode, on a `Basic`
+  challenge, or when the call carries its own `bearer_token`. The renewal sits below the retry
+  decorator, which still does not retry a 401.
+- **README: "Two Credentials".** The two-instance pattern (machine client for the catalog, Account
+  `bearer_token` for the customer's own data), the token cache in PHP-FPM with an example Redis
+  adapter, and the renewal rule.
+
+### Changed
+
+- **One authentication mode per instance.** `client_id` together with `key` or `bearer_token` is
+  rejected at construction, and `client_id` requires a non-empty `client_secret`. `key` with
+  `bearer_token` remains valid.
+- `GuzzleHttpClient::__construct()` accepts two optional trailing arguments: the token provider and
+  an innermost Guzzle handler (for tests). Existing calls are unaffected.
+- SDK version in `User-Agent` and `X-Swotto-Client-Info` is now `2.4.0`.
 
 ## [2.3.1] - 2026-08-12
 

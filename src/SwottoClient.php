@@ -7,6 +7,7 @@ namespace Swotto;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Swotto\Auth\ClientCredentialsTokenProvider;
 use Swotto\Config\Configuration;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Contract\SwottoClientInterface;
@@ -355,11 +356,21 @@ final class SwottoClient implements SwottoClientInterface
     /**
      * Create HTTP client with optional Retry decorator.
      *
+     * The Bearer retry of client_id mode lives inside GuzzleHttpClient, below the Retry
+     * decorator, which does not retry a 401: the two never multiply.
+     *
      * @return HttpClientInterface HTTP client instance
      */
     private function createHttpClient(): HttpClientInterface
     {
-        $client = new GuzzleHttpClient($this->config, $this->logger);
+        // client_id mode: the machine token comes from its own provider, whose HTTP client
+        // stays outside the SDK's request pipeline (and its logs).
+        $clientId = $this->config->get('client_id');
+        $tokenProvider = is_string($clientId) && $clientId !== ''
+            ? ClientCredentialsTokenProvider::fromConfiguration($this->config, $this->logger)
+            : null;
+
+        $client = new GuzzleHttpClient($this->config, $this->logger, $tokenProvider);
 
         if ($this->config->get('retry_enabled', false)) {
             $client = new \Swotto\Retry\RetryHttpClient(

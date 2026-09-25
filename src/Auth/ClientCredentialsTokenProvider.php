@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Swotto\Auth;
 
+use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\HandlerStack;
 use Psr\Log\LoggerInterface;
 use SensitiveParameter;
+use Swotto\Config\Configuration;
 use Swotto\Contract\TokenCacheInterface;
 use Swotto\Exception\ApiException;
 use Swotto\Exception\ConfigurationException;
@@ -60,6 +63,53 @@ final class ClientCredentialsTokenProvider
     ) {
         $this->cacheKey = hash('sha256', $tokenUrl . '|' . $clientId . '|' . $scope);
         $this->clock = $clock ?? time(...);
+    }
+
+    /**
+     * Build the provider from a validated client_id configuration.
+     *
+     * The token endpoint is `{url}/oauth/token`. The HTTP client is a plain Guzzle client of
+     * its own — not the SDK's request pipeline — so neither the token request nor its response
+     * body passes through the SDK's request logging. Redirects are refused: the Basic credentials
+     * go to the configured endpoint or nowhere. The cache is `token_cache` when given, otherwise a
+     * new per-instance InMemoryTokenCache.
+     *
+     * @param Configuration $config Configuration with client_id and client_secret
+     * @param LoggerInterface $logger Receives content-free traces only
+     * @param callable|null $handler Innermost Guzzle handler (tests); null uses the default transport
+     *
+     * @throws ConfigurationException When the configuration has no client_id
+     */
+    public static function fromConfiguration(
+        Configuration $config,
+        LoggerInterface $logger,
+        ?callable $handler = null,
+    ): self {
+        $clientId = $config->get('client_id');
+        $clientSecret = $config->get('client_secret');
+        if (!is_string($clientId) || $clientId === '' || !is_string($clientSecret)) {
+            throw new ConfigurationException('client_credentials requires client_id and client_secret');
+        }
+
+        $scope = $config->get('scope', '');
+        $cache = $config->get('token_cache');
+
+        $http = new GuzzleClient([
+            'handler' => HandlerStack::create($handler),
+            'timeout' => $config->get('timeout', 10),
+            'verify' => $config->get('verify_ssl', true),
+            'allow_redirects' => false,
+        ]);
+
+        return new self(
+            $http,
+            $config->getBaseUrl() . '/oauth/token',
+            $clientId,
+            $clientSecret,
+            is_string($scope) ? $scope : '',
+            $cache instanceof TokenCacheInterface ? $cache : new InMemoryTokenCache(),
+            $logger,
+        );
     }
 
     /**
