@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`client_credentials` building blocks (RFC 6749 §4.4).** New configuration keys `client_id`,
+  `client_secret`, `scope` (space-separated string) and `token_cache` (a
+  `Swotto\Contract\TokenCacheInterface`). One authentication mode per instance: `client_id`
+  together with `key` or `bearer_token` is rejected at construction, and `client_id` requires a
+  non-empty `client_secret`. `Swotto\Auth\ClientCredentialsTokenProvider` requests the token with
+  HTTP Basic, keeps it per instance (or in the injected cache, keyed by
+  `sha256(token_url|client_id|scope)`), renews it 30 seconds before expiry and can be invalidated.
+  A 400/401 from the token endpoint raises `ConfigurationException('SW4 rejected the client
+  credentials')`; neither the token, the secret nor the token endpoint's response body reaches a
+  log or an exception message. `Swotto\Auth\InMemoryTokenCache` is the per-instance default. The
+  provider is not yet wired into `SwottoClient`.
+
 ## [2.3.1] - 2026-08-12
 
 ### Security
