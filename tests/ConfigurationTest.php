@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Swotto\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Swotto\Auth\InMemoryTokenCache;
 use Swotto\Config\Configuration;
 use Swotto\Exception\ConfigurationException;
 
@@ -167,5 +168,106 @@ class ConfigurationTest extends TestCase
 
         $this->assertEquals('MyApp', $config->get('app_name'));
         $this->assertEquals('1.0.0', $config->get('app_version'));
+    }
+
+    public function testClientIdWithKeyIsRejected(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('Choose one authentication mode: key, bearer_token or client_id');
+
+        new Configuration([
+            'url' => 'https://api.example.com',
+            'key' => 'devapp-token',
+            'client_id' => 'catalog-client',
+            'client_secret' => 'catalog-secret',
+        ]);
+    }
+
+    public function testClientIdWithBearerTokenIsRejected(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('Choose one authentication mode: key, bearer_token or client_id');
+
+        new Configuration([
+            'url' => 'https://api.example.com',
+            'bearer_token' => 'account-token',
+            'client_id' => 'catalog-client',
+            'client_secret' => 'catalog-secret',
+        ]);
+    }
+
+    public function testClientIdRequiresClientSecret(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('client_id requires a non-empty client_secret');
+
+        new Configuration([
+            'url' => 'https://api.example.com',
+            'client_id' => 'catalog-client',
+        ]);
+    }
+
+    public function testScopeMustBeString(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('scope must be a string, array given');
+
+        new Configuration([
+            'url' => 'https://api.example.com',
+            'client_id' => 'catalog-client',
+            'client_secret' => 'catalog-secret',
+            'scope' => ['product.readonly'],
+        ]);
+    }
+
+    public function testTokenCacheMustImplementTheInterface(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('token_cache must implement Swotto\\Contract\\TokenCacheInterface, stdClass given');
+
+        new Configuration([
+            'url' => 'https://api.example.com',
+            'client_id' => 'catalog-client',
+            'client_secret' => 'catalog-secret',
+            'token_cache' => new \stdClass(),
+        ]);
+    }
+
+    public function testClientCredentialsModeIsAccepted(): void
+    {
+        $cache = new InMemoryTokenCache();
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'client_id' => 'catalog-client',
+            'client_secret' => 'catalog-secret',
+            'scope' => 'category.readonly product.readonly',
+            'token_cache' => $cache,
+        ]);
+
+        $this->assertSame('catalog-client', $config->get('client_id'));
+        $this->assertSame($cache, $config->get('token_cache'));
+    }
+
+    public function testKeyWithBearerTokenIsStillAccepted(): void
+    {
+        $config = new Configuration([
+            'url' => 'https://api.example.com',
+            'key' => 'devapp-token',
+            'bearer_token' => 'account-token',
+        ]);
+
+        $this->assertSame('account-token', $config->get('bearer_token'));
+    }
+
+    public function testClientSecretWithoutClientIdIsRejected(): void
+    {
+        $this->expectException(ConfigurationException::class);
+        $this->expectExceptionMessage('client_secret requires client_id');
+
+        new Configuration([
+            'url' => 'https://api.example.com',
+            'bearer_token' => 'account-token',
+            'client_secret' => 'catalog-secret',
+        ]);
     }
 }

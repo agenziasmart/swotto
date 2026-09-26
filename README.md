@@ -80,7 +80,9 @@ Swotto supports **dual authentication** to identify both your application and en
 
 ### DevApp Token (Application Authentication)
 
-Identifies your third-party application to SW4. **Required for all requests.**
+Identifies your third-party application to SW4. It is one of three authentication modes; the
+others are a user/Account `bearer_token` and a machine token obtained with `client_id` (see
+[Two Credentials](#two-credentials)).
 
 ```php
 $client = new SwottoClient([
@@ -114,6 +116,101 @@ $orders = $client->get('salesorder', [
     'bearer_token' => $userBearerToken,
 ]);
 ```
+
+### Two Credentials
+
+A site that shows an organization's catalog and lets its customers act on their own account
+needs two identities: the **site itself** (a machine client) and the **logged-in Account**. Use
+two instances, one per identity:
+
+```php
+// The site: OAuth 2.0 client_credentials (RFC 6749 §4.4), machine token for the catalog
+$catalog = new SwottoClient([
+    'url' => 'https://api.example.com',
+    'client_id' => $_ENV['SW4_CLIENT_ID'],
+    'client_secret' => $_ENV['SW4_CLIENT_SECRET'],
+    'scope' => 'category.readonly family.readonly product.readonly',
+]);
+
+// The logged-in Account: its own token, obtained at login
+$account = new SwottoClient([
+    'url' => 'https://api.example.com',
+    'bearer_token' => $session->accountToken(),
+]);
+
+$products = $catalog->get('product');
+$rfqs = $account->get('rfq');
+```
+
+**One authentication mode per instance.** `client_id` cannot be combined with `key` or
+`bearer_token`: the constructor throws a `ConfigurationException`. `client_id` requires a non-empty
+`client_secret`; `scope` is a space-separated string and may be omitted. (`key` together with
+`bearer_token` stays valid, as before.)
+
+**How the machine token works.** On the first call the SDK sends `POST {url}/oauth/token` with
+HTTP Basic and `grant_type=client_credentials`, keeps the token for the instance and renews it 30
+seconds before it expires. Every call then carries `Authorization: Bearer <token>`. The token, the
+secret and the body of the token response never reach a log or an exception message: the token
+request uses its own HTTP client, outside the SDK's request logging, and does not follow
+redirects. If SW4 rejects the credentials (400/401 from the token endpoint) you get a
+`ConfigurationException`; an unreachable token endpoint gives a `NetworkException`.
+
+**Renewal on a 401.** When a call answered `401` with a `WWW-Authenticate: Bearer …` challenge
+(RFC 6750 §3), the SDK drops the token, requests a new one and repeats the call **once**, with the
+same method, URI, body, query and headers — `Idempotency-Key` included — only `Authorization`
+replaced. A second 401 comes out as an `AuthenticationException`, like any other. There is no
+renewal in `bearer_token` mode (the SDK cannot obtain a new Account token by itself), on a 401 with
+a `Basic` challenge, when the call carries its own per-call `bearer_token` (that call is sent
+with the caller's token, not the machine one), or when the body is a stream that cannot be
+rewound. This renewal is separate from the [retry
+decorator](#retry-with-exponential-backoff), which never retries a 401.
+
+**Token cache.** Without `token_cache` the token lives as long as the instance. In PHP-FPM that is
+one web request, so every page asks `/oauth/token` again. To keep it across requests, pass an
+implementation of `Swotto\Contract\TokenCacheInterface`. The SDK ships only the in-memory
+default; a Redis adapter is a few lines (example, not part of the package):
+
+```php
+use Swotto\Contract\TokenCacheInterface;
+
+final class RedisTokenCache implements TokenCacheInterface
+{
+    public function __construct(private \Redis $redis, private string $prefix = 'swotto:token:')
+    {
+    }
+
+    public function get(string $key): ?array
+    {
+        $value = $this->redis->get($this->prefix . $key);
+        $token = is_string($value) ? json_decode($value, true) : null;
+
+        return is_array($token) && is_string($token['access_token'] ?? null) && is_int($token['expires_at'] ?? null)
+            ? ['access_token' => $token['access_token'], 'expires_at' => $token['expires_at']]
+            : null;
+    }
+
+    public function set(string $key, array $token, int $ttl): void
+    {
+        $this->redis->setex($this->prefix . $key, $ttl, (string) json_encode($token));
+    }
+
+    public function delete(string $key): void
+    {
+        $this->redis->del($this->prefix . $key);
+    }
+}
+
+$catalog = new SwottoClient([
+    'url' => 'https://api.example.com',
+    'client_id' => $_ENV['SW4_CLIENT_ID'],
+    'client_secret' => $_ENV['SW4_CLIENT_SECRET'],
+    'scope' => 'product.readonly',
+    'token_cache' => new RedisTokenCache($redis),
+]);
+```
+
+Keys are `sha256(token_url|client_id|scope)`, so two clients never read each other's token. The
+cache holds a live access token: keep it in a store only your application can read.
 
 ### Complete Authentication Flow
 
@@ -464,6 +561,10 @@ data wholesale.
 |--------|------|---------|-------------|
 | `key` | `string` | `null` | DevApp token for application authentication |
 | `bearer_token` | `string` | `null` | Bearer token for user authentication |
+| `client_id` | `string` | `null` | OAuth client id for the machine token (`client_credentials`); excludes `key` and `bearer_token` |
+| `client_secret` | `string` | `null` | OAuth client secret; required with `client_id` |
+| `scope` | `string` | `''` | Space-separated scopes requested with the machine token |
+| `token_cache` | `TokenCacheInterface` | in-memory | Keeps the machine token across instances (e.g. Redis) |
 | `session_id` | `string` | `null` | Session ID |
 
 ### HTTP Client Options
@@ -566,7 +667,8 @@ Contact SW4 support or visit your organization dashboard at `https://app.sw4.it/
 
 ### Can I use this SDK without authentication?
 
-No. SW4 API requires at least a DevApp token for all requests.
+No. SW4 API requires a credential on every request: a DevApp token (`key`), a Bearer token
+(`bearer_token`) or a machine token obtained with `client_id` and `client_secret`.
 
 ### What PHP versions are supported?
 
