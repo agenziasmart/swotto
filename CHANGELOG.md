@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not follow redirects. A 400/401 from the token endpoint raises `ConfigurationException('SW4
   rejected the client credentials')`, an unreachable endpoint `NetworkException`; neither the
   token, the secret nor the token endpoint's response body reaches a log or an exception message.
+  With `retry_enabled`, an unreachable token endpoint (`NetworkException`) follows the generic
+  retry on idempotent methods (and on calls opted in with `retry_non_idempotent`): one token
+  request per attempt.
 - **One renewal after a Bearer challenge.** In `client_id` mode a 401 carrying `WWW-Authenticate:
   Bearer …` (RFC 6750 §3) drops the token, requests a new one and repeats the call once with the
   same method, URI, body, query and headers (`Idempotency-Key` included), only `Authorization`

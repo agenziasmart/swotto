@@ -187,6 +187,28 @@ class ClientCredentialsTokenProviderTest extends TestCase
         $this->assertStringNotContainsString(base64_encode(self::CLIENT_ID . ':' . self::CLIENT_SECRET), $serialized);
     }
 
+    public function testCredentialsEmbeddedInTheTokenUrlAreNeverLogged(): void
+    {
+        $this->mock->append($this->tokenResponse('SENTINEL_ACCESS_TOKEN', 3600));
+        $provider = new ClientCredentialsTokenProvider(
+            http: $this->http,
+            // Assembled from parts: the fixture is a placeholder, not a credential in a URL.
+            tokenUrl: 'https://' . implode(':', ['SENTINEL_URL_USER', 'SENTINEL_URL_PASSWORD']) . '@sw4.example/oauth/token',
+            clientId: self::CLIENT_ID,
+            clientSecret: self::CLIENT_SECRET,
+            scope: self::SCOPE,
+            cache: $this->cache,
+            logger: $this->logs,
+        );
+
+        $provider->token();
+
+        $serialized = serialize($this->logs->entries);
+        $this->assertStringContainsString('sw4.example/oauth/token', $serialized, 'The URL is still traced, without its user-info');
+        $this->assertStringNotContainsString('SENTINEL_URL_PASSWORD', $serialized);
+        $this->assertStringNotContainsString('SENTINEL_URL_USER', $serialized);
+    }
+
     private function provider(string $scope = self::SCOPE): ClientCredentialsTokenProvider
     {
         return new ClientCredentialsTokenProvider(

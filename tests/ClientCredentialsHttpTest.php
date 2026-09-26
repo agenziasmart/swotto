@@ -64,7 +64,9 @@ class ClientCredentialsHttpTest extends TestCase
 
         return function (RequestInterface $request, array $options) use ($mock): PromiseInterface {
             $this->sent[] = $request;
-            $this->sentBodies[] = (string) $request->getBody();
+            // Read from the current position, as a transport does: a stream left at its end
+            // by the first attempt shows up here as an empty body.
+            $this->sentBodies[] = $request->getBody()->getContents();
 
             return $mock($request, $options);
         };
@@ -234,6 +236,22 @@ class ClientCredentialsHttpTest extends TestCase
         }
 
         $this->assertCount(1, $this->sent);
+    }
+
+    public function testASeekableStreamBodyIsRewoundBeforeTheRetry(): void
+    {
+        $client = $this->machineClient([
+            self::token(self::TOKEN_A),
+            self::unauthorized(self::BEARER_CHALLENGE),
+            self::token(self::TOKEN_B),
+            self::ok(),
+        ]);
+
+        $client->request('POST', 'rfq', ['body' => Utils::streamFor('{"product":"P-1"}')]);
+
+        $this->assertCount(4, $this->sent);
+        $this->assertSame('{"product":"P-1"}', $this->sentBodies[1]);
+        $this->assertSame($this->sentBodies[1], $this->sentBodies[3], 'the retry sends the same bytes');
     }
 
     public function testANonRewindableBodyIsNotRetried(): void

@@ -15,6 +15,7 @@ use Swotto\Contract\TokenCacheInterface;
 use Swotto\Exception\ApiException;
 use Swotto\Exception\ConfigurationException;
 use Swotto\Exception\NetworkException;
+use Swotto\Http\LogSanitizer;
 
 /**
  * ClientCredentialsTokenProvider.
@@ -153,7 +154,7 @@ final class ClientCredentialsTokenProvider
             $form['scope'] = $this->scope;
         }
 
-        $this->logger->debug('Requesting a client_credentials token', ['token_url' => $this->tokenUrl]);
+        $this->logger->debug('Requesting a client_credentials token', ['token_url' => LogSanitizer::uri($this->tokenUrl)]);
 
         try {
             $response = $this->http->request('POST', $this->tokenUrl, [
