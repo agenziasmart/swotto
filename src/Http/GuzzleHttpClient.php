@@ -28,7 +28,8 @@ use Swotto\Exception\ValidationException;
  * GuzzleHttpClient.
  *
  * HTTP Client implementation using Guzzle.
- * Immutable: configured once in constructor.
+ * Configuration fixed in the constructor; in client_id mode the machine token is held per
+ * instance by the token provider.
  */
 final class GuzzleHttpClient implements HttpClientInterface
 {

@@ -6,7 +6,9 @@ namespace Swotto\Tests;
 
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Psr7\NoSeekStream;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Utils;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Log\AbstractLogger;
@@ -232,6 +234,25 @@ class ClientCredentialsHttpTest extends TestCase
         }
 
         $this->assertCount(1, $this->sent);
+    }
+
+    public function testANonRewindableBodyIsNotRetried(): void
+    {
+        $client = $this->machineClient([
+            self::token(self::TOKEN_A),
+            self::unauthorized(self::BEARER_CHALLENGE),
+            self::token(self::TOKEN_B),
+            self::ok(),
+        ]);
+
+        try {
+            $client->request('POST', 'rfq', ['body' => new NoSeekStream(Utils::streamFor('{"product":"P-1"}'))]);
+            $this->fail('A body that cannot be replayed must not be sent again');
+        } catch (AuthenticationException $e) {
+            $this->assertSame(401, $e->getStatusCode());
+        }
+
+        $this->assertCount(2, $this->sent, 'no second attempt with an empty body');
     }
 
     public function testRawRequestAlsoRetriesOnceAfterABearerChallenge(): void

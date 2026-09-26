@@ -26,14 +26,21 @@ There is no build step and no local server.
 
 ## Architecture
 
-Production code lives in `src/` under the `Swotto\` PSR-4 namespace: `Config/`, `Contract/`,
-`Http/`, `Response/`, `Retry/`, `Exception/`. Tests in `tests/` mirror that layout.
+Production code lives in `src/` under the `Swotto\` PSR-4 namespace: `Auth/`, `Config/`,
+`Contract/`, `Http/`, `Response/`, `Retry/`, `Exception/`. Tests in `tests/` mirror that layout.
 
-**`SwottoClient`** is the entry point and implements `SwottoClientInterface`. It is **fully
-immutable** — every property `readonly`, no setters, no mutable state — and takes its logger
-and HTTP client by injection (PSR-3, PSR-18). One deliberate exception:
-`GuzzleHttpClient::$client` is **not** `readonly`, so tests can swap the transport in by
-reflection. Nothing in production writes it after construction.
+**`SwottoClient`** is the entry point and implements `SwottoClientInterface`. Its configuration
+is **immutable** — every property `readonly`, no setters — and it takes its logger and HTTP
+client by injection (PSR-3, PSR-18). The one state that changes is the machine token of
+`client_id` mode, held per instance by the token provider's cache (never static: two clients in
+one worker never share it). One deliberate exception: `GuzzleHttpClient::$client` is **not**
+`readonly`, so tests can swap the transport in by reflection. Nothing in production writes it
+after construction.
+
+**`Auth/`** holds `ClientCredentialsTokenProvider` (OAuth `client_credentials` against
+`{url}/oauth/token`, on its own Guzzle client outside the SDK's logging) and
+`InMemoryTokenCache`, the per-instance default of `Contract\TokenCacheInterface`.
+`GuzzleHttpClient` adds the machine Bearer and renews it once on a 401 Bearer challenge.
 
 **`Http/`** holds `GuzzleHttpClient` (PSR-7/PSR-18) and `RetryHttpClient`, a decorator adding
 retry with exponential backoff. `extractPerCallOptions()` turns context options into HTTP
@@ -56,9 +63,10 @@ application; the case that matters is a filename derived from a server-controlle
 **`Config/Configuration`** requires `url` — validated as a non-empty string with an `http`
 or `https` scheme and a host; `http` stays valid because local development reaches the API
 over `http://host.docker.internal:8081`. It also accepts `key` (DevApp token), `bearer_token`,
-context keys (`language`, `session_id`, `client_ip`, `client_user_agent`), retry settings and
+`client_id` / `client_secret` / `scope` / `token_cache`, context keys (`language`, `session_id`, `client_ip`, `client_user_agent`), retry settings and
 `timeout` / `verify_ssl`. Note that `getHeaders()` returns **transport headers only**
-(`Accept`, `x-devapp`): context headers travel a different path, described below.
+(`Accept`, `x-devapp`): context headers travel a different path, described below. One
+authentication mode per instance: `client_id` is rejected together with `key` or `bearer_token`.
 
 **`Exception/`** is a hierarchy rooted in `SwottoExceptionInterface` → `SwottoException`, with
 HTTP (`ApiException`, `AuthenticationException`, `ForbiddenException`, `NotFoundException`,
