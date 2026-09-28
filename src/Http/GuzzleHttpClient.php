@@ -9,8 +9,10 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Swotto\Auth\ClientCredentialsTokenProvider;
 use Swotto\Config\Configuration;
 use Swotto\Contract\HttpClientInterface;
 use Swotto\Exception\ApiException;
@@ -26,14 +28,15 @@ use Swotto\Exception\ValidationException;
  * GuzzleHttpClient.
  *
  * HTTP Client implementation using Guzzle.
- * Immutable: configured once in constructor.
+ * Configuration fixed in the constructor; in client_id mode the machine token is held per
+ * instance by the token provider.
  */
 final class GuzzleHttpClient implements HttpClientInterface
 {
     /**
      * @var string SDK version
      */
-    private const VERSION = '2.3.1';
+    private const VERSION = '2.4.0';
 
     /**
      * @var int Default request timeout
@@ -83,15 +86,27 @@ final class GuzzleHttpClient implements HttpClientInterface
     private readonly Configuration $config;
 
     /**
+     * @var ClientCredentialsTokenProvider|null Machine token source (client_id mode), null otherwise
+     */
+    private readonly ?ClientCredentialsTokenProvider $tokenProvider;
+
+    /**
      * Constructor.
      *
      * @param Configuration $config Configuration instance
      * @param LoggerInterface|null $logger Optional logger
+     * @param ClientCredentialsTokenProvider|null $tokenProvider Machine token source for client_id mode
+     * @param callable|null $handler Innermost Guzzle handler (tests); null uses the default transport
      */
-    public function __construct(Configuration $config, ?LoggerInterface $logger = null)
-    {
+    public function __construct(
+        Configuration $config,
+        ?LoggerInterface $logger = null,
+        ?ClientCredentialsTokenProvider $tokenProvider = null,
+        ?callable $handler = null,
+    ) {
         $this->config = $config;
         $this->logger = $logger ?? new NullLogger();
+        $this->tokenProvider = $tokenProvider;
 
         $userAgent = $this->buildUserAgent();
         $telemetry = $this->buildTelemetry();
@@ -128,7 +143,7 @@ final class GuzzleHttpClient implements HttpClientInterface
                 'referer' => false,
             ],
             'verify' => $verifySsl,
-            'handler' => $this->buildHandlerStack($baseUrl),
+            'handler' => $this->buildHandlerStack($baseUrl, $handler),
         ];
 
         try {
@@ -150,11 +165,12 @@ final class GuzzleHttpClient implements HttpClientInterface
      * redirected request rather than just the original one.
      *
      * @param string $baseUrl Configured base URL
+     * @param callable|null $handler Innermost handler; null uses Guzzle's default transport
      * @return HandlerStack Handler stack for the Guzzle client
      */
-    private function buildHandlerStack(string $baseUrl): HandlerStack
+    private function buildHandlerStack(string $baseUrl, ?callable $handler = null): HandlerStack
     {
-        $stack = HandlerStack::create();
+        $stack = HandlerStack::create($handler);
         $baseHost = strtolower((string) parse_url($baseUrl, PHP_URL_HOST));
 
         $stack->push(
@@ -184,9 +200,9 @@ final class GuzzleHttpClient implements HttpClientInterface
 
         $this->logRequest('Requesting', $method, $uri, $options);
 
-        try {
-            $response = $this->client->request($method, $uri, $options);
+        $response = $this->send($method, $uri, $options, false);
 
+        try {
             if ($response->getBody()->getSize() === 0) {
                 return [];
             }
@@ -199,7 +215,7 @@ final class GuzzleHttpClient implements HttpClientInterface
 
             return $decoded;
         } catch (\Exception $exception) {
-            return $this->handleException($exception);
+            $this->fail($exception, false);
         }
     }
 
@@ -212,11 +228,177 @@ final class GuzzleHttpClient implements HttpClientInterface
 
         $this->logRequest('Raw request', $method, $uri, $options);
 
+        return $this->send($method, $uri, $options, true);
+    }
+
+    /**
+     * Send the request, with the machine Bearer in client_id mode.
+     *
+     * In client_id mode a 401 whose WWW-Authenticate challenge is Bearer (RFC 6750 §3) means
+     * the token is no longer good: it is dropped, a new one is requested and the request is
+     * sent **once** more with the same method, URI and options — body, query and every header,
+     * Idempotency-Key included — only Authorization replaced. A second 401 comes out as any
+     * other. The token is requested outside the transport's catch, so a rejected client
+     * credential surfaces as the provider's ConfigurationException, not as a network failure.
+     *
+     * No retry when the caller brought its own Authorization (a per-call bearer_token or
+     * auth option): that identity is not the SDK's to renew. No retry either when the body
+     * cannot be replayed from the start: an empty or partial body is never sent.
+     *
+     * @param string $method HTTP method
+     * @param string $uri Request URI
+     * @param array<string, mixed> $options Guzzle options, per-call options already extracted
+     * @param bool $raw Whether failures keep a non-JSON body (requestRaw)
+     * @return ResponseInterface Response
+     */
+    private function send(string $method, string $uri, array $options, bool $raw): ResponseInterface
+    {
+        $provider = $this->carriesCallerAuthorization($options) ? null : $this->tokenProvider;
+
+        if ($provider !== null) {
+            $options['headers'] = $this->withAuthorization($options, $provider->token());
+        }
+
         try {
             return $this->client->request($method, $uri, $options);
         } catch (\Exception $exception) {
-            $this->handleRawException($exception);
+            if ($provider === null || !$this->isBearerChallenge($exception) || !$this->rewindBody($options)) {
+                $this->fail($exception, $raw);
+            }
         }
+
+        $this->logger->info('Bearer challenge received: renewing the client_credentials token once');
+        $provider->invalidate();
+        $options['headers'] = $this->withAuthorization($options, $provider->token());
+
+        try {
+            return $this->client->request($method, $uri, $options);
+        } catch (\Exception $exception) {
+            $this->fail($exception, $raw);
+        }
+    }
+
+    /**
+     * Whether the caller set its own Authorization for this call.
+     *
+     * @param array<string, mixed> $options Guzzle options
+     */
+    private function carriesCallerAuthorization(array $options): bool
+    {
+        if (isset($options['auth'])) {
+            return true;
+        }
+
+        $headers = $options['headers'] ?? [];
+        if (!is_array($headers)) {
+            return false;
+        }
+
+        foreach (array_keys($headers) as $name) {
+            if (strcasecmp((string) $name, 'Authorization') === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Headers of the call with Authorization set to the machine Bearer.
+     *
+     * @param array<string, mixed> $options Guzzle options
+     * @return array<string, mixed> Headers
+     */
+    private function withAuthorization(array $options, string $token): array
+    {
+        $headers = isset($options['headers']) && is_array($options['headers']) ? $options['headers'] : [];
+        $headers['Authorization'] = 'Bearer ' . $token;
+
+        return $headers;
+    }
+
+    /**
+     * Whether the failure is a 401 carrying a Bearer challenge (RFC 6750 §3).
+     */
+    private function isBearerChallenge(\Exception $exception): bool
+    {
+        if (!$exception instanceof RequestException) {
+            return false;
+        }
+
+        $response = $exception->getResponse();
+        if ($response === null || $response->getStatusCode() !== 401) {
+            return false;
+        }
+
+        foreach ($response->getHeader('WWW-Authenticate') as $challenge) {
+            if (preg_match('/^bearer(\s|$)/i', trim($challenge)) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Put every stream in the body back at its start, so the retry sends the same bytes.
+     *
+     * Arrays (json, form_params) and strings are rebuilt from the options and need nothing.
+     * A seekable stream or resource — also inside multipart — is rewound. Anything that
+     * cannot be replayed (non-seekable stream, iterator, callable) makes the retry unsafe.
+     *
+     * @param array<string, mixed> $options Guzzle options
+     * @return bool Whether the body can be sent again as it was
+     */
+    private function rewindBody(array $options): bool
+    {
+        $bodies = array_key_exists('body', $options) ? [$options['body']] : [];
+
+        if (isset($options['multipart']) && is_array($options['multipart'])) {
+            foreach ($options['multipart'] as $part) {
+                if (is_array($part) && array_key_exists('contents', $part)) {
+                    $bodies[] = $part['contents'];
+                }
+            }
+        }
+
+        foreach ($bodies as $body) {
+            if ($body === null || is_scalar($body)) {
+                continue;
+            }
+
+            if ($body instanceof StreamInterface) {
+                if (!$body->isSeekable()) {
+                    return false;
+                }
+                $body->rewind();
+
+                continue;
+            }
+
+            if (is_resource($body) && stream_get_meta_data($body)['seekable'] && rewind($body)) {
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Log and map a failure.
+     *
+     * @param \Exception $exception The caught exception
+     * @param bool $raw Whether to preserve a non-JSON body (requestRaw)
+     * @return never Always throws
+     *
+     * @throws ApiException|ConnectionException|NetworkException|\Exception
+     */
+    private function fail(\Exception $exception, bool $raw): never
+    {
+        $this->logException($exception);
+        $this->throwMappedException($exception, $raw);
     }
 
     /**
@@ -346,34 +528,6 @@ final class GuzzleHttpClient implements HttpClientInterface
         }
 
         return (string) json_encode($data);
-    }
-
-    /**
-     * Handle exceptions that might occur during API requests.
-     *
-     * @param \Exception $exception The caught exception
-     * @return array<string, mixed> Never returns, always throws
-     *
-     * @throws ApiException|ConnectionException|NetworkException|\Exception
-     */
-    private function handleException(\Exception $exception): array
-    {
-        $this->logException($exception);
-        $this->throwMappedException($exception, false);
-    }
-
-    /**
-     * Handle exceptions for raw requests.
-     *
-     * @param \Exception $exception The caught exception
-     * @return never Always throws
-     *
-     * @throws ApiException|ConnectionException|NetworkException|\Exception
-     */
-    private function handleRawException(\Exception $exception): never
-    {
-        $this->logException($exception);
-        $this->throwMappedException($exception, true);
     }
 
     /**

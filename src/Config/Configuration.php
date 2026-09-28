@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Swotto\Config;
 
+use Swotto\Contract\TokenCacheInterface;
 use Swotto\Exception\ConfigurationException;
 
 /**
@@ -34,6 +35,11 @@ final class Configuration
         'session_id',
         'client_ip',
         'client_user_agent',
+        // OAuth client_credentials (RFC 6749 §4.4)
+        'client_id',
+        'client_secret',
+        'scope',
+        'token_cache',
         // App identification
         'app_name',
         'app_version',
@@ -139,6 +145,64 @@ final class Configuration
 
         if (isset($config['retry_jitter']) && !is_bool($config['retry_jitter'])) {
             throw new ConfigurationException('retry_jitter must be boolean');
+        }
+
+        $this->validateAuthenticationMode($config);
+    }
+
+    /**
+     * One authentication mode per instance: key (x-devapp), bearer_token or client_id.
+     *
+     * An empty string counts as absent, as it does when SwottoClient builds its defaults.
+     * Values are never interpolated into a message: they are credentials.
+     *
+     * @param array<string, mixed> $config Configuration options
+     * @return void
+     *
+     * @throws ConfigurationException On a mixed or incomplete authentication setup
+     */
+    private function validateAuthenticationMode(array $config): void
+    {
+        $present = static fn (string $key): bool => isset($config[$key]) && $config[$key] !== '';
+
+        if (!$present('client_id')) {
+            foreach (['client_secret', 'scope', 'token_cache'] as $key) {
+                if (isset($config[$key])) {
+                    throw new ConfigurationException("$key requires client_id");
+                }
+            }
+
+            return;
+        }
+
+        if ($present('key') || $present('bearer_token')) {
+            throw new ConfigurationException('Choose one authentication mode: key, bearer_token or client_id');
+        }
+
+        if (!is_string($config['client_id'])) {
+            throw new ConfigurationException(
+                sprintf('client_id must be a string, %s given', get_debug_type($config['client_id']))
+            );
+        }
+
+        if (!isset($config['client_secret']) || !is_string($config['client_secret']) || $config['client_secret'] === '') {
+            throw new ConfigurationException('client_id requires a non-empty client_secret');
+        }
+
+        if (isset($config['scope']) && !is_string($config['scope'])) {
+            throw new ConfigurationException(
+                sprintf('scope must be a string, %s given', get_debug_type($config['scope']))
+            );
+        }
+
+        if (isset($config['token_cache']) && !$config['token_cache'] instanceof TokenCacheInterface) {
+            throw new ConfigurationException(
+                sprintf(
+                    'token_cache must implement %s, %s given',
+                    TokenCacheInterface::class,
+                    get_debug_type($config['token_cache'])
+                )
+            );
         }
     }
 
