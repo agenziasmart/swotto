@@ -1,6 +1,6 @@
 # Swotto PHP SDK
 
-Official PHP client library for integrating with the **SW4 API** - a comprehensive B2B/ERP platform providing centralized access to:
+Official PHP client library for integrating with the **SW4 API**, a multitenant API-first data platform: each organization integrates or manages its own data, and builds web or AI applications on top. It provides access to:
 
 - **Customer & Supplier Management** (Master Data/Anagrafiche)
 - **Inventory & Stock Management** (Magazzino)
